@@ -526,3 +526,25 @@ if __name__ == "__main___":
         ]
         df_pc.dropna(inplace=True)
         df_pc.to_pickle(file, compression="gzip")
+
+    # convert the filtered postcodes to json files for ORI heat application
+    for file in Path("assets/postcodes_filtered").glob("*.pkl.gz"):
+        # file = 'assets/postcodes_filtered/AE.pkl.gz'
+        print(file)
+        if "AU" in file.name:
+            df_pc = pd.read_pickle(file, compression="gzip")
+            country_code = file.name.split(".")[0]
+            df_pc.rename(
+                columns={
+                    "sub-state-post-country": "label",
+                },
+                inplace=True,
+            )
+            df_pc = df_pc[["lat", "lon", "label"]]
+            df_pc.drop_duplicates(inplace=True, subset=["lat", "lon"])
+            df_pc.to_json(
+                f"assets/postcodes_filtered/{country_code}.json",
+                orient="records",
+                force_ascii=False,
+                indent=2,
+            )
