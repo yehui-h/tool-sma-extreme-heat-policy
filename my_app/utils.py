@@ -169,7 +169,7 @@ def open_weather(lat, lon):
     return df_for
 
 
-@cached(cache=TTLCache(maxsize=10, ttl=600))
+# @cached(cache=TTLCache(maxsize=10, ttl=600))
 def get_weather(
     lat: float = -33.8862,
     lon: float = 151.1791,
@@ -406,7 +406,9 @@ def get_data_specific_day(df, date_offset=0):
 @dataclass()
 class FirebaseFields:
     database_name: str = "/Users/Test"
-    database_url: str = "https://sma-extreme-heat-policy-default-rtdb.asia-southeast1.firebasedatabase.app"
+    database_url: str = (
+        "https://sma-extreme-heat-policy-default-rtdb.asia-southeast1.firebasedatabase.app"
+    )
     risk_profile: str = "risk-profile"
     user_id: str = "user-id"
     timestamp: str = "timestamp"
@@ -444,7 +446,7 @@ class GlobeTemperatures(Enum):
 
 
 # cache weather data for no longer than ten minutes
-@cached(cache=TTLCache(maxsize=10, ttl=600))
+# @cached(cache=TTLCache(maxsize=10, ttl=600))
 def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
     """Get weather data and calculate risk using user settings.
 
@@ -480,7 +482,7 @@ def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
     return df
 
 
-@cached(cache=TTLCache(maxsize=10, ttl=600))
+# @cached(cache=TTLCache(maxsize=10, ttl=600))
 def get_info_location_selected(location: str) -> dict:
     """Get information about the selected location."""
     try:
