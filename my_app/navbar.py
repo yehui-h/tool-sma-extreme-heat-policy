@@ -31,11 +31,11 @@ def my_navbar():
                         px=0,
                         style={"textAlign": "center"},
                     ),
-                    dmc.GridCol(
-                        span={"base": 1, "xs": 1},
-                        className="p-0",
-                        children=modal_country_select(),
-                    ),
+                    # dmc.GridCol(
+                    #     span={"base": 1, "xs": 1},
+                    #     className="p-0",
+                    #     children=modal_country_select(),
+                    # ),
                     dmc.GridCol(
                         [
                             dbc.NavbarToggler(

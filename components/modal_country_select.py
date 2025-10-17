@@ -78,31 +78,31 @@ def modal_toggle_open_close(n_clicks: int | None, opened: bool) -> bool:
     return not opened
 
 
-@callback(
-    Output(IDs.button_country, "children"),
-    Input(IDs.modal_country_select, "value"),
-    Input(store_settings_dict, "data"),
-)
-def update_flag_country_button(
-    country: str, store_settings: dict | None
-) -> DashIconify:
-    """Updates the country in local storage, changes the flag, and closes the modal."""
-    trigger = ctx.triggered_id
-    if trigger is None and store_settings is not None:
-        store_settings = UserSettings(**store_settings)
-        country = store_settings.location.split("_")[-1]
+# @callback(
+#     Output(IDs.button_country, "children"),
+#     Input(IDs.modal_country_select, "value"),
+#     Input(store_settings_dict, "data"),
+# )
+# def update_flag_country_button(
+#     country: str, store_settings: dict | None
+# ) -> DashIconify:
+#     """Updates the country in local storage, changes the flag, and closes the modal."""
+#     trigger = ctx.triggered_id
+#     if trigger is None and store_settings is not None:
+#         store_settings = UserSettings(**store_settings)
+#         country = store_settings.location.split("_")[-1]
+#
+#     return component_country_flag(country)
 
-    return component_country_flag(country)
 
-
-@callback(
-    Output(IDs.modal_country, "opened"),
-    Input(IDs.modal_country_select, "value"),
-    prevent_initial_call=True,
-)
-def close_the_modal(_) -> bool:
-    """Closes the modal."""
-    return False
+# @callback(
+#     Output(IDs.modal_country, "opened"),
+#     Input(IDs.modal_country_select, "value"),
+#     prevent_initial_call=True,
+# )
+# def close_the_modal(_) -> bool:
+#     """Closes the modal."""
+#     return False
 
 
 @callback(
