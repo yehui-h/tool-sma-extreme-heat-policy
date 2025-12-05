@@ -26,7 +26,8 @@ This document explains the minimal steps to get started developing, testing, and
     git commit -m "Describe your change"
     git push origin feature/your-feature-name
     ```
-7. **Open a Pull Request** on GitHub
+7. Bump the version `bump-my-version bump patch`
+8**Open a Pull Request** on GitHub
 
 ## Deployment
 
