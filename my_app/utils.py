@@ -5,15 +5,21 @@ from enum import Enum
 
 import dash_bootstrap_components as dbc
 import numpy as np
+import openmeteo_requests
+import pandas as pd
+import pytz
+import requests
+import requests_cache
 import scipy
 from dash import html
 from icecream import ic
 from matplotlib import pyplot as plt
+from pvlib import location
+from pythermalcomfort.models import solar_gain, phs
 from pythermalcomfort.utilities import mean_radiant_tmp
+from retry_requests import retry
+from timezonefinder import TimezoneFinder
 
-import pandas as pd
-import requests
-import pytz
 from config import (
     sma_risk_messages,
     mrt_calculation,
@@ -21,12 +27,6 @@ from config import (
     default_location,
     get_postcodes,
 )
-from pvlib import location
-from pythermalcomfort.models import solar_gain, phs
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
-from timezonefinder import TimezoneFinder
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -116,7 +116,7 @@ def yr_weather(lat=-33.8862, lon=151.1791, tz="Australia/Sydney"):
 
 
 def open_weather(lat, lon):
-    cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
+    cache_session = requests_cache.CachedSession(".cache", expire_after=600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
 
@@ -404,9 +404,7 @@ def get_data_specific_day(df, date_offset=0):
 @dataclass()
 class FirebaseFields:
     database_name: str = "/Users/Test"
-    database_url: str = (
-        "https://sma-extreme-heat-policy-default-rtdb.asia-southeast1.firebasedatabase.app"
-    )
+    database_url: str = "https://sma-extreme-heat-policy-default-rtdb.asia-southeast1.firebasedatabase.app"
     risk_profile: str = "risk-profile"
     user_id: str = "user-id"
     timestamp: str = "timestamp"
