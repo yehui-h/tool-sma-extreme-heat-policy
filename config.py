@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import ClassVar
-from cachetools import cached, TTLCache
 
 import pandas as pd
 from pydantic import BaseModel

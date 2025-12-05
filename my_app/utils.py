@@ -6,7 +6,6 @@ from enum import Enum
 import dash_bootstrap_components as dbc
 import numpy as np
 import scipy
-from cachetools import cached, TTLCache
 from dash import html
 from icecream import ic
 from matplotlib import pyplot as plt
