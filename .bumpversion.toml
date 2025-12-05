@@ -25,3 +25,6 @@ replace = "Version: {new_version}"
 filename = "my_app/utils.py"
 search = "{current_version}"
 replace = "{new_version}"
+
+[[tool.bumpversion.files]]
+filename = "deploy.sh"
