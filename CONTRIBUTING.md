@@ -37,9 +37,9 @@ However, you can also deploy manually using the following commands.
 
 ```bash
 gcloud components update --quiet
-python -m pytest --numprocesses 3 --base-url http://0.0.0.0:8080
+python -m pytest --numprocesses auto --base-url http://0.0.0.0:8080
 gcloud builds submit --project=sma-extreme-heat-policy --substitutions=_REPO_NAME="extreme-heat-tool-test",_PROJ_NAME="sma-extreme-heat-policy",_IMG_NAME="test"
-python -m pytest --numprocesses 3 --base-url https://extreme-heat-tool-test-987661761927.asia-southeast1.run.app
+python -m pytest --numprocesses auto --base-url https://extreme-heat-tool-test-987661761927.asia-southeast1.run.app
 ```
 
 Alternatively, build locally and push:
