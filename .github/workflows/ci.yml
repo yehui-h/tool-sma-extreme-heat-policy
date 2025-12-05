@@ -74,7 +74,7 @@ jobs:
         run: |
           gcloud builds submit \
             --project=sma-extreme-heat-policy \
-            --tag="${{ env.VERSION_TAG }}" \
+            --tag="asia-southeast1-docker.pkg.dev/sma-extreme-heat-policy/${{ env.REPO_NAME }}/${{ env.IMG_NAME }}:${{ env.VERSION_TAG }}" \
             --substitutions=_REPO_NAME="${{ env.REPO_NAME }}",_PROJ_NAME="sma-extreme-heat-policy",_IMG_NAME="${{ env.IMG_NAME }}"
 
   prune:
