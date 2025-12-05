@@ -24,7 +24,6 @@ default_location = {
 variable_calc_risk = "ratio_w"
 
 
-@cached(cache=TTLCache(maxsize=10, ttl=600))
 def get_postcodes(country: str = Defaults.country.value) -> pd.DataFrame:
     """Retrieve postcodes for the specified country, preferring filtered assets.
 
