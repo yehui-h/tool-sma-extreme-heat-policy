@@ -10,6 +10,8 @@ ORIG_SERVICE="$SERVICE"
 
 REGION="asia-southeast1"
 MEMORY="8Gi"
+CPU="2"
+MAX_INSTANCES="50"
 ACCOUNT="federicotartarini@gmail.com"
 # Use the original service name as the Artifact Registry repository id
 REPOSITORY="$ORIG_SERVICE"
@@ -118,7 +120,9 @@ gcloud run deploy "$SERVICE" \
       --memory $MEMORY \
       --platform managed \
       --allow-unauthenticated \
-      --tag "v${VERSION//./-}"
+      --tag "v${VERSION//./-}" \
+      --cpu $CPU \
+      --max-instances $MAX_INSTANCES
 
 echo "Deployment completed. Access the application at: $URL"
 

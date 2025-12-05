@@ -36,6 +36,8 @@ However, you can also deploy manually using the following commands.
 
 ### Build and Push Test Version
 
+You can build it locally and push using `deploy.sh`, or use Cloud Build to build and push.
+
 ```bash
 gcloud components update --quiet
 python -m pytest --numprocesses auto --base-url http://0.0.0.0:8080
