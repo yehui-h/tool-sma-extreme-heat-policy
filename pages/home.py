@@ -1,6 +1,4 @@
-import time
-from copy import deepcopy
-from urllib.parse import urlencode
+from __future__ import annotations
 
 import dash
 import dash_mantine_components as dmc
@@ -24,7 +22,7 @@ from components.sport_image import (
     component_sport_image,
 )
 from config import URLS, PostcodesDefault
-from my_app.my_classes import IDs, UserSettings, Defaults
+from my_app.my_classes import IDs, UserSettings
 from my_app.utils import (
     FirebaseFields,
     store_settings_dict,
@@ -73,15 +71,12 @@ def layout():
     State(storage_user_id, "data"),
     Input(IDs.dropdown_location_value, "value"),
     Input(IDs.dropdown_sport, "value"),
-    # Input(IDs.modal_country_select, "value"),
+    Input(IDs.modal_country_select, "value"),
     prevent_initial_call=True,
 )
 def save_settings_in_storage_and_update_url(
-    store_settings: dict,
-    user_id: str,
-    location: str,
-    sport: str,
-) -> tuple[dict, any]:
+    store_settings: dict, user_id: str, location: str, sport: str, modal_country: str
+) -> tuple[dict, str]:
     # ic(store_settings, location, sport)
     """Saves settings using a Pydantic model and updates the URL."""
     ic(dash.ctx.triggered_id)
@@ -89,11 +84,11 @@ def save_settings_in_storage_and_update_url(
     settings.location = location
     settings.sport = sport
 
-    # if dash.ctx.triggered_id == IDs.modal_country_select:
-    #     print("Country changed to:", modal_country)
-    #     # if the country is changed, we need to reset the location to the default for that country
-    #     postcodes_default = PostcodesDefault()
-    #     settings.location = postcodes_default[modal_country]
+    if dash.ctx.triggered_id == IDs.modal_country_select:
+        print("Country changed to:", modal_country)
+        # if the country is changed, we need to reset the location to the default for that country
+        postcodes_default = PostcodesDefault()
+        settings.location = postcodes_default[modal_country]
 
     # firebase_data = deepcopy(store_settings)
     # if any(store_settings.values()):
@@ -101,11 +96,7 @@ def save_settings_in_storage_and_update_url(
     #     firebase_data[FirebaseFields.timestamp] = time.time()
     #     ref.push().set(firebase_data)
 
-    url_data = settings.dict()
     # return the new values and the url
-    url_search = f"?{urlencode(url_data)}"
-    # ic(settings)
-    # ic(url_search)
     if dash.ctx.triggered_id == IDs.modal_country_select:
         # if the country is changed, we need to update the location dropdown
         print("updating location dropdown due to country change")
