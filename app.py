@@ -44,5 +44,5 @@ app = DashProxy(
     assets_ignore="tests/*.*",
 )
 cache = Cache(
-    app.server, config={"CACHE_TYPE": "filesystem", "CACHE_DIR": "cache-directory"}
+    app.server, config={"CACHE_TYPE": "SimpleCache"}
 )
