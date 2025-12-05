@@ -64,10 +64,17 @@ jobs:
         with:
           project_id: sma-extreme-heat-policy
 
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(grep -oP 'app_version = "\K[^"]+' my_app/utils.py)
+          echo "VERSION_TAG=${VERSION//./-}" >> $GITHUB_ENV
+
       - name: Building (🏗️) and Deploying (🚀)
         run: |
           gcloud builds submit \
             --project=sma-extreme-heat-policy \
+            --tag="${{ env.VERSION_TAG }}" \
             --substitutions=_REPO_NAME="${{ env.REPO_NAME }}",_PROJ_NAME="sma-extreme-heat-policy",_IMG_NAME="${{ env.IMG_NAME }}"
 
   prune:
