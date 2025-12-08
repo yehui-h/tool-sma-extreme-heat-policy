@@ -24,12 +24,17 @@ default_location = {
 variable_calc_risk = "ratio_w"
 
 
-@lru_cache(maxsize=10)  # Cache last 10 countries to avoid repeated disk I/O
+@lru_cache(maxsize=5)  # Cache last 5 countries to reduce memory usage (was 10)
 def _get_postcodes_cached(country: str) -> pd.DataFrame:
     """Internal cached function to load postcodes from disk.
 
     This is cached to avoid repeated disk I/O and decompression.
     Returns the actual DataFrame which should not be modified.
+
+    Notes
+    -----
+    Cache reduced from 10 to 5 to optimize memory usage on Cloud Run.
+    Each country's postcodes can be several MB, so 5 countries is a good balance.
     """
     filtered_path = f"./assets/postcodes_filtered/{country}.pkl.gz"
 
