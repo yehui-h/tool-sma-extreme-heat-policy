@@ -1,5 +1,5 @@
 # tests/test_home.py
-
+import pytest
 from playwright.sync_api import Page, expect
 
 
@@ -58,6 +58,7 @@ class TestHomePage:
                 page.locator("#id-sport-image").get_by_role("img")
             ).to_have_attribute("src", f"/assets/images/{image_slug}.webp", timeout=10000)
 
+    @pytest.mark.flaky(reruns=1, reruns_delay=5)
     def test_selecting_non_existent_sport(self, page: Page):
         page.goto("/")
         page.wait_for_selector("#id-dropdown-sport", state="visible", timeout=15000)

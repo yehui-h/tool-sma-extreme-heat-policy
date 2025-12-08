@@ -47,6 +47,39 @@ def _patch_page_goto(monkeypatch, request):
     yield
 
 
+@pytest.fixture
+def wait_for_weather_data():
+    """
+    Helper fixture that returns a function to wait for weather data to load.
+    This waits for the loading overlay to disappear, indicating data is ready.
+
+    Usage in tests:
+        page.goto("/")
+        wait_for_weather_data(page)
+        # Now weather data is loaded, proceed with assertions
+    """
+    def _wait(page, timeout=90000):
+        """Wait for weather data to load by waiting for loading indicator to disappear."""
+        try:
+            # Wait for Dash loading overlay to disappear
+            # The overlay has visibility: visible when loading
+            page.wait_for_function(
+                """() => {
+                    const overlay = document.querySelector('.dash-loading');
+                    return !overlay || window.getComputedStyle(overlay).visibility !== 'visible';
+                }""",
+                timeout=timeout
+            )
+            # Additional wait for any pending updates
+            page.wait_for_timeout(1000)
+        except Exception as e:
+            print(f"Warning: Could not detect loading state: {e}")
+            # If we can't detect loading state, just wait a bit
+            page.wait_for_timeout(5000)
+
+    return _wait
+
+
 def _ensure_artifact_dir():
     p = pathlib.Path(".pytest_artifacts")
     p.mkdir(parents=True, exist_ok=True)
