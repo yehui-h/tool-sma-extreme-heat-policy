@@ -27,7 +27,7 @@ URL_TEST="https://$PROJECT_NAME-test-987661761927.$REGION.run.app"
 URL_MAIN="https://sma-heat-policy.sydney.edu.au"
 PORT="8080"
 
-VERSION="1.2.1"
+VERSION="1.2.2"
 
 # == End of configuration variables ==
 
