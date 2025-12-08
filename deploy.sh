@@ -9,9 +9,10 @@ SERVICE="extreme-heat-tool"
 ORIG_SERVICE="$SERVICE"
 
 REGION="asia-southeast1"
-MEMORY="8Gi"
-CPU="2"
+MEMORY="4Gi"
+CPU="1"
 MAX_INSTANCES="50"
+MIN_INSTANCES="1"
 ACCOUNT="federicotartarini@gmail.com"
 # Use the original service name as the Artifact Registry repository id
 REPOSITORY="$ORIG_SERVICE"
@@ -60,6 +61,7 @@ if [ "$version" == "test" ]; then
     SERVICE="${ORIG_SERVICE}-test"
     IMAGE_NAME="$SERVICE:latest"
     URL=$URL_TEST
+    MIN_INSTANCES="0"
 else
     SERVICE="${ORIG_SERVICE}"
     IMAGE_NAME="$SERVICE:latest"
@@ -122,7 +124,8 @@ gcloud run deploy "$SERVICE" \
       --allow-unauthenticated \
       --tag "v${VERSION//./-}" \
       --cpu $CPU \
-      --max-instances $MAX_INSTANCES
+      --max-instances $MAX_INSTANCES \
+      --min-instances $MIN_INSTANCES \
 
 echo "Deployment completed. Access the application at: $URL"
 
