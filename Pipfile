@@ -43,6 +43,7 @@ ruff = "*"
 pillow = "*"
 scikit-learn = "===1.7.1"
 bump-my-version = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.12"
