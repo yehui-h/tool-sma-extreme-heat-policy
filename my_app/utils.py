@@ -38,6 +38,8 @@ storage_user_id = "user-id"
 
 tf = TimezoneFinder()  # reuse
 
+df_risk_parquet = pd.read_parquet("assets/risk_reference_table.parquet")
+
 
 @dataclass()
 class Cols:
@@ -82,9 +84,6 @@ class Cols:
 
 sports_category = sports_info[["sport", "sport_cat"]].copy().set_index("sport")
 sports_category = sports_category.sort_index().to_dict()["sport_cat"]
-
-# Import lazy-loaded risk reference table from dedicated module
-from my_app.risk_data import get_risk_reference_table
 
 headers = {
     "User-Agent": (
@@ -250,7 +249,6 @@ def calculate_comfort_indices_v2(data_for, sport_id):
         rh = round(rh)
 
         try:
-            df_risk_parquet = get_risk_reference_table()
             risk_value = df_risk_parquet.loc[(tdb, rh, tg, wind_speed, sport_id)]
             risk_value = risk_value.to_dict()
         except KeyError as e:
@@ -347,7 +345,7 @@ def calculate_mean_radiant_tmp(df_for):
         try:
             tg = scipy.optimize.brentq(calculate_globe_temperature, 0, 200)
         except ValueError as e:
-            ic(f"Brentq failed for globe temperature: {e}")
+            # ic(f"Brentq failed for globe temperature: {e}")
             tg = 0
         erf_mrt_dict[Cols.tg] = tg
         # print(erf_mrt_dict, row[Cols.tdb], row[Cols.wind])
@@ -442,7 +440,6 @@ class GlobeTemperatures(Enum):
     high: str = 12
 
 
-# cache weather data for no longer than ten minutes
 def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
     """Get weather data and calculate risk using user settings.
 
