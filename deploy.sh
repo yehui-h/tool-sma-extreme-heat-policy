@@ -10,7 +10,9 @@ ORIG_SERVICE="$SERVICE"
 
 REGION="asia-southeast1"
 MEMORY="4Gi"
-CPU="1"
+CPU="2"
+CONCURRENCY="40"  # Number of concurrent requests per instance (default is 80, max is 1000)
+TIMEOUT="300"     # Request timeout in seconds (5 minutes)
 MAX_INSTANCES="50"
 MIN_INSTANCES="1"
 ACCOUNT="federicotartarini@gmail.com"
@@ -120,12 +122,14 @@ gcloud run deploy "$SERVICE" \
       --image "$FULL_IMAGE" \
       --region $REGION \
       --memory $MEMORY \
-      --platform managed \
-      --allow-unauthenticated \
-      --tag "v${VERSION//./-}" \
       --cpu $CPU \
+      --concurrency $CONCURRENCY \
+      --timeout $TIMEOUT \
       --max-instances $MAX_INSTANCES \
       --min-instances $MIN_INSTANCES \
+      --platform managed \
+      --allow-unauthenticated \
+      --tag "v${VERSION//./-}"
 
 echo "Deployment completed. Access the application at: $URL"
 
