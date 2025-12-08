@@ -29,6 +29,7 @@ cachetools = "*"
 openmeteo-requests = "==1.7.2"
 dash = "*"
 requests = "*"
+psutil = "*"
 
 [dev-packages]
 seaborn = "*"
