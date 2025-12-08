@@ -83,8 +83,8 @@ class Cols:
 sports_category = sports_info[["sport", "sport_cat"]].copy().set_index("sport")
 sports_category = sports_category.sort_index().to_dict()["sport_cat"]
 
-# this file is generated running the functino generate_reference_table_risk()
-df_risk_parquet = pd.read_parquet("assets/risk_reference_table.parquet")
+# Import lazy-loaded risk reference table from dedicated module
+from my_app.risk_data import get_risk_reference_table
 
 headers = {
     "User-Agent": (
@@ -250,6 +250,7 @@ def calculate_comfort_indices_v2(data_for, sport_id):
         rh = round(rh)
 
         try:
+            df_risk_parquet = get_risk_reference_table()
             risk_value = df_risk_parquet.loc[(tdb, rh, tg, wind_speed, sport_id)]
             risk_value = risk_value.to_dict()
         except KeyError as e:

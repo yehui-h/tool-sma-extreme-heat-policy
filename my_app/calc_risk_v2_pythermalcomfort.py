@@ -10,7 +10,7 @@ import seaborn as sns
 from pythermalcomfort.models import phs
 from pythermalcomfort.utilities import mean_radiant_tmp
 
-df_risk_parquet = pd.read_parquet("assets/risk_reference_table.parquet")
+from my_app.risk_data import get_risk_reference_table
 
 sports_dict = {
     "abseiling": {
@@ -393,6 +393,7 @@ def calculate_comfort_indices_v2(data_for, sport_id):
         rh = round(rh)
 
         try:
+            df_risk_parquet = get_risk_reference_table()
             risk_value = df_risk_parquet.loc[(tdb, rh, tg, wind_speed, sport_id)]
             risk_value = risk_value.to_dict()
         except KeyError as e:
