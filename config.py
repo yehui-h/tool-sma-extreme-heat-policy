@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import ClassVar
 
@@ -23,30 +24,12 @@ default_location = {
 variable_calc_risk = "ratio_w"
 
 
-def get_postcodes(country: str = Defaults.country.value) -> pd.DataFrame:
-    """Retrieve postcodes for the specified country, preferring filtered assets.
+@lru_cache(maxsize=10)  # Cache last 10 countries to avoid repeated disk I/O
+def _get_postcodes_cached(country: str) -> pd.DataFrame:
+    """Internal cached function to load postcodes from disk.
 
-    Tries to load from './assets/postcodes_filtered/{country}.pkl.gz'.
-    Raises a descriptive error if both attempts fail.
-
-    Args
-    ----
-    country : str
-        ISO country code.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame of postcodes.
-
-    Raises
-    ------
-    FileNotFoundError
-        If neither filtered nor raw asset exists.
-
-    Example
-    -------
-    >>> df = get_postcodes('AU')
+    This is cached to avoid repeated disk I/O and decompression.
+    Returns the actual DataFrame which should not be modified.
     """
     filtered_path = f"./assets/postcodes_filtered/{country}.pkl.gz"
 
@@ -57,6 +40,43 @@ def get_postcodes(country: str = Defaults.country.value) -> pd.DataFrame:
             f"Postcode data not found for country '{country}'. "
             "Please generate or download the required assets."
         )
+
+
+def get_postcodes(country: str = Defaults.country.value) -> pd.DataFrame:
+    """Retrieve postcodes for the specified country, preferring filtered assets.
+
+    Tries to load from './assets/postcodes_filtered/{country}.pkl.gz'.
+    The data is cached to avoid repeated disk I/O, and a copy is returned
+    to prevent any accidental mutations affecting the cache.
+
+    Args
+    ----
+    country : str
+        ISO country code.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of postcodes (a copy to prevent cache pollution).
+
+    Raises
+    ------
+    FileNotFoundError
+        If neither filtered nor raw asset exists.
+
+    Example
+    -------
+    >>> df = get_postcodes('AU')
+
+    Notes
+    -----
+    The underlying data is cached using LRU cache (maxsize=10) for performance,
+    but this function returns a copy to ensure thread-safety and prevent
+    accidental modifications to the cached data.
+    """
+    # Return a copy to prevent mutations affecting the cache
+    # This is a shallow copy which is fast but prevents column modifications
+    return _get_postcodes_cached(country).copy()
 
 
 def process_postcodes(country=Defaults.country.value):
