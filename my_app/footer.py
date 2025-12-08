@@ -10,13 +10,16 @@ def my_footer():
                 [
                     dmc.GridCol(
                         dmc.Stack(
+                            gap="xs",
                             children=[
+                                dmc.Text("Developed by: "),
                                 html.Img(
                                     src=get_asset_url("icons/logo-usyd-black.png"),
                                     width="125px",
                                     height="auto",
-                                    alt="USYD logo icon",
+                                    alt="The University of Sydney logo icon",
                                 ),
+                                dmc.Text("Endorsed by: "),
                                 html.Img(
                                     src=get_asset_url("icons/sma-black.png"),
                                     width="125px",
@@ -37,7 +40,7 @@ def my_footer():
                             Tartarini F, Smallcombe JW, Lynch GP, Cross TJ, Broderick C, Jay O.
                             *J Sci Med Sport. 2025 Sep;28(9):690-699*.
                             
-                            © 2025 - Heat and Health Research Centre, USYD
+                            © 2025 - Heat and Health Research Centre, The University of Sydney.
                             
                             This website was reviewed by the Sports Medicine Australia Scientific Advisory Committee in 2025
                             

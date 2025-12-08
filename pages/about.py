@@ -17,7 +17,7 @@ layout = dmc.Stack(
     [
         dmc.Paper(
             [
-                dmc.Title("USYD Sports Heat Tool"),
+                dmc.Title("The University of Sydney Sports Heat Tool"),
                 dmc.Text(
                     "This website provides a convenient and freely accessible tool for assessing heat stress risk "
                     "during sport and physical activity in Australia. ",
