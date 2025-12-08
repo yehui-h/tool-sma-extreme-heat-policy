@@ -451,9 +451,9 @@
       "sizes": "1024x1024"
     }
   ],
-  "theme_color": "#dc0b00",
+  "theme_color": "#e64626",
   "orientation": "portrait",
-  "background_color": "#dc0b00",
+  "background_color": "#e64626",
   "id": "1.1.2",
   "description": "The University of Sydney Sports Heat Tool is a web application designed to help users determine the suitability of outdoor sports activities based on current weather conditions, particularly focusing on heat and humidity levels.",
   "start_url": "/",
