@@ -459,15 +459,17 @@
   "start_url": "/",
   "scope": "/",
   "screenshots": [],
-  "shortcuts": [{
-    "name": "About",
-    "url": "/about"
-  }],
+  "shortcuts": [
+    {
+      "name": "About",
+      "url": "/about"
+    }
+  ],
   "url_handlers": [
-        {
-            "origin": "https://sma-heat-policy.sydney.edu.au/"
-        }
-    ],
+    {
+      "origin": "https://sma-heat-policy.sydney.edu.au/"
+    }
+  ],
   "lang": "en",
   "categories": [
     "education",
@@ -478,8 +480,8 @@
   "prefer_related_applications": false,
   "display": "standalone",
   "display_override": [
-  "window-controls-overlay",
-  "standalone",
-  "browser"
-]
+    "window-controls-overlay",
+    "standalone",
+    "browser"
+  ]
 }
