@@ -142,5 +142,10 @@ if [ "$version" == "test" ]; then
     done
 fi
 
+# before running post-deployment tests, wait a bit for the service to be fully up
+echo "Waiting for the service to be fully up..."
+ab -n 10 -c 2 $URL || true
+sleep 2
+
 echo "Running post-deployment tests..."
 pipenv run python -m pytest --numprocesses auto --base-url $URL --tb=short
