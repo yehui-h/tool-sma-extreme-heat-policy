@@ -30,7 +30,9 @@ def _patch_page_goto(monkeypatch, request):
     base_url = request.config.getoption("--base-url") or os.environ.get("BASE_URL")
 
     if not base_url:
-        pytest.skip("Tests require a base URL. Provide it with --base-url or the BASE_URL environment variable.")
+        pytest.skip(
+            "Tests require a base URL. Provide it with --base-url or the BASE_URL environment variable."
+        )
 
     original_goto = PlaywrightPage.goto
 
@@ -58,6 +60,7 @@ def wait_for_weather_data():
         wait_for_weather_data(page)
         # Now weather data is loaded, proceed with assertions
     """
+
     def _wait(page, timeout=90000):
         """Wait for weather data to load by waiting for loading indicator to disappear."""
         try:
@@ -68,7 +71,7 @@ def wait_for_weather_data():
                     const overlay = document.querySelector('.dash-loading');
                     return !overlay || window.getComputedStyle(overlay).visibility !== 'visible';
                 }""",
-                timeout=timeout
+                timeout=timeout,
             )
             # Additional wait for any pending updates
             page.wait_for_timeout(1000)
@@ -114,7 +117,12 @@ def pytest_runtest_makereport(item, call):
 
         # Add artifact paths to the test report
         if hasattr(report.longrepr, "addsection"):
-            report.longrepr.addsection("Playwright Artifacts", f"Screenshot: {screenshot_path}\nHTML: {html_path}")
+            report.longrepr.addsection(
+                "Playwright Artifacts",
+                f"Screenshot: {screenshot_path}\nHTML: {html_path}",
+            )
     except Exception as e:
         if hasattr(report.longrepr, "addsection"):
-            report.longrepr.addsection("Artifacts Error", f"Failed to capture page artifacts: {e}")
+            report.longrepr.addsection(
+                "Artifacts Error", f"Failed to capture page artifacts: {e}"
+            )

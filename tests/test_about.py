@@ -16,4 +16,6 @@ class TestAboutPage:
 
         # Check each navbar link for visibility
         for link_text in nav_links:
-            expect(page.get_by_role("link", name=link_text)).to_be_visible(timeout=15000)
+            expect(page.get_by_role("link", name=link_text)).to_be_visible(
+                timeout=15000
+            )

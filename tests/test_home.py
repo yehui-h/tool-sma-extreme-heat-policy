@@ -16,7 +16,9 @@ class TestHomePage:
         # Check header link, default sport selection and sport image
         expect(page.get_by_text("Sports Heat Tool")).to_be_visible(timeout=15000)
         expect(page.locator("#id-dropdown-sport")).to_be_visible(timeout=15000)
-        expect(page.locator("#id-sport-image").get_by_role("img")).to_be_visible(timeout=15000)
+        expect(page.locator("#id-sport-image").get_by_role("img")).to_be_visible(
+            timeout=15000
+        )
 
         # Change the location (type + enter) and wait for results
         page.locator("#id-dropdown-location").click()
@@ -26,11 +28,19 @@ class TestHomePage:
         # Validate map and recommendations sections
         page.wait_for_selector("#id-map", state="visible", timeout=30000)
         expect(page.locator("#id-map")).to_be_visible(timeout=15000)
-        expect(page.get_by_role("heading", name="Key recommendations:")).to_be_visible(timeout=15000)
-        expect(page.get_by_role("button", name="Detailed suggestions:")).to_be_visible(timeout=15000)
-        expect(page.get_by_role("heading", name="Forecasted risk for today")).to_be_visible(timeout=15000)
+        expect(page.get_by_role("heading", name="Key recommendations:")).to_be_visible(
+            timeout=15000
+        )
+        expect(page.get_by_role("button", name="Detailed suggestions:")).to_be_visible(
+            timeout=15000
+        )
+        expect(
+            page.get_by_role("heading", name="Forecasted risk for today")
+        ).to_be_visible(timeout=15000)
         expect(page.locator("#id-button-install")).to_be_visible(timeout=15000)
-        expect(page.get_by_role("link", name="Provide your")).to_be_visible(timeout=15000)
+        expect(page.get_by_role("link", name="Provide your")).to_be_visible(
+            timeout=15000
+        )
 
     def test_click_dropdown(self, page: Page):
         """Test that selecting a sport updates the sport image correctly."""
@@ -56,7 +66,9 @@ class TestHomePage:
             # Verify sport image updates to the correct slug
             expect(
                 page.locator("#id-sport-image").get_by_role("img")
-            ).to_have_attribute("src", f"/assets/images/{image_slug}.webp", timeout=10000)
+            ).to_have_attribute(
+                "src", f"/assets/images/{image_slug}.webp", timeout=10000
+            )
 
     @pytest.mark.flaky(reruns=1, reruns_delay=5)
     def test_selecting_non_existent_sport(self, page: Page):

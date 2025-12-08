@@ -513,7 +513,9 @@ def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
     # Store in cache (with thread safety)
     with weather_cache_lock:
         weather_cache[cache_key] = df.copy()
-        print(f"[CACHE STORE] {cache_key} - Cached for 1 hour (cache size: {len(weather_cache)}/100)")
+        print(
+            f"[CACHE STORE] {cache_key} - Cached for 1 hour (cache size: {len(weather_cache)}/100)"
+        )
 
     return df
 
