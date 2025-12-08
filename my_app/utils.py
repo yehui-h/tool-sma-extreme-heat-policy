@@ -2,6 +2,7 @@ import time
 import warnings
 from dataclasses import dataclass
 from enum import Enum
+from threading import Lock
 
 import dash_bootstrap_components as dbc
 import numpy as np
@@ -11,6 +12,7 @@ import pytz
 import requests
 import requests_cache
 import scipy
+from cachetools import TTLCache
 from dash import html
 from icecream import ic
 from matplotlib import pyplot as plt
@@ -39,6 +41,14 @@ storage_user_id = "user-id"
 tf = TimezoneFinder()  # reuse
 
 df_risk_parquet = pd.read_parquet("assets/risk_reference_table.parquet")
+
+# Server-side cache for weather data (shared across all users on same instance)
+# TTL of 3600 seconds (1 hour) - weather data doesn't change that frequently
+# maxsize of 100 - cache up to 100 location/sport combinations
+weather_cache = TTLCache(maxsize=100, ttl=3600)
+weather_cache_lock = Lock()
+
+print("[CACHE] Weather cache initialized: maxsize=100, ttl=3600s (1 hour)")
 
 
 @dataclass()
@@ -178,6 +188,7 @@ def get_weather(
     provider: str
         open-meteo or yr
     """
+    start = time.time()
     try:
         if provider == "open-meteo":
             df_weather = open_weather(lat, lon)
@@ -205,6 +216,8 @@ def get_weather(
     df_weather[Cols.lat] = lat
     df_weather[Cols.lon] = lon
     df_weather[Cols.tz] = tz
+
+    ic("Weather fetch duration:", time.time() - start)
 
     return calculate_mean_radiant_tmp(df_weather)
 
@@ -441,7 +454,11 @@ class GlobeTemperatures(Enum):
 
 
 def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
-    """Get weather data and calculate risk using user settings.
+    """Get weather data and calculate risk using user settings with server-side caching.
+
+    This function implements server-side caching to prevent multiple concurrent users
+    from triggering redundant API calls for the same location/sport combination.
+    Cache is shared across all users on the same Cloud Run instance.
 
     Parameters
     ----------
@@ -459,7 +476,26 @@ def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
     ------
     ValueError
         If required settings fields are missing.
+
+    Notes
+    -----
+    Cache behavior:
+    - TTL: 1 hour (weather data doesn't change frequently)
+    - Max size: 100 location/sport combinations
+    - Thread-safe: Uses lock to prevent race conditions
+    - Returns a copy to prevent cache pollution
     """
+    cache_key = f"{location}_{sport}"
+
+    # Check cache first (with thread safety)
+    with weather_cache_lock:
+        if cache_key in weather_cache:
+            print(f"[CACHE HIT] {cache_key} - Returning cached weather data")
+            # Return a copy to prevent accidental modifications affecting the cache
+            return weather_cache[cache_key].copy()
+
+    # Cache miss - fetch data from API
+    print(f"[CACHE MISS] {cache_key} - Fetching from weather API...")
     start = time.time()
 
     loc_selected = get_info_location_selected(location=location)
@@ -467,10 +503,17 @@ def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
     df_for = get_weather(
         lat=loc_selected[Cols.lat], lon=loc_selected[Cols.lon], tz=loc_selected[Cols.tz]
     )
+    ic("Weather fetched", time.time() - start)
+    start = time.time()
 
     df = calculate_comfort_indices_v2(df_for, sport)
 
-    ic("get_weather_and_calculate_risk", time.time() - start)
+    ic("Calculate risk", time.time() - start)
+
+    # Store in cache (with thread safety)
+    with weather_cache_lock:
+        weather_cache[cache_key] = df.copy()
+        print(f"[CACHE STORE] {cache_key} - Cached for 1 hour (cache size: {len(weather_cache)}/100)")
 
     return df
 
