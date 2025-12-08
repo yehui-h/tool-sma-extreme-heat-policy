@@ -44,7 +44,7 @@ def my_footer():
                             
                             This website was reviewed by the Sports Medicine Australia Scientific Advisory Committee in 2025
                             
-                            Version: 1.2.0
+                            Version: 1.2.1
                             
                             [Contact Us](mailto:federico.tartarini@sydney.edu.au)
                             """
