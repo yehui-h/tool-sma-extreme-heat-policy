@@ -464,8 +464,8 @@ AU	1885	Bankstown	New South Wales	NSW	BANKSTOWN				-33.9167	151.0333	4
 AU	1888	Bankstown	New South Wales	NSW					-33.9167	151.0333	4
 AU	1890	Ingleburn	New South Wales	NSW	CAMPBELLTOWN				-34	150.8667	4
 AU	1891	Milperra	New South Wales	NSW	BANKSTOWN				-33.9393	150.9815	4
-AU	1900	Leightonfield Mc	New South Wales	NSW					-33.8816	150.9844	
-AU	1902	Leightonfield Mc	New South Wales	NSW					-33.8816	150.9844	
+AU	1900	Leightonfield Mc	New South Wales	NSW					-33.8816	150.9844
+AU	1902	Leightonfield Mc	New South Wales	NSW					-33.8816	150.9844
 AU	2000	Sydney	New South Wales	NSW	SYDNEY STREETS				-33.8718	151.2002	4
 AU	2000	Sydney South	New South Wales	NSW	SYDNEY STREETS				-33.8699	151.2025	3
 AU	2000	Parliament House	New South Wales	NSW					-33.8651	151.2053	3
@@ -9102,8 +9102,8 @@ AU	9020	Brisbane	Queensland	QLD					-27.4679	153.0281	4
 AU	9021	Brisbane GPO Boxes	Queensland	QLD					-27.4679	153.0281	1
 AU	9022	Brisbane GPO Boxes	Queensland	QLD					-27.4679	153.0281	1
 AU	9023	Brisbane GPO Boxes	Queensland	QLD					-27.4679	153.0281	1
-AU	9464	Northgate Mc	Queensland	QLD					-33.8816	150.9844	
-AU	9726	Gold Coast Mc	Queensland	QLD	GOLD COAST				-33.8816	150.9844	
+AU	9464	Northgate Mc	Queensland	QLD					-33.8816	150.9844
+AU	9726	Gold Coast Mc	Queensland	QLD	GOLD COAST				-33.8816	150.9844
 AU	9943	Mackay	Queensland	QLD					-21.1534	149.1655	4
 AU	9944	Cannonvale	Queensland	QLD					-20.2768	148.6976	4
 AU	0872	Nyapari	South Australia	SA					-26.1759	130.2214	3
