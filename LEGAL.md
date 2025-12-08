@@ -31,5 +31,3 @@ You must not:
 - Post or transmit unauthorized, offensive, or unlawful material
 
 See the full [University of Sydney Privacy Policy](https://www.sydney.edu.au/about-us/governance-and-structure/policies/privacy.html) for more details.
-
-

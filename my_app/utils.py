@@ -357,7 +357,7 @@ def calculate_mean_radiant_tmp(df_for):
 
         try:
             tg = scipy.optimize.brentq(calculate_globe_temperature, 0, 200)
-        except ValueError as e:
+        except ValueError:
             # ic(f"Brentq failed for globe temperature: {e}")
             tg = 0
         erf_mrt_dict[Cols.tg] = tg
@@ -799,7 +799,7 @@ def generate_reference_table_risk():
         )
         sport = Sport(**sport_dict[0])
         v_array = np.arange(max(sport.wind_low - 0.5, 0), sport.wind_high + 0.5, 0.1)
-        v_array = set([round(round(x / 0.5) * 0.5, 2) for x in v_array])
+        v_array = {round(round(x / 0.5) * 0.5, 2) for x in v_array}
         print(sport.sport_id, sport.wind_low, sport.wind_high, v_array)
         start_time = time.time()
         for v in v_array:

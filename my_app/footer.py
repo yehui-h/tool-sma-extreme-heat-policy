@@ -34,18 +34,18 @@ def my_footer():
                         dcc.Markdown(
                             """
                             [Provide your feedback](https://sydney.au1.qualtrics.com/jfe/form/SV_3jAqlzAnAoAOU8S)
-                            
+
                             If you use this tool, please cite the following paper:
                             [The Sports Medicine Australia extreme heat risk and response guidelines and web tool.](https://doi.org/10.1016/j.jsams.2025.03.006)
                             Tartarini F, Smallcombe JW, Lynch GP, Cross TJ, Broderick C, Jay O.
                             *J Sci Med Sport. 2025 Sep;28(9):690-699*.
-                            
+
                             © 2025 - Heat and Health Research Centre, The University of Sydney.
-                            
+
                             This website was reviewed by the Sports Medicine Australia Scientific Advisory Committee in 2025
-                            
+
                             Version: 1.2.1
-                            
+
                             [Contact Us](mailto:federico.tartarini@sydney.edu.au)
                             """
                         ),

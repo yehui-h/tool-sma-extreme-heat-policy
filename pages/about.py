@@ -129,15 +129,15 @@ layout = dmc.Stack(
                 dmc.Title("Terms and conditions", order=2),
                 dmc.Text(
                     """This Sports and Medicine Australia (SMA) - Extreme Heat Policy website (
-                    https://sma-heat-policy.sydney.edu.au/) provides general information for informational and 
-                    educational purposes only about heat stress risk for people engaged in various types of sports at 
+                    https://sma-heat-policy.sydney.edu.au/) provides general information for informational and
+                    educational purposes only about heat stress risk for people engaged in various types of sports at
                     a particular location.""",
                     pb="xs",
                 ),
                 dmc.Text(
                     """The Heat and Health Research Centre at the University of Sydney (
-                    “University”) created and provided this website. A specific heat stress risk scale is displayed 
-                    using a physiological model that provides a risk calculation for heat stress, including providing 
+                    “University”) created and provided this website. A specific heat stress risk scale is displayed
+                    using a physiological model that provides a risk calculation for heat stress, including providing
                     evidence-based cooling strategies."""
                 ),
             ],
@@ -148,10 +148,10 @@ layout = dmc.Stack(
             [
                 dmc.Title("Medical disclaimer", order=2),
                 dmc.Text(
-                    """No medical advice is provided in the information accessed through this website. If you 
-                believe you or any other individual has a medical emergency or any other health problem, you should 
-                promptly call an emergency medical service provider or consult your physician or healthcare provider. 
-                You should seek immediate medical attention if you think you may be suffering from any medical 
+                    """No medical advice is provided in the information accessed through this website. If you
+                believe you or any other individual has a medical emergency or any other health problem, you should
+                promptly call an emergency medical service provider or consult your physician or healthcare provider.
+                You should seek immediate medical attention if you think you may be suffering from any medical
                 condition."""
                 ),
             ],
@@ -162,12 +162,12 @@ layout = dmc.Stack(
             [
                 dmc.Title("Warranty and general disclaimer", order=2),
                 dmc.Text(
-                    """To the maximum extent permitted by law, including the Australian Consumer Law, we make no 
-                    warranties or representations about this website or its content, including but not limited to 
-                    warranties or representations that they will be complete, accurate or up-to-date, that access 
-                    will be uninterrupted or error-free or free from viruses, or that this website will be secure. We 
-                    reserve the right to restrict, suspend or terminate without notice your access to this website, 
-                    any content, or any feature of this website at any time without notice, and we will not be 
+                    """To the maximum extent permitted by law, including the Australian Consumer Law, we make no
+                    warranties or representations about this website or its content, including but not limited to
+                    warranties or representations that they will be complete, accurate or up-to-date, that access
+                    will be uninterrupted or error-free or free from viruses, or that this website will be secure. We
+                    reserve the right to restrict, suspend or terminate without notice your access to this website,
+                    any content, or any feature of this website at any time without notice, and we will not be
                     responsible for any loss, cost, damage or liability that may arise as a result."""
                 ),
             ],
@@ -178,15 +178,15 @@ layout = dmc.Stack(
             [
                 dmc.Title("Privacy", order=2),
                 dmc.Text(
-                    """Any personal information given to the University will be dealt with in accordance with the 
-                    University’s Privacy Policy. Any information provided may be accessed by any employee of the 
-                    University in accordance with the requirements of the University’s Privacy Policy. No personal 
-                    information is collected by this website. The website stores the user indicated location and 
-                    sport in local file storage. Some or all of the information provided by the user may be stored in 
-                    a cloud database in the future. The University may use this information for research and 
-                    non-commercial purpose only, such as to study the types of users and their usage of the website. 
-                    The website uses Google Analytics to collect anonymous statistics on the number of visitors to 
-                    the website, record user activity and approximate location of users based on the detected IP 
+                    """Any personal information given to the University will be dealt with in accordance with the
+                    University’s Privacy Policy. Any information provided may be accessed by any employee of the
+                    University in accordance with the requirements of the University’s Privacy Policy. No personal
+                    information is collected by this website. The website stores the user indicated location and
+                    sport in local file storage. Some or all of the information provided by the user may be stored in
+                    a cloud database in the future. The University may use this information for research and
+                    non-commercial purpose only, such as to study the types of users and their usage of the website.
+                    The website uses Google Analytics to collect anonymous statistics on the number of visitors to
+                    the website, record user activity and approximate location of users based on the detected IP
                     address. All this data is de-identified by Google."""
                 ),
             ],
