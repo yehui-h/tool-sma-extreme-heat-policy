@@ -13,10 +13,10 @@ jobs:
         uses: astral-sh/ruff-action@v3
 
       - name: Ruff Check
-        run: pipenv run ruff check . --output-format=github
+        run: ruff check . --output-format=github
 
       - name: Ruff Format (verify)
-        run: pipenv run ruff format --check .
+        run: ruff format --check .
 
 #  deploy:
 #    name: 🚀 Deploying
