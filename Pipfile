@@ -30,6 +30,7 @@ openmeteo-requests = "==1.7.2"
 dash = "*"
 requests = "*"
 psutil = "*"
+bump-my-version = "*"
 
 [dev-packages]
 seaborn = "*"
@@ -37,11 +38,11 @@ numba = "*"
 psychrolib = "*"
 pytest = "*"
 pytest-playwright = "*"
-bump-my-version = "*"
 pytest-xdist = "*"
 ruff = "*"
 pillow = "*"
 scikit-learn = "===1.7.1"
+bump-my-version = "*"
 
 [requires]
 python_version = "3.12"
