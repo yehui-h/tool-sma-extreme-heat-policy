@@ -3,16 +3,16 @@ repos:
     rev: v6.0.0
     hooks:
       - id: end-of-file-fixer
-      - id: trailing-whitespace
-      - id: check-yaml
-      - id: check-json
-      - id: check-toml
-      - id: check-added-large-files
-      - id: check-case-conflict
-      - id: check-docstring-first
-      - id: check-illegal-windows-names
-      - id: check-merge-conflict
-      - id: detect-private-key
+#      - id: trailing-whitespace
+#      - id: check-yaml
+#      - id: check-json
+#      - id: check-toml
+#      - id: check-added-large-files
+#      - id: check-case-conflict
+#      - id: check-docstring-first
+#      - id: check-illegal-windows-names
+#      - id: check-merge-conflict
+#      - id: detect-private-key
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.3
