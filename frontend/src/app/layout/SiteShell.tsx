@@ -8,7 +8,7 @@ export function SiteShell() {
     <Stack gap={0} mih="100dvh" bg="gray.1">
       <SiteHeader />
       <Box component="main" style={{ flex: 1 }}>
-        <Container size="sm" py="md">
+        <Container size="sm" py="md" px={{ base: 4, sm: 'md' }}>
           <Outlet />
         </Container>
       </Box>

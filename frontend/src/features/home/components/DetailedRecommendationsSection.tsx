@@ -11,11 +11,11 @@ export function DetailedRecommendationsSection({ riskLevel }: DetailedRecommenda
   const details = detailedRecommendationsByRisk[riskLevel]
 
   return (
-    <SectionCard title="Detailed recommendations" subtitle="Guidance adapted from SMA-aligned heat risk response principles.">
-      <Text c="dimmed" fz="sm">
+    <SectionCard title="Detailed recommendations">
+      <Text c="dimmed" fz="md">
         Vigorous exercise places some people at risk of heat illness, especially in hot weather.
       </Text>
-      <List spacing="xs" size="sm" center>
+      <List spacing="xs" size="md" center>
         {details.map((text) => (
           <List.Item key={text}>{text}</List.Item>
         ))}

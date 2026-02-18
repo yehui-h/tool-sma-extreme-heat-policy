@@ -9,14 +9,14 @@ interface SectionCardProps {
 
 export function SectionCard({ title, subtitle, children }: SectionCardProps) {
   return (
-    <Paper shadow="xs" radius="md" p={{ base: 'md', sm: 'lg' }} withBorder>
-      <Stack gap="md">
+    <Paper shadow="xs" radius="md" p={{ base: 4, sm: 'md' }} withBorder>
+      <Stack gap="sm">
         <Stack gap={4}>
-          <Title order={2} fz={{ base: 'h4', sm: 'h3' }}>
+          <Title order={2} fz={{ base: 'h3', sm: 'h2' }}>
             {title}
           </Title>
           {subtitle ? (
-            <Text c="dimmed" fz={{ base: 'sm', sm: 'md' }}>
+            <Text c="dimmed" fz={{ base: 'md', sm: 'lg' }}>
               {subtitle}
             </Text>
           ) : null}

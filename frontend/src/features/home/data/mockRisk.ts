@@ -17,7 +17,7 @@ export const sportOptions: SelectOption[] = [
 export const currentRisk: CurrentRiskData = {
   title: 'Current Sport Heat Score',
   score: 3.1,
-  level: 'high',
+  level: 'extreme',
   shortSummary:
     'Active cooling strategies are strongly encouraged during breaks and periods of low activity.',
 }
@@ -66,25 +66,57 @@ export const detailedRecommendationsByRisk: Record<RiskLevel, string[]> = {
 }
 
 const daySeries: number[][] = [
-  [2.2, 2.5, 2.8, 3.1, 3.4, 3.2, 2.9, 2.4],
-  [2.0, 2.4, 2.9, 3.0, 3.3, 3.5, 3.1, 2.7],
-  [1.8, 2.2, 2.6, 2.9, 3.1, 3.0, 2.5, 2.1],
-  [2.1, 2.6, 3.0, 3.2, 3.6, 3.8, 3.3, 2.9],
-  [1.9, 2.3, 2.7, 3.0, 3.2, 3.1, 2.6, 2.2],
-  [2.3, 2.7, 3.2, 3.5, 3.7, 3.4, 3.0, 2.5],
-  [2.0, 2.4, 2.8, 3.1, 3.3, 3.2, 2.7, 2.3],
+  [1.2, 1.4, 1.6, 1.8, 1.9, 1.7, 1.5, 1.3], // moderate (today)
+  [0.3, 0.5, 0.7, 0.8, 0.9, 0.8, 0.6, 0.4], // low
+  [2.1, 2.3, 2.5, 2.7, 2.8, 2.6, 2.4, 2.2], // high
+  [2.4, 2.8, 3.1, 3.3, 3.4, 3.2, 2.9, 2.6], // extreme
+  [0.2, 0.4, 0.6, 0.7, 0.8, 0.7, 0.5, 0.3], // low
+  [2.0, 2.2, 2.4, 2.6, 2.7, 2.5, 2.3, 2.1], // high
+  [1.0, 1.2, 1.4, 1.6, 1.8, 1.7, 1.5, 1.2], // moderate
 ]
 
-const timeMarks = ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '00:00', '03:00']
+const timeMarks = Array.from({ length: 24 }, (_, hour) => `${String(hour).padStart(2, '0')}:00`)
+
+function roundToOneDecimal(value: number): number {
+  return Number(value.toFixed(1))
+}
+
+function expandThreeHourlySeriesToHourly(series: number[]): number[] {
+  if (series.length !== 8) {
+    return series
+  }
+
+  // Original anchors are in this order: 06:00, 09:00, 12:00, 15:00, 18:00, 21:00, 00:00, 03:00.
+  const anchorByHour: Record<number, number> = {
+    0: series[6],
+    3: series[7],
+    6: series[0],
+    9: series[1],
+    12: series[2],
+    15: series[3],
+    18: series[4],
+    21: series[5],
+  }
+
+  return Array.from({ length: 24 }, (_, hour) => {
+    const startHour = Math.floor(hour / 3) * 3
+    const endHour = startHour + 3
+    const startValue = anchorByHour[startHour]
+    const endValue = endHour === 24 ? anchorByHour[0] : anchorByHour[endHour]
+    const progress = (hour - startHour) / 3
+
+    return roundToOneDecimal(startValue + (endValue - startValue) * progress)
+  })
+}
 
 function toRiskLevel(maxScore: number): RiskLevel {
-  if (maxScore >= 3.5) {
+  if (maxScore > 3) {
     return 'extreme'
   }
-  if (maxScore >= 3) {
+  if (maxScore >= 2) {
     return 'high'
   }
-  if (maxScore >= 2) {
+  if (maxScore >= 1) {
     return 'moderate'
   }
   return 'low'
@@ -96,12 +128,14 @@ export const forecastDays: ForecastDay[] = daySeries.map((series, index) => {
   const dayDate = new Date(baseDate)
   dayDate.setDate(baseDate.getDate() + index)
 
-  const points = series.map((value, i) => ({
+  const hourlySeries = expandThreeHourlySeriesToHourly(series)
+
+  const points = hourlySeries.map((value, i) => ({
     time: timeMarks[i],
     value,
   }))
 
-  const maxScore = Math.max(...series)
+  const maxScore = Math.max(...hourlySeries)
 
   return {
     day: dayDate.toLocaleDateString('en-AU', { weekday: 'long' }),

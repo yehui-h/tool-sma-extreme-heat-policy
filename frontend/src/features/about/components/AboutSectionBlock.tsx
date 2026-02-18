@@ -1,4 +1,5 @@
-import { Anchor, List, Stack, Text } from '@mantine/core'
+import { Anchor, Stack, Text } from '@mantine/core'
+import { Fragment } from 'react'
 import type { AboutSection } from '@/features/about/types'
 import { SectionCard } from '@/shared/ui/SectionCard'
 
@@ -10,29 +11,19 @@ export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
   return (
     <SectionCard title={section.title}>
       <Stack gap="sm">
-        {section.paragraphs.map((paragraph) => (
-          <Text key={paragraph} fz={{ base: 'sm', sm: 'md' }} c="dark.7">
-            {paragraph}
+        {section.paragraphs.map((paragraph, paragraphIndex) => (
+          <Text key={`${section.title}-${paragraphIndex}`} fz={{ base: 'md', sm: 'md' }} c="dark.7" fs={paragraph.italic ? 'italic' : undefined}>
+            {paragraph.runs.map((run, runIndex) => (
+              'href' in run ? (
+                <Anchor key={`${section.title}-${paragraphIndex}-${runIndex}`} href={run.href}>
+                  {run.text}
+                </Anchor>
+              ) : (
+                <Fragment key={`${section.title}-${paragraphIndex}-${runIndex}`}>{run.text}</Fragment>
+              )
+            ))}
           </Text>
         ))}
-
-        {section.bulletPoints?.length ? (
-          <List spacing="xs" size="sm">
-            {section.bulletPoints.map((point) => (
-              <List.Item key={point}>{point}</List.Item>
-            ))}
-          </List>
-        ) : null}
-
-        {section.links?.length ? (
-          <Stack gap={6}>
-            {section.links.map((link) => (
-              <Anchor key={link.href} href={link.href} target="_blank" rel="noreferrer">
-                {link.label}
-              </Anchor>
-            ))}
-          </Stack>
-        ) : null}
       </Stack>
     </SectionCard>
   )

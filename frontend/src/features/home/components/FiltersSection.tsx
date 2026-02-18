@@ -32,11 +32,12 @@ export function FiltersSection({
   onCalculateRisk,
 }: FiltersSectionProps) {
   return (
-    <SectionCard title="Heat Risk Inputs" subtitle="Select sport and location to review estimated heat stress risk.">
+    <SectionCard title="">
       <Grid gutter="md">
         <Grid.Col span={{ base: 12, sm: 6 }}>
           <Select
             label="Sport"
+            size="md"
             data={sportOptions}
             value={sport}
             onChange={onSportChange}
@@ -47,6 +48,7 @@ export function FiltersSection({
         <Grid.Col span={{ base: 12, sm: 6 }}>
           <Autocomplete
             label="Location"
+            size="md"
             placeholder="Search suburb, address, city, or venue"
             value={locationInput}
             onChange={onLocationInputChange}
@@ -60,16 +62,17 @@ export function FiltersSection({
         <Grid.Col span={12}>
           <Stack gap="xs">
             {suggestError ? (
-              <Text c="orange.7" fz="xs">
+              <Text c="orange.7" fz="sm">
                 {suggestError}
               </Text>
             ) : (
-              <Text c="dimmed" fz="xs">
+              <Text c="dimmed" fz="sm">
                 Type to search, then select a suggested location to enable calculation.
               </Text>
             )}
             <Group justify="flex-end">
               <Button
+                size="md"
                 onClick={onCalculateRisk}
                 disabled={isCalculateDisabled}
                 loading={isCalculating}

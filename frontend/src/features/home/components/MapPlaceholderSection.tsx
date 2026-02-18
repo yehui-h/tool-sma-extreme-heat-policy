@@ -20,7 +20,7 @@ export function MapPlaceholderSection({
   const hasRetrievePayload = Boolean(mapboxId && sessionToken)
 
   return (
-    <SectionCard title="Location Map" subtitle="Map rendering is deferred, but location selection state is now applied.">
+    <SectionCard title="Location Map">
       <Paper withBorder radius="md" p="xl" bg="gray.0">
         <Center>
           <Stack align="center" gap="xs">

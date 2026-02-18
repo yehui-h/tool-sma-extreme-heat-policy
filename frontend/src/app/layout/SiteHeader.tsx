@@ -29,7 +29,7 @@ export function SiteHeader() {
     item: (typeof navItems)[number],
     options: {
       inactiveVariant: 'subtle' | 'light'
-      size?: 'xs'
+      size?: 'xs' | 'sm' | 'md'
       justify?: 'flex-start'
       onClick?: () => void
     },
@@ -53,20 +53,20 @@ export function SiteHeader() {
   }
 
   return (
-    <Box bg="#F1F1F1" py="xs">
+    <Box bg="#F1F1F1" py="sm">
       <Container size="sm">
         <Group justify="space-between" wrap="nowrap">
           <Group wrap="nowrap" gap="sm">
             <Anchor component={Link} to="/" onClick={close}>
-              <Image src="/branding/logo-usyd-black.png" alt="University of Sydney" h={30} w="auto" fit="contain" />
+              <Image src="/branding/logo-usyd-black.png" alt="University of Sydney" h={35} w="auto" fit="contain" />
             </Anchor>
-            <Text fw={700} fz={{ base: 'sm', sm: 'md' }}>
+            <Text fw={700} fz={{ base: 'md', sm: 'lg' }}>
               Sports Heat Tool
             </Text>
           </Group>
 
           <Group visibleFrom="sm" gap="xs">
-            {navItems.map((item) => renderNavButton(item, { inactiveVariant: 'subtle', size: 'xs' }))}
+            {navItems.map((item) => renderNavButton(item, { inactiveVariant: 'subtle', size: 'sm' }))}
           </Group>
 
           <Burger hiddenFrom="sm" opened={opened} onClick={opened ? close : open} aria-label="Toggle navigation" />
@@ -78,6 +78,7 @@ export function SiteHeader() {
           {navItems.map((item) =>
             renderNavButton(item, {
               inactiveVariant: 'light',
+              size: 'md',
               justify: 'flex-start',
               onClick: close,
             }),
