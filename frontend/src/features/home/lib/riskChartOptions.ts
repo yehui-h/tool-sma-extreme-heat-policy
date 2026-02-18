@@ -1,4 +1,4 @@
-import type { EChartsOption } from 'echarts'
+import type { EChartsOption, TooltipComponentFormatterCallbackParams } from 'echarts'
 import type { ForecastPoint, RiskLevel } from '@/features/home/types'
 
 const RISK_META: Record<RiskLevel, { value: number; color: string; shortLabel: string; longLabel: string }> = {
@@ -107,6 +107,23 @@ function formatHourLabel(timeLabel: string): string {
 
 function getBandContribution(value: number, lower: number, upper: number): number {
   return Math.max(0, Math.min(value, upper) - lower)
+}
+
+function formatForecastTooltip(params: TooltipComponentFormatterCallbackParams): string {
+  const items = Array.isArray(params) ? params : [params]
+  const firstItem = items[0]
+  if (!firstItem) {
+    return ''
+  }
+
+  const riskItem = items.find((item) => item.seriesName === 'Risk') ?? firstItem
+  const formattedTime = formatHourLabel(String(firstItem.name ?? ''))
+  const marker = typeof riskItem.marker === 'string' ? riskItem.marker : ''
+  const rawValue = Array.isArray(riskItem.value) ? riskItem.value[1] : riskItem.value
+  const numericValue = typeof rawValue === 'number' ? rawValue : Number(rawValue)
+  const valueText = Number.isFinite(numericValue) ? numericValue.toFixed(1) : String(rawValue ?? '')
+
+  return `${formattedTime}<br/>${marker} Risk&nbsp;&nbsp;${valueText}`
 }
 
 export function buildGaugeOption(score: number, isMobile = false): EChartsOption {
@@ -376,6 +393,7 @@ export function buildForecastOption(points: ForecastPoint[], title?: string, isM
     ],
     tooltip: {
       trigger: 'axis',
+      formatter: formatForecastTooltip,
     },
   }
 }
