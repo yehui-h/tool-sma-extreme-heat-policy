@@ -3,16 +3,7 @@ import type {
   ForecastDay,
   RecommendationItem,
   RiskLevel,
-  SelectOption,
 } from '@/features/home/types'
-
-export const sportOptions: SelectOption[] = [
-  { value: 'soccer', label: 'Soccer' },
-  { value: 'rugby', label: 'Rugby Union' },
-  { value: 'cricket', label: 'Cricket' },
-  { value: 'netball', label: 'Netball' },
-  { value: 'tennis', label: 'Tennis' },
-]
 
 export const currentRisk: CurrentRiskData = {
   title: 'Current Sport Heat Score',

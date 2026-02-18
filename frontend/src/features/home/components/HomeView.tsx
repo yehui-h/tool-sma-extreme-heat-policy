@@ -8,7 +8,7 @@ import { FiltersSection } from '@/features/home/components/FiltersSection'
 import { ForecastSection } from '@/features/home/components/ForecastSection'
 import { KeyRecommendationsSection } from '@/features/home/components/KeyRecommendationsSection'
 import { MapPlaceholderSection } from '@/features/home/components/MapPlaceholderSection'
-import { sportOptions } from '@/features/home/data/mockRisk'
+import { DEFAULT_SPORT_ID, SPORT_OPTIONS } from '@/features/home/data/sportCatalog'
 import { useLocationSuggest } from '@/features/home/hooks/useLocationSuggest'
 import { useRiskCalculation } from '@/features/home/hooks/useRiskCalculation'
 import { loadPersistedHomeFilters } from '@/features/home/lib/browserState'
@@ -16,7 +16,7 @@ import { type HomeBootstrapState, resolveHomeBootstrapState } from '@/features/h
 import { HOME_QUERY_PARSERS, HOME_QUERY_URL_KEYS, VALID_SPORT_VALUES } from '@/features/home/lib/homeUrlState'
 
 export function HomeView() {
-  const defaultSport = VALID_SPORT_VALUES[0] ?? ''
+  const defaultSport = DEFAULT_SPORT_ID
   const mapboxAccessToken = (import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ?? '').trim()
   const hasMapboxToken = mapboxAccessToken.length > 0
   const optimisticSearchParams = useOptimisticSearchParams()
@@ -71,7 +71,7 @@ export function HomeView() {
       <FiltersSection
         sport={draftSport}
         locationInput={draftLocationInput}
-        sportOptions={sportOptions}
+        sportOptions={SPORT_OPTIONS}
         suggestions={suggestionLabels}
         isSuggestLoading={isSuggestLoading}
         suggestError={suggestError}
@@ -84,6 +84,10 @@ export function HomeView() {
           void handleCalculateRisk()
         }}
       />
+      <CurrentRiskSection risk={risk} />
+      <KeyRecommendationsSection riskLevel={risk.level} />
+      <DetailedRecommendationsSection riskLevel={risk.level} />
+      <ForecastSection />
       <MapPlaceholderSection
         locationLabel={appliedLocationLabel}
         latitude={appliedLocation?.latitude}
@@ -91,10 +95,6 @@ export function HomeView() {
         mapboxId={retrievePayload?.mapboxId}
         sessionToken={retrievePayload?.sessionToken}
       />
-      <CurrentRiskSection risk={risk} />
-      <KeyRecommendationsSection riskLevel={risk.level} />
-      <DetailedRecommendationsSection riskLevel={risk.level} />
-      <ForecastSection />
     </Stack>
   )
 }

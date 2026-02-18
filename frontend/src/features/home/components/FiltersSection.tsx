@@ -1,4 +1,6 @@
-import { Autocomplete, Button, Grid, Group, Loader, Select, Stack, Text } from '@mantine/core'
+import { Autocomplete, Box, Button, Image, Loader, Select, Stack, Text } from '@mantine/core'
+import { useMemo, useState } from 'react'
+import { SPORT_IMAGE_BY_ID } from '@/features/home/data/sportCatalog'
 import { SectionCard } from '@/shared/ui/SectionCard'
 import type { SelectOption } from '@/features/home/types'
 
@@ -31,59 +33,87 @@ export function FiltersSection({
   onLocationOptionSubmit,
   onCalculateRisk,
 }: FiltersSectionProps) {
+  const [hasSportImageError, setHasSportImageError] = useState(false)
+  const selectedSportLabel = useMemo(
+    () => sportOptions.find((option) => option.value === sport)?.label ?? 'Selected sport',
+    [sport, sportOptions],
+  )
+  const sportImageSrc = SPORT_IMAGE_BY_ID[sport]
+  const handleSportChange = (value: string | null) => {
+    setHasSportImageError(false)
+    onSportChange(value)
+  }
+
   return (
     <SectionCard title="">
-      <Grid gutter="md">
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Select
-            label="Sport"
-            size="md"
-            data={sportOptions}
-            value={sport}
-            onChange={onSportChange}
-            searchable
-            nothingFoundMessage="No sport found"
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <Autocomplete
-            label="Location"
-            size="md"
-            placeholder="Search suburb, address, city, or venue"
-            value={locationInput}
-            onChange={onLocationInputChange}
-            onOptionSubmit={onLocationOptionSubmit}
-            data={suggestions}
-            filter={({ options }) => options}
-            rightSection={isSuggestLoading ? <Loader size={16} /> : null}
-            autoComplete="off"
-          />
-        </Grid.Col>
-        <Grid.Col span={12}>
-          <Stack gap="xs">
-            {suggestError ? (
-              <Text c="orange.7" fz="sm">
-                {suggestError}
+      <Stack gap="md">
+        <Select
+          label="Sport"
+          size="md"
+          data={sportOptions}
+          value={sport}
+          onChange={handleSportChange}
+          searchable
+          nothingFoundMessage="No sport found"
+        />
+
+        <Box w="100%" maw={520} mx="auto">
+          {sportImageSrc && !hasSportImageError ? (
+            <Image
+              src={sportImageSrc}
+              alt={`${selectedSportLabel} preview`}
+              w="100%"
+              h="auto"
+              radius="sm"
+              fit="contain"
+              onError={() => setHasSportImageError(true)}
+            />
+          ) : (
+            <Stack align="center" justify="center" gap={4} h={160}>
+              <Text fw={500} fz="sm">
+                Sport image unavailable
               </Text>
-            ) : (
-              <Text c="dimmed" fz="sm">
-                Type to search, then select a suggested location to enable calculation.
+              <Text c="dimmed" fz="xs" ta="center">
+                Add an image for {selectedSportLabel} at {sportImageSrc ?? '/sports/<sport>.webp'}.
               </Text>
-            )}
-            <Group justify="flex-end">
-              <Button
-                size="md"
-                onClick={onCalculateRisk}
-                disabled={isCalculateDisabled}
-                loading={isCalculating}
-                w={{ base: '100%', sm: 'auto' }}
-              >
-                Calculate risk
-              </Button>
-            </Group>
-          </Stack>
-        </Grid.Col>
-      </Grid>
+            </Stack>
+          )}
+        </Box>
+
+        <Autocomplete
+          label="Location"
+          size="md"
+          placeholder="Search suburb, address, city, or venue"
+          value={locationInput}
+          onChange={onLocationInputChange}
+          onOptionSubmit={onLocationOptionSubmit}
+          data={suggestions}
+          filter={({ options }) => options}
+          rightSection={isSuggestLoading ? <Loader size={16} /> : null}
+          autoComplete="off"
+        />
+
+        <Stack gap="xs">
+          {suggestError ? (
+            <Text c="orange.7" fz="sm">
+              {suggestError}
+            </Text>
+          ) : (
+            <Text c="dimmed" fz="sm">
+              Type to search, then select a suggested location to enable calculation.
+            </Text>
+          )}
+          <Button
+            size="md"
+            onClick={onCalculateRisk}
+            disabled={isCalculateDisabled}
+            loading={isCalculating}
+            fullWidth
+          >
+            Calculate risk
+          </Button>
+        </Stack>
+      </Stack>
     </SectionCard>
   )
 }

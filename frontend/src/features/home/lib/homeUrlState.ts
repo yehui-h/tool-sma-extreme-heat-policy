@@ -1,7 +1,7 @@
 import { parseAsString, parseAsStringEnum } from 'nuqs'
-import { sportOptions } from '@/features/home/data/mockRisk'
+import { SPORT_VALUES } from '@/features/home/data/sportCatalog'
 
-export const VALID_SPORT_VALUES = sportOptions.map((option) => option.value)
+export const VALID_SPORT_VALUES = SPORT_VALUES
 
 export const HOME_QUERY_PARSERS = {
   sport: parseAsStringEnum(VALID_SPORT_VALUES),
