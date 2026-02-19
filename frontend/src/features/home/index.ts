@@ -1,1 +1,1 @@
-export { HomeView } from '@/features/home/components/HomeView'
+export { HomeView } from "@/features/home/components/HomeView";

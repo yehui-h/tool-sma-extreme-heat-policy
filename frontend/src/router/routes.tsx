@@ -1,11 +1,11 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { SiteShell } from '@/app/layout/SiteShell'
-import { AboutPage } from '@/pages/AboutPage'
-import { HomePage } from '@/pages/HomePage'
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { SiteShell } from "@/app/layout/SiteShell";
+import { AboutPage } from "@/pages/AboutPage";
+import { HomePage } from "@/pages/HomePage";
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <SiteShell />,
     children: [
       {
@@ -13,13 +13,13 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: 'about',
+        path: "about",
         element: <AboutPage />,
       },
       {
-        path: '*',
+        path: "*",
         element: <Navigate to="/" replace />,
       },
     ],
   },
-])
+]);

@@ -2,18 +2,19 @@
 
 ## Project structure (Feature-first, minimal)
 
-| Path | Responsibility |
-| --- | --- |
-| `src/app` | app shell and global providers |
-| `src/features/*` | business/domain modules (`home`, `about`) |
-| `src/shared/ui` | cross-feature reusable UI primitives |
-| `src/shared/config` | app-wide config like Mantine theme |
-| `src/shared/lib` | cross-feature pure helpers |
-| `src/shared/api` | API client foundation and endpoint constants |
-| `src/pages` | route-level page composition only |
-| `src/router` | route definitions |
+| Path                | Responsibility                               |
+| ------------------- | -------------------------------------------- |
+| `src/app`           | app shell and global providers               |
+| `src/features/*`    | business/domain modules (`home`, `about`)    |
+| `src/shared/ui`     | cross-feature reusable UI primitives         |
+| `src/shared/config` | app-wide config like Mantine theme           |
+| `src/shared/lib`    | cross-feature pure helpers                   |
+| `src/shared/api`    | API client foundation and endpoint constants |
+| `src/pages`         | route-level page composition only            |
+| `src/router`        | route definitions                            |
 
 Import rules:
+
 - `shared/**` must not import from `features/**` or `pages/**`.
 - Features should not import internals of other features.
 - Keep page files thin; put business logic inside feature modules.
@@ -21,11 +22,13 @@ Import rules:
 ## Home location search (Mapbox only)
 
 Environment variables:
+
 - `VITE_MAPBOX_ACCESS_TOKEN`: Required. Home `Location` autocomplete uses Mapbox Search Box `suggest`.
 - `VITE_HOME_DATA_SOURCE`: Optional. `api | mock`, defaults to `api`.
 - `VITE_API_BASE_URL`: Required when `VITE_HOME_DATA_SOURCE=api`. Home `Calculate risk` submits selected sport/location to backend `POST /home/risk`.
 
 Behavior:
+
 - Home page keeps draft input state separate from applied result state.
 - Users must select a suggested location before `Calculate risk` is enabled.
 - Users must select a suggestion that includes `mapbox_id + session_token`; otherwise risk calculation remains disabled.
@@ -51,9 +54,9 @@ If you are developing a production application, we recommend updating the config
 
 ```js
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(["dist"]),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ["**/*.{ts,tsx}"],
     extends: [
       // Other configs...
 
@@ -68,40 +71,40 @@ export default defineConfig([
     ],
     languageOptions: {
       parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
         tsconfigRootDir: import.meta.dirname,
       },
       // other options...
     },
   },
-])
+]);
 ```
 
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
 ```js
 // eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+import reactX from "eslint-plugin-react-x";
+import reactDom from "eslint-plugin-react-dom";
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(["dist"]),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ["**/*.{ts,tsx}"],
     extends: [
       // Other configs...
       // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
+      reactX.configs["recommended-typescript"],
       // Enable lint rules for React DOM
       reactDom.configs.recommended,
     ],
     languageOptions: {
       parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
         tsconfigRootDir: import.meta.dirname,
       },
       // other options...
     },
   },
-])
+]);
 ```

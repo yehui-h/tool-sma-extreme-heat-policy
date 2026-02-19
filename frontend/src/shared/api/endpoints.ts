@@ -1,3 +1,3 @@
 export const endpoints = {
-  homeRisk: '/home/risk',
-} as const
+  homeRisk: "/home/risk",
+} as const;

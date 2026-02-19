@@ -1,19 +1,19 @@
 export interface AboutParagraphRun {
-  text: string
-  href: string
+  text: string;
+  href: string;
 }
 
 export interface AboutParagraph {
   runs: Array<
     | {
-        text: string
+        text: string;
       }
     | AboutParagraphRun
-  >
-  italic?: boolean
+  >;
+  italic?: boolean;
 }
 
 export interface AboutSection {
-  title: string
-  paragraphs: AboutParagraph[]
+  title: string;
+  paragraphs: AboutParagraph[];
 }

@@ -1,7 +1,7 @@
-import { RouterProvider } from 'react-router-dom'
-import { NuqsAdapter } from 'nuqs/adapters/react-router/v7'
-import { AppProviders } from '@/app/providers'
-import { router } from '@/router/routes'
+import { RouterProvider } from "react-router-dom";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { AppProviders } from "@/app/providers";
+import { router } from "@/router/routes";
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
         <RouterProvider router={router} />
       </NuqsAdapter>
     </AppProviders>
-  )
+  );
 }
 
-export default App
+export default App;

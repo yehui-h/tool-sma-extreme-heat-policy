@@ -1,16 +1,18 @@
-import { Accordion, List, Paper, Stack, Text } from '@mantine/core'
-import { detailedSuggestionsByRisk } from '@/features/home/content/recommendations'
-import type { RiskLevel } from '@/features/home/types'
+import { Accordion, List, Paper, Stack, Text } from "@mantine/core";
+import { detailedSuggestionsByRisk } from "@/features/home/content/recommendations";
+import type { RiskLevel } from "@/features/home/types";
 
 interface DetailedRecommendationsSectionProps {
-  riskLevel: RiskLevel
+  riskLevel: RiskLevel;
 }
 
-export function DetailedRecommendationsSection({ riskLevel }: DetailedRecommendationsSectionProps) {
-  const details = detailedSuggestionsByRisk[riskLevel]
+export function DetailedRecommendationsSection({
+  riskLevel,
+}: DetailedRecommendationsSectionProps) {
+  const details = detailedSuggestionsByRisk[riskLevel];
 
   return (
-    <Paper shadow="xs" radius="md" p={{ base: 4, sm: 'md' }} withBorder>
+    <Paper shadow="xs" radius="md" p={{ base: 4, sm: "md" }} withBorder>
       <Accordion
         chevronPosition="right"
         radius="md"
@@ -42,5 +44,5 @@ export function DetailedRecommendationsSection({ riskLevel }: DetailedRecommenda
         </Accordion.Item>
       </Accordion>
     </Paper>
-  )
+  );
 }

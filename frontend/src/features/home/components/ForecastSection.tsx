@@ -1,21 +1,27 @@
-import { Accordion, Badge, Group, Stack, Text } from '@mantine/core'
-import { useMediaQuery } from '@mantine/hooks'
-import { forecastFixture } from '@/features/home/fixtures/forecastFixture'
-import { buildForecastOption, getRiskColor } from '@/features/home/lib/riskChartOptions'
-import { formatDateLabel } from '@/shared/lib/formatDate'
-import { EChart } from '@/shared/ui/EChart'
-import { SectionCard } from '@/shared/ui/SectionCard'
+import { Accordion, Badge, Group, Stack, Text } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
+import { forecastFixture } from "@/features/home/fixtures/forecastFixture";
+import {
+  buildForecastOption,
+  getRiskColor,
+} from "@/features/home/lib/riskChartOptions";
+import { formatDateLabel } from "@/shared/lib/formatDate";
+import { EChart } from "@/shared/ui/EChart";
+import { SectionCard } from "@/shared/ui/SectionCard";
 
-const FORECAST_CHART_HEIGHT = 340
+const FORECAST_CHART_HEIGHT = 340;
 
 export function ForecastSection() {
-  const isMobile = useMediaQuery('(max-width: 48em)')
-  const [today, ...nextDays] = forecastFixture
+  const isMobile = useMediaQuery("(max-width: 48em)");
+  const [today, ...nextDays] = forecastFixture;
 
   return (
     <SectionCard title="Forecasted risk">
       <Stack gap="sm">
-        <EChart option={buildForecastOption(today.points, undefined, isMobile)} height={FORECAST_CHART_HEIGHT} />
+        <EChart
+          option={buildForecastOption(today.points, undefined, isMobile)}
+          height={FORECAST_CHART_HEIGHT}
+        />
 
         <Accordion
           chevronPosition="right"
@@ -43,16 +49,21 @@ export function ForecastSection() {
                       {formatDateLabel(day.date)}
                     </Text>
                   </Stack>
-                  <Badge color={getRiskColor(day.risk)}>{day.risk.toUpperCase()}</Badge>
+                  <Badge color={getRiskColor(day.risk)}>
+                    {day.risk.toUpperCase()}
+                  </Badge>
                 </Group>
               </Accordion.Control>
               <Accordion.Panel style={{ paddingTop: 0 }}>
-                <EChart option={buildForecastOption(day.points, undefined, isMobile)} height={FORECAST_CHART_HEIGHT} />
+                <EChart
+                  option={buildForecastOption(day.points, undefined, isMobile)}
+                  height={FORECAST_CHART_HEIGHT}
+                />
               </Accordion.Panel>
             </Accordion.Item>
           ))}
         </Accordion>
       </Stack>
     </SectionCard>
-  )
+  );
 }

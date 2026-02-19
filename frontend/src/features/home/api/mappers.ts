@@ -1,5 +1,5 @@
-import type { HomeRiskDataDTO } from '@/features/home/api/responseDTO'
-import type { HomeRisk } from '@/features/home/domain/homeRisk'
+import type { HomeRiskDataDTO } from "@/features/home/api/responseDTO";
+import type { HomeRisk } from "@/features/home/domain/homeRisk";
 
 export function mapHomeRiskDtoToDomain(dto: HomeRiskDataDTO): HomeRisk {
   return {
@@ -8,5 +8,5 @@ export function mapHomeRiskDtoToDomain(dto: HomeRiskDataDTO): HomeRisk {
     highThreshold: dto.t_high,
     extremeThreshold: dto.t_extreme,
     recommendation: dto.recommendation,
-  }
+  };
 }

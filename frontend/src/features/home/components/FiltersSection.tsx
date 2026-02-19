@@ -1,24 +1,33 @@
-import { Autocomplete, Box, Button, Image, Loader, Select, Stack, Text } from '@mantine/core'
-import { useMemo, useState } from 'react'
-import { SPORT_IMAGE_BY_TYPE } from '@/features/home/data/sportCatalog'
-import { isSportType, type SportType } from '@/features/home/domain/sportType'
-import type { SelectOption } from '@/features/home/types'
-import { SectionCard } from '@/shared/ui/SectionCard'
+import {
+  Autocomplete,
+  Box,
+  Button,
+  Image,
+  Loader,
+  Select,
+  Stack,
+  Text,
+} from "@mantine/core";
+import { useMemo, useState } from "react";
+import { SPORT_IMAGE_BY_TYPE } from "@/features/home/data/sportCatalog";
+import { isSportType, type SportType } from "@/features/home/domain/sportType";
+import type { SelectOption } from "@/features/home/types";
+import { SectionCard } from "@/shared/ui/SectionCard";
 
 interface FiltersSectionProps {
-  sport: SportType
-  locationInput: string
-  sportOptions: SelectOption<SportType>[]
-  suggestions: string[]
-  isSuggestLoading: boolean
-  suggestError: string | null
-  calculateError: string | null
-  isCalculateDisabled: boolean
-  isCalculating: boolean
-  onSportChange: (value: SportType | null) => void
-  onLocationInputChange: (value: string) => void
-  onLocationOptionSubmit: (value: string) => void
-  onCalculateRisk: () => void
+  sport: SportType;
+  locationInput: string;
+  sportOptions: SelectOption<SportType>[];
+  suggestions: string[];
+  isSuggestLoading: boolean;
+  suggestError: string | null;
+  calculateError: string | null;
+  isCalculateDisabled: boolean;
+  isCalculating: boolean;
+  onSportChange: (value: SportType | null) => void;
+  onLocationInputChange: (value: string) => void;
+  onLocationOptionSubmit: (value: string) => void;
+  onCalculateRisk: () => void;
 }
 
 export function FiltersSection({
@@ -36,25 +45,27 @@ export function FiltersSection({
   onLocationOptionSubmit,
   onCalculateRisk,
 }: FiltersSectionProps) {
-  const [hasSportImageError, setHasSportImageError] = useState(false)
+  const [hasSportImageError, setHasSportImageError] = useState(false);
   const selectedSportLabel = useMemo(
-    () => sportOptions.find((option) => option.value === sport)?.label ?? 'Selected sport',
+    () =>
+      sportOptions.find((option) => option.value === sport)?.label ??
+      "Selected sport",
     [sport, sportOptions],
-  )
-  const sportImageSrc = SPORT_IMAGE_BY_TYPE[sport]
+  );
+  const sportImageSrc = SPORT_IMAGE_BY_TYPE[sport];
 
   const handleSportChange = (value: string | null) => {
-    setHasSportImageError(false)
+    setHasSportImageError(false);
 
     if (value === null) {
-      onSportChange(null)
-      return
+      onSportChange(null);
+      return;
     }
 
     if (isSportType(value)) {
-      onSportChange(value)
+      onSportChange(value);
     }
-  }
+  };
 
   return (
     <SectionCard title="">
@@ -86,7 +97,8 @@ export function FiltersSection({
                 Sport image unavailable
               </Text>
               <Text c="dimmed" fz="xs" ta="center">
-                Add an image for {selectedSportLabel} at {sportImageSrc ?? '/sports/<sport>.webp'}.
+                Add an image for {selectedSportLabel} at{" "}
+                {sportImageSrc ?? "/sports/<sport>.webp"}.
               </Text>
             </Stack>
           )}
@@ -120,15 +132,22 @@ export function FiltersSection({
 
           {!suggestError && !calculateError ? (
             <Text c="dimmed" fz="sm">
-              Type to search, then select a suggested location to enable calculation.
+              Type to search, then select a suggested location to enable
+              calculation.
             </Text>
           ) : null}
 
-          <Button size="md" onClick={onCalculateRisk} disabled={isCalculateDisabled} loading={isCalculating} fullWidth>
+          <Button
+            size="md"
+            onClick={onCalculateRisk}
+            disabled={isCalculateDisabled}
+            loading={isCalculating}
+            fullWidth
+          >
             Calculate risk
           </Button>
         </Stack>
       </Stack>
     </SectionCard>
-  )
+  );
 }

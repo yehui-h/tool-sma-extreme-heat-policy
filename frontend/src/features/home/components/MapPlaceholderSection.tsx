@@ -1,12 +1,12 @@
-import { Badge, Center, Group, Paper, Stack, Text } from '@mantine/core'
-import { SectionCard } from '@/shared/ui/SectionCard'
+import { Badge, Center, Group, Paper, Stack, Text } from "@mantine/core";
+import { SectionCard } from "@/shared/ui/SectionCard";
 
 interface MapPlaceholderSectionProps {
-  locationLabel: string
-  latitude?: number
-  longitude?: number
-  mapboxId?: string
-  sessionToken?: string
+  locationLabel: string;
+  latitude?: number;
+  longitude?: number;
+  mapboxId?: string;
+  sessionToken?: string;
 }
 
 export function MapPlaceholderSection({
@@ -16,8 +16,9 @@ export function MapPlaceholderSection({
   mapboxId,
   sessionToken,
 }: MapPlaceholderSectionProps) {
-  const hasCoordinates = typeof latitude === 'number' && typeof longitude === 'number'
-  const hasRetrievePayload = Boolean(mapboxId && sessionToken)
+  const hasCoordinates =
+    typeof latitude === "number" && typeof longitude === "number";
+  const hasRetrievePayload = Boolean(mapboxId && sessionToken);
 
   return (
     <SectionCard title="Location Map">
@@ -26,8 +27,8 @@ export function MapPlaceholderSection({
           <Stack align="center" gap="xs">
             <Text fw={600}>Map Preview Placeholder</Text>
             <Text c="dimmed" ta="center" maw={360}>
-              Nearest weather station and heat-risk map details for {locationLabel} will appear here in the next
-              implementation phase.
+              Nearest weather station and heat-risk map details for{" "}
+              {locationLabel} will appear here in the next implementation phase.
             </Text>
             <Group gap="xs">
               <Badge color="blue" variant="light">
@@ -48,5 +49,5 @@ export function MapPlaceholderSection({
         </Center>
       </Paper>
     </SectionCard>
-  )
+  );
 }
