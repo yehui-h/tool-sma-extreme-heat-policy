@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
-import { getHomeRisk } from '@/features/home/api/getHomeRisk'
+import { get_home_risk } from '@/features/home/api/getHomeRisk'
 import { currentRisk } from '@/features/home/data/mockRisk'
+import type { SportType } from '@/features/home/domain/sportType'
 import { savePersistedHomeFilters } from '@/features/home/lib/browserState'
 import type {
   AppliedLocation,
@@ -11,14 +12,14 @@ import type {
 } from '@/features/home/types'
 
 interface SetQueryStateValues {
-  sport: string | null
+  sport: SportType | null
   location: string | null
 }
 
 type SetQueryStates = (values: SetQueryStateValues, options?: { history?: 'replace' | 'push' }) => Promise<URLSearchParams>
 
 interface UseRiskCalculationParams {
-  draftSport: string
+  draftSport: SportType
   draftSelectedLocation: LocationSuggestion | null
   isSharedChannel: boolean
   setQueryStates: SetQueryStates
@@ -52,7 +53,6 @@ function toRetrievePayload(location: AppliedLocation): LocationRetrievePayload |
   return {
     mapboxId: location.mapboxId,
     sessionToken: location.sessionToken,
-    label: location.label,
   }
 }
 
@@ -65,7 +65,7 @@ export function useRiskCalculation({
   const [appliedLocation, setAppliedLocation] = useState<AppliedLocation | null>(null)
   const [risk, setRisk] = useState(currentRisk)
   const [isCalculating, setIsCalculating] = useState(false)
-  const lastAppliedRef = useRef<{ sport: string; loc: string } | null>(null)
+  const lastAppliedRef = useRef<{ sport: SportType; loc: string } | null>(null)
 
   const retrievePayload = useMemo(
     () => (appliedLocation ? toRetrievePayload(appliedLocation) : null),
@@ -73,7 +73,7 @@ export function useRiskCalculation({
   )
 
   const handleCalculateRisk = async () => {
-    if (!draftSelectedLocation || !draftSport) {
+    if (!draftSelectedLocation) {
       return
     }
 
@@ -83,18 +83,15 @@ export function useRiskCalculation({
 
     const payload: HomeRiskRequest = {
       sport: draftSport,
-      locationLabel: nextAppliedLocation.label,
       locationMeta: {
         source: nextAppliedLocation.source,
         mapboxId: nextAppliedLocation.mapboxId,
-        latitude: nextAppliedLocation.latitude,
-        longitude: nextAppliedLocation.longitude,
         sessionToken: nextAppliedLocation.sessionToken,
       },
     }
 
     try {
-      const nextRisk = await getHomeRisk(payload)
+      const nextRisk = await get_home_risk(payload)
       setRisk(nextRisk)
 
       const nextSelection = {

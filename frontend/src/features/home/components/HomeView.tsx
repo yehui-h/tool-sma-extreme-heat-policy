@@ -8,7 +8,9 @@ import { FiltersSection } from '@/features/home/components/FiltersSection'
 import { ForecastSection } from '@/features/home/components/ForecastSection'
 import { KeyRecommendationsSection } from '@/features/home/components/KeyRecommendationsSection'
 import { MapPlaceholderSection } from '@/features/home/components/MapPlaceholderSection'
-import { DEFAULT_SPORT_ID, SPORT_OPTIONS } from '@/features/home/data/sportCatalog'
+import { DEFAULT_SPORT_TYPE, SPORT_OPTIONS } from '@/features/home/data/sportCatalog'
+import { get_risk_level_from_risk_level_interpolated } from '@/features/home/domain/riskLevel'
+import type { SportType } from '@/features/home/domain/sportType'
 import { useLocationSuggest } from '@/features/home/hooks/useLocationSuggest'
 import { useRiskCalculation } from '@/features/home/hooks/useRiskCalculation'
 import { loadPersistedHomeFilters } from '@/features/home/lib/browserState'
@@ -16,7 +18,7 @@ import { type HomeBootstrapState, resolveHomeBootstrapState } from '@/features/h
 import { HOME_QUERY_PARSERS, HOME_QUERY_URL_KEYS, VALID_SPORT_VALUES } from '@/features/home/lib/homeUrlState'
 
 export function HomeView() {
-  const defaultSport = DEFAULT_SPORT_ID
+  const defaultSport = DEFAULT_SPORT_TYPE
   const mapboxAccessToken = (import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ?? '').trim()
   const hasMapboxToken = mapboxAccessToken.length > 0
   const optimisticSearchParams = useOptimisticSearchParams()
@@ -36,7 +38,7 @@ export function HomeView() {
     })
   }, [defaultSport, optimisticSearchParams, urlSport, urlLocation])
   const isSharedChannel = bootstrapState.channel === 'shared'
-  const [draftSport, setDraftSport] = useState<string>(bootstrapState.sport)
+  const [draftSport, setDraftSport] = useState<SportType>(bootstrapState.sport)
   const {
     draftLocationInput,
     draftSelectedLocation,
@@ -57,14 +59,15 @@ export function HomeView() {
     setQueryStates,
   })
 
-  const handleSportChange = (value: string | null) => {
+  const handleSportChange = (value: SportType | null) => {
     if (value) {
       setDraftSport(value)
     }
   }
 
-  const isCalculateDisabled = !hasMapboxToken || !draftSport || !draftSelectedLocation || isCalculating
+  const isCalculateDisabled = !hasMapboxToken || !draftSelectedLocation || isCalculating
   const appliedLocationLabel = appliedLocation?.label ?? 'Select a location'
+  const risk_level = get_risk_level_from_risk_level_interpolated(risk.risk_level_interpolated)
 
   return (
     <Stack gap="md">
@@ -85,8 +88,8 @@ export function HomeView() {
         }}
       />
       <CurrentRiskSection risk={risk} />
-      <KeyRecommendationsSection riskLevel={risk.level} />
-      <DetailedRecommendationsSection riskLevel={risk.level} />
+      <KeyRecommendationsSection riskLevel={risk_level} />
+      <DetailedRecommendationsSection riskLevel={risk_level} />
       <ForecastSection />
       <MapPlaceholderSection
         locationLabel={appliedLocationLabel}

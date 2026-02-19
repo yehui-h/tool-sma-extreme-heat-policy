@@ -1,7 +1,7 @@
 import { parseAsString, parseAsStringEnum } from 'nuqs'
-import { SPORT_VALUES } from '@/features/home/data/sportCatalog'
+import { SPORT_TYPE_VALUES } from '@/features/home/domain/sportType'
 
-export const VALID_SPORT_VALUES = SPORT_VALUES
+export const VALID_SPORT_VALUES = SPORT_TYPE_VALUES
 
 export const HOME_QUERY_PARSERS = {
   sport: parseAsStringEnum(VALID_SPORT_VALUES),

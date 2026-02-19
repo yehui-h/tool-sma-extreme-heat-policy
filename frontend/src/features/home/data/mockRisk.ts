@@ -4,13 +4,14 @@ import type {
   RecommendationItem,
   RiskLevel,
 } from '@/features/home/types'
+import { get_risk_level_from_risk_level_interpolated } from '@/features/home/domain/riskLevel'
 
 export const currentRisk: CurrentRiskData = {
-  title: 'Current Sport Heat Score',
-  score: 3.1,
-  level: 'extreme',
-  shortSummary:
-    'Active cooling strategies are strongly encouraged during breaks and periods of low activity.',
+  risk_level_interpolated: 3.1,
+  t_medium: 24.9,
+  t_high: 26.9,
+  t_extreme: 28.9,
+  recommendation: 'Increase hydration & modify clothing',
 }
 
 export const keyRecommendationsByRisk: Record<RiskLevel, RecommendationItem[]> = {
@@ -100,19 +101,6 @@ function expandThreeHourlySeriesToHourly(series: number[]): number[] {
   })
 }
 
-function toRiskLevel(maxScore: number): RiskLevel {
-  if (maxScore > 3) {
-    return 'extreme'
-  }
-  if (maxScore >= 2) {
-    return 'high'
-  }
-  if (maxScore >= 1) {
-    return 'moderate'
-  }
-  return 'low'
-}
-
 const baseDate = new Date()
 
 export const forecastDays: ForecastDay[] = daySeries.map((series, index) => {
@@ -131,7 +119,7 @@ export const forecastDays: ForecastDay[] = daySeries.map((series, index) => {
   return {
     day: dayDate.toLocaleDateString('en-AU', { weekday: 'long' }),
     date: dayDate.toISOString(),
-    risk: toRiskLevel(maxScore),
+    risk: get_risk_level_from_risk_level_interpolated(maxScore),
     points,
   }
 })

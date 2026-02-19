@@ -1,19 +1,20 @@
 import { Autocomplete, Box, Button, Image, Loader, Select, Stack, Text } from '@mantine/core'
 import { useMemo, useState } from 'react'
-import { SPORT_IMAGE_BY_ID } from '@/features/home/data/sportCatalog'
+import { SPORT_IMAGE_BY_TYPE } from '@/features/home/data/sportCatalog'
+import { isSportType, type SportType } from '@/features/home/domain/sportType'
 import { SectionCard } from '@/shared/ui/SectionCard'
 import type { SelectOption } from '@/features/home/types'
 
 interface FiltersSectionProps {
-  sport: string
+  sport: SportType
   locationInput: string
-  sportOptions: SelectOption[]
+  sportOptions: SelectOption<SportType>[]
   suggestions: string[]
   isSuggestLoading: boolean
   suggestError: string | null
   isCalculateDisabled: boolean
   isCalculating: boolean
-  onSportChange: (value: string | null) => void
+  onSportChange: (value: SportType | null) => void
   onLocationInputChange: (value: string) => void
   onLocationOptionSubmit: (value: string) => void
   onCalculateRisk: () => void
@@ -38,10 +39,16 @@ export function FiltersSection({
     () => sportOptions.find((option) => option.value === sport)?.label ?? 'Selected sport',
     [sport, sportOptions],
   )
-  const sportImageSrc = SPORT_IMAGE_BY_ID[sport]
+  const sportImageSrc = SPORT_IMAGE_BY_TYPE[sport]
   const handleSportChange = (value: string | null) => {
     setHasSportImageError(false)
-    onSportChange(value)
+    if (value === null) {
+      onSportChange(null)
+      return
+    }
+    if (isSportType(value)) {
+      onSportChange(value)
+    }
   }
 
   return (

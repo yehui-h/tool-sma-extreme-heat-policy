@@ -128,6 +128,7 @@ function formatForecastTooltip(params: TooltipComponentFormatterCallbackParams):
 
 export function buildGaugeOption(score: number, isMobile = false): EChartsOption {
   const typography = isMobile ? CHART_TYPOGRAPHY.mobile : CHART_TYPOGRAPHY.desktop
+  const safe_score = Number.isFinite(score) ? score : 0
 
   return {
     animation: true,
@@ -196,7 +197,7 @@ export function buildGaugeOption(score: number, isMobile = false): EChartsOption
           color: '#4b5563',
           fontSize: typography.gaugeTitle,
         },
-        data: [{ value: Number(score.toFixed(1)), name: 'Heat Score' }],
+        data: [{ value: Number(safe_score.toFixed(1)), name: 'Heat Score' }],
       },
     ],
   }

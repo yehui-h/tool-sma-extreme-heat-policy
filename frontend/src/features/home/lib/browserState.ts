@@ -1,7 +1,9 @@
+import type { SportType } from '@/features/home/domain/sportType'
+
 const HOME_FILTERS_STORAGE_KEY = 'home-filters:v1'
 
 export interface PersistedHomeFilters {
-  sport: string
+  sport: SportType
   loc: string
 }
 
@@ -9,11 +11,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-export function isValidPersistedSport(value: unknown, allowedSports: readonly string[]): value is string {
-  return typeof value === 'string' && allowedSports.includes(value)
+export function isValidPersistedSport(
+  value: unknown,
+  allowedSports: readonly SportType[],
+): value is SportType {
+  return typeof value === 'string' && allowedSports.includes(value as SportType)
 }
 
-export function loadPersistedHomeFilters(allowedSports: readonly string[]): PersistedHomeFilters | null {
+export function loadPersistedHomeFilters(allowedSports: readonly SportType[]): PersistedHomeFilters | null {
   if (typeof window === 'undefined') {
     return null
   }

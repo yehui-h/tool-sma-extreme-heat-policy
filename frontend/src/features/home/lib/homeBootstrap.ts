@@ -1,17 +1,18 @@
+import type { SportType } from '@/features/home/domain/sportType'
 import type { PersistedHomeFilters } from '@/features/home/lib/browserState'
 
 export type HomeChannel = 'shared' | 'direct'
 
 export interface HomeBootstrapState {
   channel: HomeChannel
-  sport: string
+  sport: SportType
   locationInput: string
 }
 
 interface ResolveHomeBootstrapStateParams {
   hasUrlState: boolean
-  defaultSport: string
-  urlSport: string | null
+  defaultSport: SportType
+  urlSport: SportType | null
   urlLocation: string | null
   persistedFilters: PersistedHomeFilters | null
 }
