@@ -39,10 +39,19 @@ Request body:
 
 Strict flow:
 1. Retrieve coordinates from Mapbox using `mapbox_id + session_token`.
-2. Fetch weather from Open-Meteo.
-3. Derive `tg` and `tr` locally with the legacy algorithm from `legacy/my_app/utils.py` (Open-Meteo does not provide `tg/tr`).
-4. Validate strict model inputs: `tdb`, `rh`, `vr`, `tg`, `tr`.
-5. Call `sports_heat_stress_risk`.
+2. Fetch Open-Meteo `hourly` weather using legacy-aligned fields:
+   - `temperature_2m`, `relative_humidity_2m`, `cloud_cover`, `wind_speed_10m`, `direct_radiation`
+   - `timezone=GMT`, `wind_speed_unit=ms`
+3. Validate Open-Meteo hourly units at runtime (strict):
+   - `temperature_2m: °C`
+   - `relative_humidity_2m: %`
+   - `wind_speed_10m: m/s`
+   - `cloud_cover: %`
+   - `direct_radiation: W/m²` (or `W/m2`)
+4. Convert hourly series to local timezone and select the first record where `time >= now_local - 1h` (legacy rule).
+5. Derive `tg` and `tr` locally with the legacy algorithm from `legacy/my_app/utils.py` (Open-Meteo does not provide `tg/tr`).
+6. Validate strict model inputs: `tdb`, `rh`, `vr`, `tg`, `tr`.
+7. Call `sports_heat_stress_risk`.
 
 Response body:
 - `data: object` (pythermalcomfort output keys and content, no business renaming)

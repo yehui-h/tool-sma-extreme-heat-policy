@@ -22,13 +22,16 @@ Import rules:
 
 Environment variables:
 - `VITE_MAPBOX_ACCESS_TOKEN`: Required. Home `Location` autocomplete uses Mapbox Search Box `suggest`.
-- `VITE_API_BASE_URL`: Optional. If configured, `Calculate risk` submits selected sport/location to backend `POST /home/risk`.
+- `VITE_HOME_DATA_SOURCE`: Optional. `api | mock`, defaults to `api`.
+- `VITE_API_BASE_URL`: Required when `VITE_HOME_DATA_SOURCE=api`. Home `Calculate risk` submits selected sport/location to backend `POST /home/risk`.
 
 Behavior:
 - Home page keeps draft input state separate from applied result state.
 - Users must select a suggested location before `Calculate risk` is enabled.
+- Users must select a suggestion that includes `mapbox_id + session_token`; otherwise risk calculation remains disabled.
 - If Mapbox token is missing, the UI shows a configuration error and disables calculation.
 - If Mapbox request fails, the UI shows an error message and asks the user to retry (no local fallback).
+- Risk API failures are shown in UI and keep the last valid result; no silent fallback to fixture data in `api` mode.
 - The selected location keeps `mapbox_id + session_token` in frontend state to support a later backend `retrieve` step.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

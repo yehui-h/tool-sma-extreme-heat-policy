@@ -1,9 +1,9 @@
 import { Badge, Group, Stack } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
-import { EChart } from '@/shared/ui/EChart'
-import { SectionCard } from '@/shared/ui/SectionCard'
+import { toRiskLevel } from '@/features/home/domain/homeRisk'
 import { buildGaugeOption, getRiskColor } from '@/features/home/lib/riskChartOptions'
-import { get_risk_level_from_risk_level_interpolated } from '@/features/home/domain/riskLevel'
+import { SectionCard } from '@/shared/ui/SectionCard'
+import { EChart } from '@/shared/ui/EChart'
 import type { CurrentRiskData } from '@/features/home/types'
 
 interface CurrentRiskSectionProps {
@@ -12,15 +12,15 @@ interface CurrentRiskSectionProps {
 
 export function CurrentRiskSection({ risk }: CurrentRiskSectionProps) {
   const isMobile = useMediaQuery('(max-width: 48em)')
-  const risk_level = get_risk_level_from_risk_level_interpolated(risk.risk_level_interpolated)
+  const riskLevel = toRiskLevel(risk.riskLevelInterpolated)
 
   return (
     <SectionCard title="Current Sport Heat Score">
       <Stack gap="sm">
-        <EChart option={buildGaugeOption(risk.risk_level_interpolated, isMobile)} height={260} />
+        <EChart option={buildGaugeOption(risk.riskLevelInterpolated, isMobile)} height={260} />
         <Group justify="center">
-          <Badge color={getRiskColor(risk_level)} size="lg" variant="filled">
-            {risk_level.toUpperCase()}
+          <Badge color={getRiskColor(riskLevel)} size="lg" variant="filled">
+            {riskLevel.toUpperCase()}
           </Badge>
         </Group>
       </Stack>

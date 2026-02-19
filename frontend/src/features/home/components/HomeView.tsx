@@ -9,13 +9,16 @@ import { ForecastSection } from '@/features/home/components/ForecastSection'
 import { KeyRecommendationsSection } from '@/features/home/components/KeyRecommendationsSection'
 import { MapPlaceholderSection } from '@/features/home/components/MapPlaceholderSection'
 import { DEFAULT_SPORT_TYPE, SPORT_OPTIONS } from '@/features/home/data/sportCatalog'
-import { get_risk_level_from_risk_level_interpolated } from '@/features/home/domain/riskLevel'
+import { toRiskLevel } from '@/features/home/domain/homeRisk'
 import type { SportType } from '@/features/home/domain/sportType'
 import { useLocationSuggest } from '@/features/home/hooks/useLocationSuggest'
 import { useRiskCalculation } from '@/features/home/hooks/useRiskCalculation'
 import { loadPersistedHomeFilters } from '@/features/home/lib/browserState'
 import { type HomeBootstrapState, resolveHomeBootstrapState } from '@/features/home/lib/homeBootstrap'
 import { HOME_QUERY_PARSERS, HOME_QUERY_URL_KEYS, VALID_SPORT_VALUES } from '@/features/home/lib/homeUrlState'
+
+const MAPBOX_METADATA_REQUIRED_NOTICE =
+  'Selected location is missing required mapbox metadata. Please select a suggestion again.'
 
 export function HomeView() {
   const defaultSport = DEFAULT_SPORT_TYPE
@@ -52,7 +55,7 @@ export function HomeView() {
     mapboxAccessToken,
     hasMapboxToken,
   })
-  const { risk, appliedLocation, retrievePayload, isCalculating, handleCalculateRisk } = useRiskCalculation({
+  const { risk, appliedLocation, retrievePayload, isCalculating, calculateError, handleCalculateRisk } = useRiskCalculation({
     draftSport,
     draftSelectedLocation,
     isSharedChannel,
@@ -65,9 +68,13 @@ export function HomeView() {
     }
   }
 
-  const isCalculateDisabled = !hasMapboxToken || !draftSelectedLocation || isCalculating
+  const hasSelectedLocationMeta = Boolean(draftSelectedLocation?.mapboxId && draftSelectedLocation?.sessionToken)
+  const locationMetadataError = draftSelectedLocation && !hasSelectedLocationMeta ? MAPBOX_METADATA_REQUIRED_NOTICE : null
+
+  const isCalculateDisabled = !hasMapboxToken || !draftSelectedLocation || !hasSelectedLocationMeta || isCalculating
   const appliedLocationLabel = appliedLocation?.label ?? 'Select a location'
-  const risk_level = get_risk_level_from_risk_level_interpolated(risk.risk_level_interpolated)
+  const riskLevel = toRiskLevel(risk.riskLevelInterpolated)
+  const nextCalculateError = locationMetadataError ?? calculateError
 
   return (
     <Stack gap="md">
@@ -78,6 +85,7 @@ export function HomeView() {
         suggestions={suggestionLabels}
         isSuggestLoading={isSuggestLoading}
         suggestError={suggestError}
+        calculateError={nextCalculateError}
         isCalculateDisabled={isCalculateDisabled}
         isCalculating={isCalculating}
         onSportChange={handleSportChange}
@@ -88,8 +96,8 @@ export function HomeView() {
         }}
       />
       <CurrentRiskSection risk={risk} />
-      <KeyRecommendationsSection riskLevel={risk_level} />
-      <DetailedRecommendationsSection riskLevel={risk_level} />
+      <KeyRecommendationsSection riskLevel={riskLevel} />
+      <DetailedRecommendationsSection riskLevel={riskLevel} />
       <ForecastSection />
       <MapPlaceholderSection
         locationLabel={appliedLocationLabel}

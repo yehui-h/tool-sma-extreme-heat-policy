@@ -42,10 +42,12 @@
 ## Feature Contracts (Home / Mapbox / Risk flow)
 - Preserve existing Home behavior unless explicitly requested to change:
   - `VITE_MAPBOX_ACCESS_TOKEN` is required for location suggestion.
-  - `VITE_API_BASE_URL` is optional and used for backend risk requests when configured.
-  - "Calculate risk" requires a selected location suggestion.
+  - `VITE_HOME_DATA_SOURCE` controls risk source mode (`api` by default, `mock` optional).
+  - `VITE_API_BASE_URL` is required when `VITE_HOME_DATA_SOURCE=api`.
+  - "Calculate risk" requires a selected location suggestion with `mapbox_id + session_token`.
   - Missing Mapbox token must show a configuration error and disable risk calculation.
   - Suggest API failures must show a retryable error message; no local fallback flow.
+  - Risk API failures must be shown in UI and must not silently fallback to fixture data in `api` mode.
   - Keep `mapbox_id + session_token` in frontend flow for later retrieve support.
 - Do not silently change these semantics.
 

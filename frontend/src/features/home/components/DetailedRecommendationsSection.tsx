@@ -1,6 +1,5 @@
-import { List, Text } from '@mantine/core'
-import { SectionCard } from '@/shared/ui/SectionCard'
-import { detailedRecommendationsByRisk } from '@/features/home/data/mockRisk'
+import { Accordion, List, Paper, Stack, Text } from '@mantine/core'
+import { detailedSuggestionsByRisk } from '@/features/home/content/recommendations'
 import type { RiskLevel } from '@/features/home/types'
 
 interface DetailedRecommendationsSectionProps {
@@ -8,18 +7,40 @@ interface DetailedRecommendationsSectionProps {
 }
 
 export function DetailedRecommendationsSection({ riskLevel }: DetailedRecommendationsSectionProps) {
-  const details = detailedRecommendationsByRisk[riskLevel]
+  const details = detailedSuggestionsByRisk[riskLevel]
 
   return (
-    <SectionCard title="Detailed recommendations">
-      <Text c="dimmed" fz="md">
-        Vigorous exercise places some people at risk of heat illness, especially in hot weather.
-      </Text>
-      <List spacing="xs" size="md" center>
-        {details.map((text) => (
-          <List.Item key={text}>{text}</List.Item>
-        ))}
-      </List>
-    </SectionCard>
+    <Paper shadow="xs" radius="md" p={{ base: 4, sm: 'md' }} withBorder>
+      <Accordion
+        chevronPosition="right"
+        radius="md"
+        defaultValue={null}
+        styles={{
+          item: {
+            border: 0,
+          },
+          control: {
+            border: 0,
+          },
+        }}
+      >
+        <Accordion.Item value="detailed-suggestions">
+          <Accordion.Control>
+            <Text fw={700}>Detailed suggestions</Text>
+          </Accordion.Control>
+          <Accordion.Panel>
+            <Stack gap="xs">
+              <Text fz="md">{details.description}</Text>
+              <Text fz="md">You should:</Text>
+              <List spacing="xs" size="md">
+                {details.suggestions.map((text) => (
+                  <List.Item key={text}>{text}</List.Item>
+                ))}
+              </List>
+            </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
+    </Paper>
   )
 }

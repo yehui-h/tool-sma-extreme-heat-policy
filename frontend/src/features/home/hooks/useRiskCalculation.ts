@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
-import { get_home_risk } from '@/features/home/api/getHomeRisk'
-import { currentRisk } from '@/features/home/data/mockRisk'
+import { getHomeRisk, type HomeRiskErrorReason } from '@/features/home/api/getHomeRisk'
+import { homeRiskFixture } from '@/features/home/fixtures/homeRiskFixture'
 import type { SportType } from '@/features/home/domain/sportType'
 import { savePersistedHomeFilters } from '@/features/home/lib/browserState'
 import type {
@@ -30,6 +30,7 @@ interface UseRiskCalculationResult {
   appliedLocation: AppliedLocation | null
   retrievePayload: LocationRetrievePayload | null
   isCalculating: boolean
+  calculateError: string | null
   handleCalculateRisk: () => Promise<void>
 }
 
@@ -56,6 +57,30 @@ function toRetrievePayload(location: AppliedLocation): LocationRetrievePayload |
   }
 }
 
+function toRequestLocationMeta(location: AppliedLocation): HomeRiskRequest['locationMeta'] | null {
+  if (!location.mapboxId || !location.sessionToken) {
+    return null
+  }
+
+  return {
+    source: location.source,
+    mapboxId: location.mapboxId,
+    sessionToken: location.sessionToken,
+  }
+}
+
+function toCalculateErrorMessage(reason: HomeRiskErrorReason): string {
+  if (reason === 'missing_api_base_url') {
+    return 'Risk API is not configured. Set VITE_API_BASE_URL or use VITE_HOME_DATA_SOURCE=mock.'
+  }
+
+  if (reason === 'invalid_response') {
+    return 'Risk API returned an invalid response. Please try again.'
+  }
+
+  return 'Risk calculation is temporarily unavailable. Please try again.'
+}
+
 export function useRiskCalculation({
   draftSport,
   draftSelectedLocation,
@@ -63,8 +88,9 @@ export function useRiskCalculation({
   setQueryStates,
 }: UseRiskCalculationParams): UseRiskCalculationResult {
   const [appliedLocation, setAppliedLocation] = useState<AppliedLocation | null>(null)
-  const [risk, setRisk] = useState(currentRisk)
+  const [risk, setRisk] = useState(homeRiskFixture)
   const [isCalculating, setIsCalculating] = useState(false)
+  const [calculateError, setCalculateError] = useState<string | null>(null)
   const lastAppliedRef = useRef<{ sport: SportType; loc: string } | null>(null)
 
   const retrievePayload = useMemo(
@@ -78,21 +104,32 @@ export function useRiskCalculation({
     }
 
     const nextAppliedLocation = toAppliedLocation(draftSelectedLocation)
+    const locationMeta = toRequestLocationMeta(nextAppliedLocation)
+
     setAppliedLocation(nextAppliedLocation)
+
+    if (!locationMeta) {
+      setCalculateError('Selected location is missing required mapbox metadata. Please select a suggestion again.')
+      return
+    }
+
+    setCalculateError(null)
     setIsCalculating(true)
 
     const payload: HomeRiskRequest = {
       sport: draftSport,
-      locationMeta: {
-        source: nextAppliedLocation.source,
-        mapboxId: nextAppliedLocation.mapboxId,
-        sessionToken: nextAppliedLocation.sessionToken,
-      },
+      locationMeta,
     }
 
     try {
-      const nextRisk = await get_home_risk(payload)
-      setRisk(nextRisk)
+      const nextRiskResult = await getHomeRisk(payload)
+
+      if (!nextRiskResult.ok) {
+        setCalculateError(toCalculateErrorMessage(nextRiskResult.reason))
+        return
+      }
+
+      setRisk(nextRiskResult.data)
 
       const nextSelection = {
         sport: draftSport,
@@ -129,6 +166,7 @@ export function useRiskCalculation({
     appliedLocation,
     retrievePayload,
     isCalculating,
+    calculateError,
     handleCalculateRisk,
   }
 }

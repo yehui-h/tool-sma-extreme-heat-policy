@@ -1,7 +1,7 @@
 import { Image, Paper, SimpleGrid, Stack, Text } from '@mantine/core'
-import { SectionCard } from '@/shared/ui/SectionCard'
-import { keyRecommendationsByRisk } from '@/features/home/data/mockRisk'
+import { keyRecommendationsByRisk } from '@/features/home/content/recommendations'
 import type { RiskLevel } from '@/features/home/types'
+import { SectionCard } from '@/shared/ui/SectionCard'
 
 interface KeyRecommendationsSectionProps {
   riskLevel: RiskLevel
@@ -11,7 +11,7 @@ export function KeyRecommendationsSection({ riskLevel }: KeyRecommendationsSecti
   const recommendations = keyRecommendationsByRisk[riskLevel]
 
   return (
-    <SectionCard title="Key recommendations">
+    <SectionCard title="Key recommendations:">
       <SimpleGrid cols={{ base: 1, xs: 2, sm: recommendations.length > 3 ? 4 : 3 }} spacing="sm">
         {recommendations.map((item) => (
           <Paper key={item.label} withBorder radius="md" p="md" bg="gray.0">

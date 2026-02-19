@@ -2,8 +2,8 @@ import { Autocomplete, Box, Button, Image, Loader, Select, Stack, Text } from '@
 import { useMemo, useState } from 'react'
 import { SPORT_IMAGE_BY_TYPE } from '@/features/home/data/sportCatalog'
 import { isSportType, type SportType } from '@/features/home/domain/sportType'
-import { SectionCard } from '@/shared/ui/SectionCard'
 import type { SelectOption } from '@/features/home/types'
+import { SectionCard } from '@/shared/ui/SectionCard'
 
 interface FiltersSectionProps {
   sport: SportType
@@ -12,6 +12,7 @@ interface FiltersSectionProps {
   suggestions: string[]
   isSuggestLoading: boolean
   suggestError: string | null
+  calculateError: string | null
   isCalculateDisabled: boolean
   isCalculating: boolean
   onSportChange: (value: SportType | null) => void
@@ -27,6 +28,7 @@ export function FiltersSection({
   suggestions,
   isSuggestLoading,
   suggestError,
+  calculateError,
   isCalculateDisabled,
   isCalculating,
   onSportChange,
@@ -40,12 +42,15 @@ export function FiltersSection({
     [sport, sportOptions],
   )
   const sportImageSrc = SPORT_IMAGE_BY_TYPE[sport]
+
   const handleSportChange = (value: string | null) => {
     setHasSportImageError(false)
+
     if (value === null) {
       onSportChange(null)
       return
     }
+
     if (isSportType(value)) {
       onSportChange(value)
     }
@@ -105,18 +110,21 @@ export function FiltersSection({
             <Text c="orange.7" fz="sm">
               {suggestError}
             </Text>
-          ) : (
+          ) : null}
+
+          {calculateError ? (
+            <Text c="red.7" fz="sm">
+              {calculateError}
+            </Text>
+          ) : null}
+
+          {!suggestError && !calculateError ? (
             <Text c="dimmed" fz="sm">
               Type to search, then select a suggested location to enable calculation.
             </Text>
-          )}
-          <Button
-            size="md"
-            onClick={onCalculateRisk}
-            disabled={isCalculateDisabled}
-            loading={isCalculating}
-            fullWidth
-          >
+          ) : null}
+
+          <Button size="md" onClick={onCalculateRisk} disabled={isCalculateDisabled} loading={isCalculating} fullWidth>
             Calculate risk
           </Button>
         </Stack>

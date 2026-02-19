@@ -1,16 +1,16 @@
 import { Accordion, Badge, Group, Stack, Text } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
+import { forecastFixture } from '@/features/home/fixtures/forecastFixture'
+import { buildForecastOption, getRiskColor } from '@/features/home/lib/riskChartOptions'
+import { formatDateLabel } from '@/shared/lib/formatDate'
 import { EChart } from '@/shared/ui/EChart'
 import { SectionCard } from '@/shared/ui/SectionCard'
-import { forecastDays } from '@/features/home/data/mockRisk'
-import { formatDateLabel } from '@/shared/lib/formatDate'
-import { buildForecastOption, getRiskColor } from '@/features/home/lib/riskChartOptions'
 
 const FORECAST_CHART_HEIGHT = 340
 
 export function ForecastSection() {
   const isMobile = useMediaQuery('(max-width: 48em)')
-  const [today, ...nextDays] = forecastDays
+  const [today, ...nextDays] = forecastFixture
 
   return (
     <SectionCard title="Forecasted risk">

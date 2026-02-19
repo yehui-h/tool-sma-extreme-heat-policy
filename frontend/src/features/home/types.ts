@@ -1,7 +1,7 @@
-import type { HomeRiskDataDTO } from '@/features/home/api/responseDTO'
+import type { HomeRisk, RiskLevel } from '@/features/home/domain/homeRisk'
 import type { SportType } from '@/features/home/domain/sportType'
 
-export type RiskLevel = 'low' | 'moderate' | 'high' | 'extreme'
+export type { RiskLevel } from '@/features/home/domain/homeRisk'
 
 export type LocationSource = 'mapbox'
 
@@ -38,7 +38,7 @@ export interface LocationRetrievePayload {
   sessionToken: string
 }
 
-export type CurrentRiskData = HomeRiskDataDTO
+export type CurrentRiskData = HomeRisk
 
 export interface RecommendationItem {
   icon: string
@@ -61,7 +61,7 @@ export interface HomeRiskRequest {
   sport: SportType
   locationMeta: {
     source: LocationSource
-    mapboxId?: string
-    sessionToken?: string
+    mapboxId: string
+    sessionToken: string
   }
 }
