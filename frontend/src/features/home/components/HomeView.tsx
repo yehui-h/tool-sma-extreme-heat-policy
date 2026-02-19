@@ -31,6 +31,7 @@ const MAPBOX_METADATA_REQUIRED_NOTICE =
   "Selected location is missing required mapbox metadata. Please select a suggestion again.";
 
 export function HomeView() {
+  // todo the sport should be saved in the central zutstand store
   const defaultSport = DEFAULT_SPORT_TYPE;
   const mapboxAccessToken = (
     import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ?? ""

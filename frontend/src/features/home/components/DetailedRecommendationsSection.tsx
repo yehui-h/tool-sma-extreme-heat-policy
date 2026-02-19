@@ -32,8 +32,9 @@ export function DetailedRecommendationsSection({
           </Accordion.Control>
           <Accordion.Panel>
             <Stack gap="xs">
-              <Text fz="md">{details.description}</Text>
-              <Text fz="md">You should:</Text>
+              <Text>{details.description}</Text>
+              {/*todo never have text embedded in the component*/}
+              <Text>You should:</Text>
               <List spacing="xs" size="md">
                 {details.suggestions.map((text) => (
                   <List.Item key={text}>{text}</List.Item>
