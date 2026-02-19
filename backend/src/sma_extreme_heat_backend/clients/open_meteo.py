@@ -201,12 +201,7 @@ class OpenMeteoClient:
         tr: float | None = None
         vr = vr_raw
         legacy_meta: dict[str, Any] | None = None
-        if (
-            tdb is not None
-            and vr_raw is not None
-            and cloud_cover is not None
-            and tz is not None
-        ):
+        if tdb is not None and vr_raw is not None and cloud_cover is not None and tz is not None:
             result = calculate_tg_tr_legacy(
                 tdb=tdb,
                 wind_speed=vr_raw,

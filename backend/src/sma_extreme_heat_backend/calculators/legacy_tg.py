@@ -62,9 +62,7 @@ def calculate_tg_tr_legacy(
     df_for = pd.concat([df_for, cs], axis=1)
 
     df_for["cloud"] /= 10
-    df_for["dni"] *= (
-        -0.00375838 * df_for["cloud"] ** 2 + -0.06230424 * df_for["cloud"] + 1.02290071
-    )
+    df_for["dni"] *= -0.00375838 * df_for["cloud"] ** 2 + -0.06230424 * df_for["cloud"] + 1.02290071
 
     row = df_for.iloc[0]
     erf_mrt = solar_gain(

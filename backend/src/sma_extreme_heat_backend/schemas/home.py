@@ -24,9 +24,7 @@ class HomeRiskRequest(BaseModel):
     @classmethod
     def validate_sport(cls, value: str) -> str:
         if value not in cls._allowed_sports:
-            raise ValueError(
-                "sport must use official pythermalcomfort Sports enum name"
-            )
+            raise ValueError("sport must use official pythermalcomfort Sports enum name")
         return value
 
 

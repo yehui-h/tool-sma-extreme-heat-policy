@@ -22,5 +22,6 @@ class SportsHeatStressOutput:
 
 
 class SportsHeatStressCalculator(Protocol):
-    def model_sports_heat_stress(self, payload: SportsHeatStressInput) -> SportsHeatStressOutput:
-        ...
+    def model_sports_heat_stress(
+        self, payload: SportsHeatStressInput
+    ) -> SportsHeatStressOutput: ...
