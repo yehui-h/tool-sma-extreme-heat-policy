@@ -1,4 +1,5 @@
-import { Accordion, Badge, Group, Stack, Text } from "@mantine/core";
+// Reduce nesting and improve spacing: use a clearer Stack gap, responsive chart height, and fewer small wrapper components
+import { Accordion, Badge, Flex, Group, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
@@ -9,7 +10,8 @@ import { EChart } from "@/components/ui/EChart";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { useHomeStore } from "@/store/homeStore";
 
-const FORECAST_CHART_HEIGHT = 340;
+const DEFAULT_FORECAST_CHART_HEIGHT = 340;
+const MOBILE_FORECAST_CHART_HEIGHT = 280;
 
 /**
  * Renders the 24-hour forecast chart and upcoming daily forecast accordions.
@@ -33,9 +35,14 @@ export function ForecastSection() {
     riskLevelLong: longRiskLabels,
   };
 
+  const chartHeight = isMobile
+    ? MOBILE_FORECAST_CHART_HEIGHT
+    : DEFAULT_FORECAST_CHART_HEIGHT;
+
   return (
     <SectionCard title={t("home.sections.forecast.title")}>
-      <Stack>
+      {/* Use a single Stack with an explicit gap to control spacing between chart and accordion */}
+      <Stack gap="md">
         <EChart
           option={buildForecastOption(
             today.points,
@@ -43,43 +50,27 @@ export function ForecastSection() {
             undefined,
             isMobile,
           )}
-          height={FORECAST_CHART_HEIGHT}
+          height={chartHeight}
         />
 
-        <Accordion
-          chevronPosition="right"
-          variant="separated"
-          radius="md"
-          styles={{
-            control: {
-              paddingInline: 12,
-              paddingBlock: 10,
-            },
-            content: {
-              paddingInline: 0,
-              paddingTop: 0,
-              paddingBottom: 8,
-            },
-            panel: {
-              paddingTop: 0,
-            },
-          }}
-        >
+        <Accordion chevronPosition="right" variant="separated" radius="md">
           {nextDays.map((day) => (
             <Accordion.Item key={day.date} value={day.date}>
               <Accordion.Control>
                 <Group justify="space-between" wrap="nowrap">
-                  <Stack gap={0}>
+                  {/* Reduced nesting: simple column for weekday + date */}
+                  <Flex direction={"column"}>
                     <Text fw={600}>{formatWeekdayLabel(day.date)}</Text>
                     <Text c="dimmed" fz="sm">
                       {formatDateLabel(day.date)}
                     </Text>
-                  </Stack>
-                  <Badge color={getRiskColor(day.risk)}>
+                  </Flex>
+                  <Badge color={getRiskColor(day.risk)} mr={"sm"}>
                     {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
                   </Badge>
                 </Group>
               </Accordion.Control>
+
               <Accordion.Panel>
                 <EChart
                   option={buildForecastOption(
@@ -88,7 +79,7 @@ export function ForecastSection() {
                     undefined,
                     isMobile,
                   )}
-                  height={FORECAST_CHART_HEIGHT}
+                  height={chartHeight}
                 />
               </Accordion.Panel>
             </Accordion.Item>
