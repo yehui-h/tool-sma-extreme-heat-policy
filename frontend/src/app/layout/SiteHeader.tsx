@@ -1,17 +1,19 @@
+// Simplify SiteHeader layout: replace deep Grid/Box nesting with a flatter Header/Container/Group structure
 import {
   Anchor,
-  Box,
-  Burger,
   Button,
   Container,
   Drawer,
-  Grid,
   Group,
+  // Header removed because Mantine doesn't export Header; use Box instead
   Image,
-  Stack,
   Text,
+  Burger,
+  Stack,
+  Box,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { MOBILE_LAYOUT_SPACING } from "@/app/layout/layoutSpacing";
@@ -21,10 +23,11 @@ function isRouteActive(currentPath: string, target: string): boolean {
 }
 
 /**
- * Renders the top site navigation with responsive desktop/mobile menus.
+ * Renders the top site navigation with a simpler, less-nested layout.
  */
 export function SiteHeader() {
   const [opened, { open, close }] = useDisclosure(false);
+  const isDesktop = useMediaQuery("(min-width: 769px)");
   const location = useLocation();
   const { t } = useTranslation();
   const navItems = [
@@ -60,35 +63,49 @@ export function SiteHeader() {
   };
 
   return (
-    <Box bg="#F1F1F1" p={0} mt={MOBILE_LAYOUT_SPACING} mb={0}>
-      <Container size="sm" px={{ base: MOBILE_LAYOUT_SPACING, sm: "md" }}>
-        <Grid align="center" gutter={0} py={0} m={0}>
-          <Grid.Col span={{ base: 2, sm: 4 }}>
-            <Anchor component={Link} to="/" onClick={close}>
-              <Image
-                src="/branding/logo-usyd-black.png"
-                alt={t("nav.logoAlt")}
-                h={35}
-                w="auto"
-                fit="contain"
-              />
-            </Anchor>
-          </Grid.Col>
+    <Box component="header" style={{ background: "#F1F1F1", height: 60 }}>
+      <Container
+        size="sm"
+        px={{ base: MOBILE_LAYOUT_SPACING, sm: "md" }}
+        style={{ height: "100%" }}
+      >
+        <Group
+          justify="space-between"
+          align="center"
+          wrap="nowrap"
+          style={{ height: "100%" }}
+        >
+          {/* Left: logo */}
+          <Anchor
+            component={Link}
+            to="/"
+            onClick={close}
+            style={{ display: "flex", alignItems: "center" }}
+          >
+            <Image
+              src="/branding/logo-usyd-black.png"
+              alt={t("nav.logoAlt")}
+              height={35}
+              width="auto"
+              fit="contain"
+            />
+          </Anchor>
 
-          <Grid.Col span={{ base: 9, sm: 4 }}>
-            <Text
-              fw={700}
-              fz={{ base: "md", sm: "lg" }}
-              ta="center"
-              lineClamp={1}
-            >
-              {t("app.title")}
-            </Text>
-          </Grid.Col>
+          {/* Center: title - flex so it stays centered between left and right items */}
+          <Text
+            fw={700}
+            fz={{ base: "md", sm: "lg" }}
+            ta="center"
+            lineClamp={1}
+            style={{ flex: 1, marginLeft: 12, marginRight: 12 }}
+          >
+            {t("app.title")}
+          </Text>
 
-          <Grid.Col span={{ base: 1, sm: 4 }}>
-            <Group justify="flex-end" wrap="nowrap">
-              <Group visibleFrom="sm" gap="xs">
+          {/* Right: nav buttons + burger - render based on viewport */}
+          <Group gap="xs" wrap="nowrap">
+            {isDesktop ? (
+              <Group gap="xs">
                 {navItems.map((item) =>
                   renderNavButton(item, {
                     inactiveVariant: "subtle",
@@ -96,24 +113,22 @@ export function SiteHeader() {
                   }),
                 )}
               </Group>
-
+            ) : (
               <Burger
-                hiddenFrom="sm"
                 opened={opened}
                 onClick={opened ? close : open}
                 aria-label={t("nav.toggleAriaLabel")}
                 pr={0}
               />
-            </Group>
-          </Grid.Col>
-        </Grid>
+            )}
+          </Group>
+        </Group>
       </Container>
 
       <Drawer
         opened={opened}
         onClose={close}
         title={t("nav.drawerTitle")}
-        hiddenFrom="sm"
         padding="md"
         position="right"
         size="66.67vw"
