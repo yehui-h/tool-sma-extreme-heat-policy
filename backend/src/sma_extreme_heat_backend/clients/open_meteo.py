@@ -1,31 +1,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
-import pandas as pd
-from timezonefinder import TimezoneFinder
 
-from sma_extreme_heat_backend.calculators.legacy_tg import calculate_tg_tr_legacy
 from sma_extreme_heat_backend.core.errors import WeatherProviderError
-
-tf = TimezoneFinder()
 
 _HOURLY_FIELDS: tuple[str, ...] = (
     "temperature_2m",
     "relative_humidity_2m",
-    "cloud_cover",
     "wind_speed_10m",
-    "direct_radiation",
 )
 
 _EXPECTED_HOURLY_UNITS: dict[str, set[str]] = {
     "temperature_2m": {"\N{DEGREE SIGN}C"},
     "relative_humidity_2m": {"%"},
     "wind_speed_10m": {"m/s"},
-    "cloud_cover": {"%"},
-    "direct_radiation": {"W/m2", "W/m\u00b2"},
 }
 
 
@@ -34,16 +26,11 @@ class CurrentWeather:
     tdb: float | None
     rh: float | None
     vr: float | None
-    tg: float | None
-    tr: float | None
-    legacy_meta: dict[str, Any] | None
     raw: dict[str, Any]
 
 
 def _to_float_or_none(value: Any) -> float | None:
     if value is None:
-        return None
-    if pd.isna(value):
         return None
 
     try:
@@ -52,22 +39,19 @@ def _to_float_or_none(value: Any) -> float | None:
         return None
 
 
-def _to_timestamp_or_none(value: Any) -> pd.Timestamp | None:
-    if value is None:
+def _to_utc_timestamp_or_none(value: Any) -> datetime | None:
+    if not isinstance(value, str):
         return None
 
-    timestamp = pd.to_datetime(value, errors="coerce")
-    if pd.isna(timestamp):
+    normalized = value.replace("Z", "+00:00")
+    try:
+        timestamp = datetime.fromisoformat(normalized)
+    except ValueError:
         return None
 
-    ts = pd.Timestamp(timestamp)
-    if ts.tzinfo is None:
-        ts = ts.tz_localize("GMT")
-    return ts
-
-
-def _timezone_at(*, latitude: float, longitude: float) -> str | None:
-    return tf.timezone_at(lng=longitude, lat=latitude)
+    if timestamp.tzinfo is None:
+        return timestamp.replace(tzinfo=UTC)
+    return timestamp.astimezone(UTC)
 
 
 def _validate_hourly_units(payload: dict[str, Any]) -> None:
@@ -87,7 +71,7 @@ def _validate_hourly_units(payload: dict[str, Any]) -> None:
             )
 
 
-def _build_hourly_frame(payload: dict[str, Any]) -> pd.DataFrame:
+def _select_hourly_row(payload: dict[str, Any]) -> dict[str, Any]:
     hourly = payload.get("hourly")
     if not isinstance(hourly, dict):
         raise WeatherProviderError("Weather provider response was missing hourly data")
@@ -96,61 +80,36 @@ def _build_hourly_frame(payload: dict[str, Any]) -> pd.DataFrame:
     if not isinstance(raw_time, list):
         raise WeatherProviderError("Weather provider response was missing hourly.time")
 
-    timestamp = pd.to_datetime(raw_time, errors="coerce")
-    index = pd.DatetimeIndex(timestamp)
-    if index.isna().any():
+    timestamps = [_to_utc_timestamp_or_none(item) for item in raw_time]
+    if any(item is None for item in timestamps):
         raise WeatherProviderError("Weather provider response contained invalid hourly.time values")
-    if index.tz is None:
-        index = index.tz_localize("GMT")
-    else:
-        index = index.tz_convert("GMT")
 
-    series_data: dict[str, list[Any]] = {}
+    series_data: dict[str, list[Any]] = {"time": raw_time}
     for field in _HOURLY_FIELDS:
         values = hourly.get(field)
         if not isinstance(values, list):
             raise WeatherProviderError(f"Weather provider response was missing hourly.{field}")
-        if len(values) != len(index):
+        if len(values) != len(raw_time):
             raise WeatherProviderError(
                 f"Weather provider response length mismatch for hourly.{field}"
             )
         series_data[field] = values
 
-    frame = pd.DataFrame(
-        data={
-            "tdb": series_data["temperature_2m"],
-            "rh": series_data["relative_humidity_2m"],
-            "cloud": series_data["cloud_cover"],
-            "wind": series_data["wind_speed_10m"],
-            "direct_radiation": series_data["direct_radiation"],
-        },
-        index=index,
-    )
-
-    return frame.sort_index()
-
-
-def _select_hourly_row(
-    *,
-    frame_utc: pd.DataFrame,
-    timezone_name: str | None,
-) -> tuple[pd.Series, pd.Timestamp]:
-    if timezone_name is None:
-        threshold = pd.Timestamp.now(tz="GMT") - pd.Timedelta(hours=1)
-        filtered = frame_utc[frame_utc.index >= threshold]
-    else:
-        frame_local = frame_utc.copy()
-        frame_local.index = frame_local.index.tz_convert(timezone_name)
-        filtered = frame_local[
-            frame_local.index >= (pd.Timestamp.now(tz=timezone_name) - pd.Timedelta(hours=1))
-        ]
-
-    filtered = filtered.dropna(subset=["tdb"])
-    if filtered.empty:
+    threshold = datetime.now(tz=UTC) - timedelta(hours=1)
+    candidate_indexes = [
+        idx
+        for idx, timestamp in sorted(enumerate(timestamps), key=lambda item: item[1])
+        if timestamp >= threshold
+    ]
+    if not candidate_indexes:
         raise WeatherProviderError("No hourly record after now-1h")
 
-    selected_timestamp = pd.Timestamp(filtered.index[0])
-    return filtered.iloc[0], selected_timestamp
+    selected = candidate_indexes[0]
+    return {
+        "tdb": series_data["temperature_2m"][selected],
+        "rh": series_data["relative_humidity_2m"][selected],
+        "wind": series_data["wind_speed_10m"][selected],
+    }
 
 
 class OpenMeteoClient:
@@ -184,45 +143,12 @@ class OpenMeteoClient:
             raise WeatherProviderError() from exc
 
         _validate_hourly_units(payload)
-        hourly_frame_utc = _build_hourly_frame(payload)
-
-        tz = _timezone_at(latitude=latitude, longitude=longitude)
-        selected_row, selected_timestamp = _select_hourly_row(
-            frame_utc=hourly_frame_utc,
-            timezone_name=tz,
-        )
-
-        tdb = _to_float_or_none(selected_row.get("tdb"))
-        rh = _to_float_or_none(selected_row.get("rh"))
-        vr_raw = _to_float_or_none(selected_row.get("wind"))
-        cloud_cover = _to_float_or_none(selected_row.get("cloud"))
-
-        tg: float | None = None
-        tr: float | None = None
-        vr = vr_raw
-        legacy_meta: dict[str, Any] | None = None
-        if tdb is not None and vr_raw is not None and cloud_cover is not None and tz is not None:
-            result = calculate_tg_tr_legacy(
-                tdb=tdb,
-                wind_speed=vr_raw,
-                cloud_cover=cloud_cover,
-                latitude=latitude,
-                longitude=longitude,
-                timestamp=selected_timestamp,
-                tz=tz,
-            )
-            tg = result.tg
-            tr = result.tr
-            vr = result.vr_adjusted
-            legacy_meta = result.meta
+        selected_row = _select_hourly_row(payload)
 
         return CurrentWeather(
-            tdb=tdb,
-            rh=rh,
-            vr=vr,
-            tg=tg,
-            tr=tr,
-            legacy_meta=legacy_meta,
+            tdb=_to_float_or_none(selected_row.get("tdb")),
+            rh=_to_float_or_none(selected_row.get("rh")),
+            vr=_to_float_or_none(selected_row.get("wind")),
             raw=payload,
         )
 

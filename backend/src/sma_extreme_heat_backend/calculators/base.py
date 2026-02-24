@@ -11,8 +11,6 @@ class SportsHeatStressInput:
     rh: float
     vr: float
     tr: float
-    # Legacy semantics: tg is the solved increment x where globe temp is tdb + x.
-    tg: float
 
 
 @dataclass(frozen=True)

@@ -13,8 +13,7 @@ UV_CACHE_DIR=/tmp/uv-cache uv sync
 ```
 
 ## Environment
-Copy `backend/.env.example` to `backend/.env` and set:
-- `MAPBOX_ACCESS_TOKEN`: backend token for Mapbox retrieve.
+Copy `backend/.env.example` to `backend/.env`.
 
 ## Run locally
 ```bash
@@ -33,29 +32,28 @@ UV_CACHE_DIR=/tmp/uv-cache uv run pytest
 ### `POST /home/risk`
 Request body:
 - `sport: string` (must exactly match pythermalcomfort Sports enum name, e.g. `SOCCER`)
-- `locationMeta.source: "mapbox"`
-- `locationMeta.mapboxId: string`
-- `locationMeta.sessionToken: string`
+- `latitude: number` (range `[-90, 90]`)
+- `longitude: number` (range `[-180, 180]`)
 
 Strict flow:
-1. Retrieve coordinates from Mapbox using `mapbox_id + session_token`.
-2. Fetch Open-Meteo `hourly` weather using legacy-aligned fields:
-   - `temperature_2m`, `relative_humidity_2m`, `cloud_cover`, `wind_speed_10m`, `direct_radiation`
+1. Fetch Open-Meteo `hourly` weather with:
+   - `temperature_2m`, `relative_humidity_2m`, `wind_speed_10m`
    - `timezone=GMT`, `wind_speed_unit=ms`
-3. Validate Open-Meteo hourly units at runtime (strict):
+2. Validate Open-Meteo hourly units at runtime (strict):
    - `temperature_2m: °C`
    - `relative_humidity_2m: %`
    - `wind_speed_10m: m/s`
-   - `cloud_cover: %`
-   - `direct_radiation: W/m²` (or `W/m2`)
-4. Convert hourly series to local timezone and select the first record where `time >= now_local - 1h` (legacy rule).
-5. Derive `tg` and `tr` locally with the legacy algorithm from `legacy/my_app/utils.py` (Open-Meteo does not provide `tg/tr`).
-6. Validate strict model inputs: `tdb`, `rh`, `vr`, `tg`, `tr`.
-7. Call `sports_heat_stress_risk`.
+3. Select the first record where `time >= now_utc - 1h`.
+4. Validate strict model inputs: `tdb`, `rh`, `vr`.
+5. Set `tr = tdb` and call `sports_heat_stress_risk` with `tdb`, `tr`, `rh`, `vr`, `sport`.
 
 Response body:
-- `data: object` (pythermalcomfort output keys and content, no business renaming)
-- `meta: object` (model/input/source context)
+- `heat_risk: object` (pythermalcomfort output keys and content, no business renaming)
+- `meta_data: object` (debug context such as model/open-meteo/location; no mapbox data)
+
+Contract mode:
+- Snake case is the only supported request/response style for `/home/risk`.
+- Camel case payload keys (for example `locationMeta`) and legacy response keys (`data`, `meta`) are not part of the default contract.
 
 Validation behavior:
 - Missing/uncertain model inputs return `422` with `unknown_inputs`.

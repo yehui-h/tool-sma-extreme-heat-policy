@@ -10,11 +10,6 @@ class AppError(Exception):
         self.detail = detail
 
 
-class ConfigurationError(AppError):
-    def __init__(self, detail: str) -> None:
-        super().__init__(status_code=500, detail=detail)
-
-
 class UpstreamServiceError(AppError):
     def __init__(self, detail: str) -> None:
         super().__init__(status_code=502, detail=detail)
@@ -22,11 +17,6 @@ class UpstreamServiceError(AppError):
 
 class WeatherProviderError(UpstreamServiceError):
     def __init__(self, detail: str = "Weather provider unavailable") -> None:
-        super().__init__(detail=detail)
-
-
-class MapboxProviderError(UpstreamServiceError):
-    def __init__(self, detail: str = "Mapbox provider unavailable") -> None:
         super().__init__(detail=detail)
 
 

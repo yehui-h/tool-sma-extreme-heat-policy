@@ -12,8 +12,6 @@ class Settings(BaseSettings):
         default_factory=lambda: ["http://localhost:5173"],
         alias="CORS_ORIGINS",
     )
-    mapbox_base_url: str = Field(default="https://api.mapbox.com", alias="MAPBOX_BASE_URL")
-    mapbox_access_token: str = Field(default="", alias="MAPBOX_ACCESS_TOKEN")
     open_meteo_base_url: str = Field(
         default="https://api.open-meteo.com/v1",
         alias="OPEN_METEO_BASE_URL",

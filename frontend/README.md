@@ -1,110 +1,115 @@
-# React + TypeScript + Vite
+# Sports Medicine Australia Extreme Heat Policy Tool — Frontend
 
-## Project structure (Feature-first, minimal)
+React + TypeScript + Vite frontend for the SMA Extreme Heat Policy tool.
 
-| Path                | Responsibility                               |
-| ------------------- | -------------------------------------------- |
-| `src/app`           | app shell and global providers               |
-| `src/features/*`    | business/domain modules (`home`, `about`)    |
-| `src/shared/ui`     | cross-feature reusable UI primitives         |
-| `src/shared/config` | app-wide config like Mantine theme           |
-| `src/shared/lib`    | cross-feature pure helpers                   |
-| `src/shared/api`    | API client foundation and endpoint constants |
-| `src/pages`         | route-level page composition only            |
-| `src/router`        | route definitions                            |
+## Overview
+
+This app provides:
+
+- Location-based heat stress risk assessment (via backend `POST /home/risk`)
+- Evidence-based recommendations for each risk level
+- Sport selection with translated labels and per-sport images
+- Forecast risk chart UI (currently backed by fixtures)
+
+Based on:
+
+- SMA Extreme Heat Risk and Response Guidelines: https://sma.org.au/resources/policies-and-guidelines/hot-weather/
+- Tartarini, F. et al., 2025. A modified sports medicine Australia extreme heat policy and web tool. _Journal of Science and Medicine in Sport_. https://www.sciencedirect.com/science/article/pii/S1440244025000696
+
+## Setup
+
+1. Install deps: `pnpm install`
+2. Create local env file: `cp .env.example .env.local`
+3. Run dev server: `pnpm dev`
+
+## Environment (`.env.local`)
+
+Create `frontend/.env.local` by copying `frontend/.env.example`:
+
+```bash
+cp .env.example .env.local
+```
+
+Then fill in values (do not commit real tokens/keys):
+
+```bash
+VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_public_token
+VITE_HOME_DATA_SOURCE=api
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+Notes:
+
+- `VITE_MAPBOX_ACCESS_TOKEN` is required for Home location `suggest + retrieve`.
+- `VITE_HOME_DATA_SOURCE` controls risk source mode: `api` (default) or `mock`.
+- `VITE_API_BASE_URL` is required when `VITE_HOME_DATA_SOURCE=api`.
+- `.env.local` is ignored by git via `*.local`.
+
+## Project structure (Layer-first)
+
+| Path             | Responsibility                              |
+| ---------------- | ------------------------------------------- |
+| `src/app`        | app shell + site layout                     |
+| `src/pages`      | route-level pages (`HomePage`, `AboutPage`) |
+| `src/components` | UI components (page-specific + shared)      |
+| `src/api`        | IO layer (backend + Mapbox)                 |
+| `src/domain`     | pure domain types + rules                   |
+| `src/hooks`      | reusable hooks (no UI copy)                 |
+| `src/lib`        | pure helpers (no UI copy)                   |
+| `src/config`     | app-wide config (Mantine theme)             |
+| `src/i18n`       | i18n init + bundled locale JSON             |
+| `src/store`      | app-wide stores (Zustand)                   |
+| `src/App.tsx`    | providers + routes                          |
 
 Import rules:
 
-- `shared/**` must not import from `features/**` or `pages/**`.
-- Features should not import internals of other features.
-- Keep page files thin; put business logic inside feature modules.
+- `src/api/**`, `src/config/**`, `src/domain/**`, `src/i18n/**`, `src/lib/**` must not import from `src/components/**` or `src/pages/**`.
+- `src/components/**` must not import from `src/pages/**`.
+- Pages can import from any layer.
 
-## Home location search (Mapbox only)
+## Home flow (Mapbox + risk)
 
-Environment variables:
+- Client state lives in `src/store/homeStore.ts` (Zustand).
+- Uses the official `zustand` npm package.
+- Server state uses React Query (`@tanstack/react-query`).
+- Location search uses Mapbox Search Box `suggest`; selecting a suggestion triggers Mapbox `retrieve` in frontend to resolve coordinates.
+- Risk API request sends `sport + latitude + longitude` (no Mapbox identifiers).
+- Risk is fetched automatically when:
+  - a location suggestion is selected and coordinates are resolved, and
+  - the sport changes.
+- Risk API failures are shown in UI and keep the last valid result (no silent fallback in `api` mode).
+- After a successful fetch:
+  - URL query params update (`sport`, `loc`) and
+  - the last selection is persisted to localStorage only for direct visits (not shared links).
+- Dates are formatted in browser local timezone for UI display.
+- API time contract: if datetime fields are introduced in request/response payloads, they must use ISO-8601 UTC format (`...Z`).
+- No kids/adults segmentation is part of the current frontend scope.
 
-- `VITE_MAPBOX_ACCESS_TOKEN`: Required. Home `Location` autocomplete uses Mapbox Search Box `suggest`.
-- `VITE_HOME_DATA_SOURCE`: Optional. `api | mock`, defaults to `api`.
-- `VITE_API_BASE_URL`: Required when `VITE_HOME_DATA_SOURCE=api`. Home `Calculate risk` submits selected sport/location to backend `POST /home/risk`.
+## i18n
 
-Behavior:
+- All user-facing text lives in `src/i18n/locales/en/translation.json`.
+- Components/pages use `useTranslation()` and `t(...)`.
+- Do not embed visible copy directly in components/hooks/libs.
 
-- Home page keeps draft input state separate from applied result state.
-- Users must select a suggested location before `Calculate risk` is enabled.
-- Users must select a suggestion that includes `mapbox_id + session_token`; otherwise risk calculation remains disabled.
-- If Mapbox token is missing, the UI shows a configuration error and disables calculation.
-- If Mapbox request fails, the UI shows an error message and asks the user to retry (no local fallback).
-- Risk API failures are shown in UI and keep the last valid result; no silent fallback to fixture data in `api` mode.
-- The selected location keeps `mapbox_id + session_token` in frontend state to support a later backend `retrieve` step.
+## Formatting
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+- `pnpm format` (writes)
+- `pnpm format:check` (CI-safe)
+- `pnpm lint` (ESLint)
+- `pnpm lint:ci` (ESLint + Prettier check)
+- `pnpm build`
 
-Currently, two official plugins are available:
+## Frontend Conventions Compliance
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+- Prettier is mandatory: always run `pnpm format` before handoff and keep
+  `pnpm lint:ci` green.
+- Exported functions should include short JSDoc as required by
+  `frontend/AGENTS.md`.
+- Keep layouts Mantine-first (`Stack`, `Grid`, `Flex`, `Container`) and avoid
+  page layout in custom CSS.
+- Keep user-facing copy in i18n JSON files under `src/i18n/locales/*` and use
+  translation keys in components/hooks/libs.
+- Shared business state belongs in Zustand stores; avoid prop drilling for
+  shared business state.
+- Risk metadata is centralized in `src/domain/riskRegistry.ts` (thresholds,
+  colors, icon paths, and recommendation i18n keys).

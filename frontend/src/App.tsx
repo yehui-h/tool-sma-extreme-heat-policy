@@ -1,15 +1,67 @@
-import { RouterProvider } from "react-router-dom";
+import "@mantine/core/styles.css";
+
+import { MantineProvider } from "@mantine/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
-import { AppProviders } from "@/app/providers";
-import { router } from "@/router/routes";
+import { useEffect } from "react";
+import { I18nextProvider, useTranslation } from "react-i18next";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
+import { SiteShell } from "@/app/layout/SiteShell";
+import { appTheme } from "@/config/mantineTheme";
+import { i18n } from "@/i18n/i18n";
+import { AboutPage } from "@/pages/AboutPage";
+import { HomePage } from "@/pages/HomePage";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <SiteShell />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+      {
+        path: "about",
+        element: <AboutPage />,
+      },
+      {
+        path: "*",
+        element: <Navigate to="/" replace />,
+      },
+    ],
+  },
+]);
+
+const queryClient = new QueryClient();
+
+function AppContent() {
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    document.title = t("app.title");
+  }, [t]);
+
+  return (
+    <NuqsAdapter>
+      <RouterProvider router={router} />
+    </NuqsAdapter>
+  );
+}
 
 function App() {
   return (
-    <AppProviders>
-      <NuqsAdapter>
-        <RouterProvider router={router} />
-      </NuqsAdapter>
-    </AppProviders>
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider theme={appTheme} defaultColorScheme="light">
+        <I18nextProvider i18n={i18n}>
+          <AppContent />
+        </I18nextProvider>
+      </MantineProvider>
+    </QueryClientProvider>
   );
 }
 
