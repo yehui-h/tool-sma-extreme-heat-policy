@@ -63,6 +63,13 @@ interface GaugeLabels {
   riskLevelShort: Record<RiskLevel, string>;
 }
 
+interface GaugeSeriesOptions {
+  showPointer?: boolean;
+  showProgress?: boolean;
+  detailFormatter?: string;
+  detailValueAnimation?: boolean;
+}
+
 interface ForecastLabels {
   xAxisName: string;
   yAxisRiskName: string;
@@ -107,7 +114,15 @@ function createGaugeSeries(
   score: number,
   labels: GaugeLabels,
   typography: ChartTypography,
+  options: GaugeSeriesOptions = {},
 ) {
+  const {
+    showPointer = true,
+    showProgress = true,
+    detailFormatter = "{value}",
+    detailValueAnimation = true,
+  } = options;
+
   return {
     type: "gauge" as const,
     min: 0,
@@ -120,11 +135,12 @@ function createGaugeSeries(
       },
     },
     pointer: {
+      show: showPointer,
       length: "58%",
       width: 6,
     },
     progress: {
-      show: true,
+      show: showProgress,
       width: 18,
     },
     axisTick: {
@@ -152,8 +168,8 @@ function createGaugeSeries(
       },
     },
     detail: {
-      valueAnimation: true,
-      formatter: "{value}",
+      valueAnimation: detailValueAnimation,
+      formatter: detailFormatter,
       offsetCenter: [0, "70%"],
       color: "#1f2937",
       fontSize: typography.gaugeValue,
@@ -365,6 +381,31 @@ export function buildGaugeOption(
       formatter: "{b}: {c}",
     },
     series: [createGaugeSeries(safeScore, labels, typography)],
+  };
+}
+
+/**
+ * Builds ECharts option for pending state of current risk gauge chart.
+ */
+export function buildPendingGaugeOption(
+  labels: GaugeLabels,
+  isMobile = false,
+): EChartsOption {
+  const typography = getTypography(isMobile);
+
+  return {
+    animation: false,
+    tooltip: {
+      show: false,
+    },
+    series: [
+      createGaugeSeries(0, labels, typography, {
+        showPointer: false,
+        showProgress: false,
+        detailFormatter: "N/A",
+        detailValueAnimation: false,
+      }),
+    ],
   };
 }
 

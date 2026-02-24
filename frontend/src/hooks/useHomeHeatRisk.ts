@@ -30,6 +30,7 @@ interface UseHomeHeatRiskResult {
   meta: HeatRiskMeta;
   isFetching: boolean;
   errorReason: HeatRiskCalculationErrorReason | null;
+  hasCalculatedRisk: boolean;
   canSyncSelection: boolean;
 }
 
@@ -86,13 +87,14 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
   const risk = riskQuery.data?.data ?? heatRiskFixture;
   const riskLevel = toRiskLevel(risk.riskLevelInterpolated);
   const meta = riskQuery.data?.meta ?? {};
-  const canSyncSelection = Boolean(
+  const hasCalculatedRisk = Boolean(
     selectedLocation &&
     locationCoordinates &&
     riskQuery.data &&
     !riskQuery.isPlaceholderData &&
     sport === debouncedSport,
   );
+  const canSyncSelection = hasCalculatedRisk;
 
   return {
     risk,
@@ -100,6 +102,7 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
     meta,
     isFetching: riskQuery.isFetching,
     errorReason,
+    hasCalculatedRisk,
     canSyncSelection,
   };
 }

@@ -2,6 +2,7 @@ import { Image, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { RISK_REGISTRY } from "@/domain/riskRegistry";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
+import { RiskPendingState } from "@/components/home/RiskPendingState";
 import { SectionCard } from "@/components/ui/SectionCard";
 
 /**
@@ -9,7 +10,19 @@ import { SectionCard } from "@/components/ui/SectionCard";
  */
 export function KeyRecommendationsSection() {
   const { t } = useTranslation();
-  const { riskLevel } = useHomeHeatRisk();
+  const { riskLevel, hasCalculatedRisk } = useHomeHeatRisk();
+
+  if (!hasCalculatedRisk) {
+    return (
+      <SectionCard title={t("home.sections.keyRecommendations.title")}>
+        <RiskPendingState
+          message={t("home.sections.riskPending.keyRecommendationsHint")}
+          showMutedIcons
+        />
+      </SectionCard>
+    );
+  }
+
   const labels = t(RISK_REGISTRY[riskLevel].keyRecommendationsKey, {
     returnObjects: true,
   }) as string[];

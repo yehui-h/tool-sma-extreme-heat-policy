@@ -3,6 +3,7 @@ import {
   Box,
   Burger,
   Button,
+  Container,
   Drawer,
   Grid,
   Group,
@@ -59,53 +60,54 @@ export function SiteHeader() {
   };
 
   return (
-    <Box
-      bg="#F1F1F1"
-      p={0}
-      mt={MOBILE_LAYOUT_SPACING}
-      mx={MOBILE_LAYOUT_SPACING}
-      mb={0}
-    >
-      <Grid align="center" gutter={0} py={0} m={0}>
-        <Grid.Col span={{ base: 2, sm: 4 }}>
-          <Anchor component={Link} to="/" onClick={close}>
-            <Image
-              src="/branding/logo-usyd-black.png"
-              alt={t("nav.logoAlt")}
-              h={35}
-              w="auto"
-              fit="contain"
-            />
-          </Anchor>
-        </Grid.Col>
+    <Box bg="#F1F1F1" p={0} mt={MOBILE_LAYOUT_SPACING} mb={0}>
+      <Container size="sm" px={{ base: MOBILE_LAYOUT_SPACING, sm: "md" }}>
+        <Grid align="center" gutter={0} py={0} m={0}>
+          <Grid.Col span={{ base: 2, sm: 4 }}>
+            <Anchor component={Link} to="/" onClick={close}>
+              <Image
+                src="/branding/logo-usyd-black.png"
+                alt={t("nav.logoAlt")}
+                h={35}
+                w="auto"
+                fit="contain"
+              />
+            </Anchor>
+          </Grid.Col>
 
-        <Grid.Col span={{ base: 9, sm: 4 }}>
-          <Text fw={700} fz={{ base: "md", sm: "lg" }} ta="center" lineClamp={1}>
-            {t("app.title")}
-          </Text>
-        </Grid.Col>
+          <Grid.Col span={{ base: 9, sm: 4 }}>
+            <Text
+              fw={700}
+              fz={{ base: "md", sm: "lg" }}
+              ta="center"
+              lineClamp={1}
+            >
+              {t("app.title")}
+            </Text>
+          </Grid.Col>
 
-        <Grid.Col span={{ base: 1, sm: 4 }}>
-          <Group justify="flex-end" wrap="nowrap">
-            <Group visibleFrom="sm" gap="xs">
-              {navItems.map((item) =>
-                renderNavButton(item, {
-                  inactiveVariant: "subtle",
-                  size: "sm",
-                }),
-              )}
+          <Grid.Col span={{ base: 1, sm: 4 }}>
+            <Group justify="flex-end" wrap="nowrap">
+              <Group visibleFrom="sm" gap="xs">
+                {navItems.map((item) =>
+                  renderNavButton(item, {
+                    inactiveVariant: "subtle",
+                    size: "sm",
+                  }),
+                )}
+              </Group>
+
+              <Burger
+                hiddenFrom="sm"
+                opened={opened}
+                onClick={opened ? close : open}
+                aria-label={t("nav.toggleAriaLabel")}
+                pr={0}
+              />
             </Group>
-
-            <Burger
-              hiddenFrom="sm"
-              opened={opened}
-              onClick={opened ? close : open}
-              aria-label={t("nav.toggleAriaLabel")}
-              pr={0}
-            />
-          </Group>
-        </Grid.Col>
-      </Grid>
+          </Grid.Col>
+        </Grid>
+      </Container>
 
       <Drawer
         opened={opened}

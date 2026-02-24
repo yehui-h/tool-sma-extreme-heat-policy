@@ -2,6 +2,7 @@ import { Accordion, List, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { RISK_REGISTRY } from "@/domain/riskRegistry";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
+import { RiskPendingState } from "@/components/home/RiskPendingState";
 import { SectionCard } from "@/components/ui/SectionCard";
 
 /**
@@ -9,7 +10,18 @@ import { SectionCard } from "@/components/ui/SectionCard";
  */
 export function DetailedRecommendationsSection() {
   const { t } = useTranslation();
-  const { riskLevel } = useHomeHeatRisk();
+  const { riskLevel, hasCalculatedRisk } = useHomeHeatRisk();
+
+  if (!hasCalculatedRisk) {
+    return (
+      <SectionCard>
+        <RiskPendingState
+          message={t("home.sections.riskPending.detailedHint")}
+        />
+      </SectionCard>
+    );
+  }
+
   const details = RISK_REGISTRY[riskLevel];
   const description = t(details.detailedDescriptionKey);
   const suggestions = t(details.detailedSuggestionsKey, {

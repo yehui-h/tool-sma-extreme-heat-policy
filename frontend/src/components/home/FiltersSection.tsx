@@ -96,7 +96,7 @@ export function FiltersSection() {
 
   return (
     <SectionCard title="">
-      <Stack>
+      <Stack p={{ base: "xs", sm: 0 }}>
         <Group wrap="nowrap" align="center">
           <Text fw={600} miw={fieldLabelMinWidth}>
             {t("home.sections.filters.sportLabel")}:
@@ -128,7 +128,7 @@ export function FiltersSection() {
               onError={() => setHasSportImageError(true)}
             />
           ) : (
-            <Stack align="center" justify="center" gap={4} h={160}>
+            <Stack align="center" justify="center" gap={4} py="md">
               <Text fw={500} fz="sm">
                 {t("home.sections.filters.sportImageUnavailable")}
               </Text>

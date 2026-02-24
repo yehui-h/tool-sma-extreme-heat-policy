@@ -240,6 +240,12 @@
       "currentRisk": {
         "title": "Current Sport Heat Score"
       },
+      "riskPending": {
+        "setFiltersHint": "Select sport and location to calculate risk.",
+        "scoreHint": "Current heat score will appear after calculation.",
+        "keyRecommendationsHint": "Key recommendations will appear after calculation.",
+        "detailedHint": "Detailed suggestions will appear after calculation."
+      },
       "keyRecommendations": {
         "title": "Key recommendations:"
       },
