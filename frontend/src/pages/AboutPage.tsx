@@ -14,7 +14,7 @@ export function AboutPage() {
   }) as AboutSection[];
 
   return (
-    <Stack gap={MOBILE_LAYOUT_SPACING}>
+    <Stack gap={MOBILE_LAYOUT_SPACING} mt="lg">
       {sections.map((section) => (
         <AboutSectionBlock key={section.title} section={section} />
       ))}
