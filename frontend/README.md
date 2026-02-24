@@ -32,6 +32,8 @@ cp .env.example .env.local
 
 Then fill in values (do not commit real tokens/keys):
 
+You can get a Mapbox public token for free at https://account.mapbox.com/access-tokens/ (create a free account if you don't have one). 
+
 ```bash
 VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_public_token
 VITE_HOME_DATA_SOURCE=api
