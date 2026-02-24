@@ -58,7 +58,6 @@ class PythermalcomfortSportsHeatStressCalculator(SportsHeatStressCalculator):
                     "tdb": payload.tdb,
                     "rh": payload.rh,
                     "vr": payload.vr,
-                    "tg": payload.tg,
                     "tr": _to_json_serializable(payload.tr),
                 },
             },

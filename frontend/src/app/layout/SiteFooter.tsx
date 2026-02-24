@@ -8,6 +8,11 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
+import { useTranslation } from "react-i18next";
+
+const APP_VERSION = "1.2.2";
+const COPYRIGHT_YEAR = 2025;
+const REVIEW_YEAR = 2025;
 
 const footerLinkStyles = {
   root: {
@@ -20,26 +25,31 @@ const footerLinkStyles = {
   },
 };
 
+/**
+ * Renders the site footer with credits, citation, and contact links.
+ */
 export function SiteFooter() {
+  const { t } = useTranslation();
+
   return (
     <Box component="footer" bg="#e64626">
       <Container size="sm" py="lg">
         <Grid gutter="md" align="start">
           <Grid.Col span={{ base: 12, sm: 4 }}>
             <Stack gap="xs">
-              <Text c="#111">Developed by:</Text>
+              <Text c="#111">{t("footer.developedBy")}</Text>
               <Image
                 src="/branding/logo-usyd-black.png"
-                alt="University of Sydney logo"
+                alt={t("footer.usydLogoAlt")}
                 w={150}
                 fit="contain"
               />
               <Text c="#111" mt="xs">
-                Endorsed by:
+                {t("footer.endorsedBy")}
               </Text>
               <Image
                 src="/branding/sma-black.png"
-                alt="Sports Medicine Australia logo"
+                alt={t("footer.smaLogoAlt")}
                 w={140}
                 fit="contain"
               />
@@ -49,52 +59,41 @@ export function SiteFooter() {
           <Grid.Col span={{ base: 12, sm: 8 }}>
             <Stack gap={6}>
               <Anchor
-                fz="md"
                 styles={footerLinkStyles}
                 href="https://sydney.au1.qualtrics.com/jfe/form/SV_3jAqlzAnAoAOU8S"
                 target="_blank"
                 rel="noreferrer"
               >
-                Provide your feedback
+                {t("footer.feedbackLink")}
               </Anchor>
-              <Text fz="md" c="#111">
-                If you use this tool, please cite the following paper:
-              </Text>
+              <Text c="#111">{t("footer.citePrompt")}</Text>
               <Anchor
-                fz="md"
                 styles={footerLinkStyles}
                 href="https://doi.org/10.1016/j.jsams.2025.03.006"
                 target="_blank"
                 rel="noreferrer"
               >
-                The Sports Medicine Australia extreme heat risk and response
-                guidelines and web tool.
+                {t("footer.paperTitle")}
               </Anchor>
-              <Text fz="md" c="#111">
-                Tartarini F, Smallcombe JW, Lynch GP, Cross TJ, Broderick C, Jay
-                O.
+              <Text c="#111">{t("footer.authors")}</Text>
+              <Text c="#111" fs="italic">
+                {t("footer.journal")}
               </Text>
-              <Text fz="md" c="#111" fs="italic">
-                J Sci Med Sport. 2025 Sep;28(9):690-699.
+              <Text c="#111">
+                {t("footer.copyright", { year: COPYRIGHT_YEAR })}
               </Text>
-              <Text fz="md" c="#111">
-                © 2025 - Heat and Health Research Centre, The University of
-                Sydney.
+              <Text c="#111">
+                {t("footer.reviewedBy", { year: REVIEW_YEAR })}
               </Text>
-              <Text fz="md" c="#111">
-                This website was reviewed by the Sports Medicine Australia
-                Scientific Advisory Committee in 2025
-              </Text>
-              <Text fz="md" c="#111">
-                Version: 1.2.2
+              <Text c="#111">
+                {t("footer.version", { version: APP_VERSION })}
               </Text>
               <Group gap="xs">
                 <Anchor
-                  fz="md"
                   styles={footerLinkStyles}
                   href="mailto:federico.tartarini@sydney.edu.au"
                 >
-                  Contact Us
+                  {t("footer.contactUs")}
                 </Anchor>
               </Group>
             </Stack>

@@ -1,53 +1,39 @@
 from __future__ import annotations
 
 from sma_extreme_heat_backend.calculators.base import SportsHeatStressInput, SportsHeatStressOutput
-from sma_extreme_heat_backend.clients.mapbox import RetrievedCoordinates
 from sma_extreme_heat_backend.clients.open_meteo import CurrentWeather
 from sma_extreme_heat_backend.core.errors import ModelInputUnavailableError
-from sma_extreme_heat_backend.schemas.home import HomeRiskRequest
+from sma_extreme_heat_backend.schemas.home import RiskRequest
 from sma_extreme_heat_backend.services.risk_service import RiskService
 
 
-class FakeMapboxClient:
-    def __init__(self) -> None:
-        self.calls = 0
-
-    async def retrieve_coordinates(
+class FakeWeatherClient:
+    def __init__(
         self,
         *,
-        mapbox_id: str,
-        session_token: str,
-    ) -> RetrievedCoordinates:
-        self.calls += 1
-        assert mapbox_id == "mbx.test-id"
-        assert session_token == "session-123"
-        return RetrievedCoordinates(
-            latitude=-33.847,
-            longitude=151.067,
-            raw={"provider": "mapbox"},
-        )
-
-    async def aclose(self) -> None:
-        return None
-
-
-class FakeWeatherClient:
-    def __init__(self, tg: float | None = 32.0, tr: float | None = 36.5) -> None:
+        expected_latitude: float | None = -33.847,
+        expected_longitude: float | None = 151.067,
+        tdb: float | None = 31.0,
+        rh: float | None = 62.0,
+        vr: float | None = 1.5,
+    ) -> None:
         self.calls = 0
-        self.tg = tg
-        self.tr = tr
+        self.expected_latitude = expected_latitude
+        self.expected_longitude = expected_longitude
+        self.tdb = tdb
+        self.rh = rh
+        self.vr = vr
 
     async def fetch_current_weather(self, *, latitude: float, longitude: float) -> CurrentWeather:
         self.calls += 1
-        assert latitude == -33.847
-        assert longitude == 151.067
+        if self.expected_latitude is not None:
+            assert latitude == self.expected_latitude
+        if self.expected_longitude is not None:
+            assert longitude == self.expected_longitude
         return CurrentWeather(
-            tdb=31.0,
-            rh=62.0,
-            vr=1.5,
-            tg=self.tg,
-            tr=self.tr,
-            legacy_meta={"source": "legacy"},
+            tdb=self.tdb,
+            rh=self.rh,
+            vr=self.vr,
             raw={"provider": "open-meteo"},
         )
 
@@ -63,7 +49,9 @@ class FakeCalculator:
         self.calls += 1
         assert payload.sport == "SOCCER"
         assert payload.tdb == 31.0
-        assert payload.tr == 36.5
+        assert payload.rh == 62.0
+        assert payload.vr == 1.5
+        assert payload.tr == 31.0
         return SportsHeatStressOutput(
             data={
                 "risk_level_interpolated": 1.94,
@@ -77,83 +65,98 @@ class FakeCalculator:
 
 
 async def test_risk_service_uses_ttl_cache_for_same_input() -> None:
-    mapbox_client = FakeMapboxClient()
-    weather_client = FakeWeatherClient(tg=32.0)
+    weather_client = FakeWeatherClient()
     calculator = FakeCalculator()
 
     service = RiskService(
-        mapbox_client=mapbox_client,
         weather_client=weather_client,
         calculator=calculator,
         ttl_seconds=600,
     )
 
-    payload = HomeRiskRequest(
+    payload = RiskRequest(
         sport="SOCCER",
-        locationMeta={
-            "source": "mapbox",
-            "mapboxId": "mbx.test-id",
-            "sessionToken": "session-123",
-        },
+        latitude=-33.847,
+        longitude=151.067,
     )
 
     first = await service.calculate_home_risk(payload)
     second = await service.calculate_home_risk(payload)
 
-    assert mapbox_client.calls == 1
     assert weather_client.calls == 1
     assert calculator.calls == 1
     assert first == second
-    assert "risk_level_interpolated" in first.data
+    assert "risk_level_interpolated" in first.heat_risk
+    assert first.meta_data["location"] == {"latitude": -33.847, "longitude": 151.067}
+    assert "mapbox" not in first.meta_data
 
 
-async def test_risk_service_missing_tg_raises_unknown_inputs() -> None:
+async def test_risk_service_cache_key_changes_with_coordinates() -> None:
+    weather_client = FakeWeatherClient(expected_latitude=None, expected_longitude=None)
+    calculator = FakeCalculator()
     service = RiskService(
-        mapbox_client=FakeMapboxClient(),
-        weather_client=FakeWeatherClient(tg=None),
+        weather_client=weather_client,
+        calculator=calculator,
+        ttl_seconds=600,
+    )
+
+    first_payload = RiskRequest(
+        sport="SOCCER",
+        latitude=-33.847,
+        longitude=151.067,
+    )
+    second_payload = RiskRequest(
+        sport="SOCCER",
+        latitude=-33.847001,
+        longitude=151.067001,
+    )
+
+    await service.calculate_home_risk(first_payload)
+    await service.calculate_home_risk(second_payload)
+
+    assert weather_client.calls == 2
+    assert calculator.calls == 2
+
+
+async def test_risk_service_missing_vr_raises_unknown_inputs() -> None:
+    service = RiskService(
+        weather_client=FakeWeatherClient(vr=None),
         calculator=FakeCalculator(),
         ttl_seconds=600,
     )
 
-    payload = HomeRiskRequest(
+    payload = RiskRequest(
         sport="SOCCER",
-        locationMeta={
-            "source": "mapbox",
-            "mapboxId": "mbx.test-id",
-            "sessionToken": "session-123",
-        },
+        latitude=-33.847,
+        longitude=151.067,
     )
 
     try:
         await service.calculate_home_risk(payload)
     except ModelInputUnavailableError as exc:
         assert exc.status_code == 422
-        assert exc.detail["unknown_inputs"] == ["tg"]
+        assert exc.detail["unknown_inputs"] == ["vr"]
     else:
         raise AssertionError("Expected ModelInputUnavailableError")
 
 
-async def test_risk_service_missing_tr_raises_unknown_inputs() -> None:
+async def test_risk_service_missing_tdb_raises_unknown_inputs() -> None:
     service = RiskService(
-        mapbox_client=FakeMapboxClient(),
-        weather_client=FakeWeatherClient(tg=2.0, tr=None),
+        weather_client=FakeWeatherClient(tdb=None),
         calculator=FakeCalculator(),
         ttl_seconds=600,
     )
 
-    payload = HomeRiskRequest(
+    payload = RiskRequest(
         sport="SOCCER",
-        locationMeta={
-            "source": "mapbox",
-            "mapboxId": "mbx.test-id",
-            "sessionToken": "session-123",
-        },
+        latitude=-33.847,
+        longitude=151.067,
     )
 
     try:
         await service.calculate_home_risk(payload)
     except ModelInputUnavailableError as exc:
         assert exc.status_code == 422
-        assert exc.detail["unknown_inputs"] == ["tr"]
+        assert exc.detail["unknown_inputs"] == ["tdb"]
     else:
         raise AssertionError("Expected ModelInputUnavailableError")

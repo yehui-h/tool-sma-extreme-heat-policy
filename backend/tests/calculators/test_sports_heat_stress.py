@@ -17,7 +17,6 @@ def test_model_sports_heat_stress_returns_pythermalcomfort_raw_keys() -> None:
             rh=60.0,
             vr=1.2,
             tr=35.0,
-            tg=5.0,
         )
     )
 
@@ -40,7 +39,6 @@ def test_model_sports_heat_stress_rejects_non_official_sport_name() -> None:
                 rh=60.0,
                 vr=1.2,
                 tr=35.0,
-                tg=5.0,
             )
         )
     except InvalidSportError as exc:

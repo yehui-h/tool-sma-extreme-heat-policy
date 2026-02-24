@@ -1,40 +1,36 @@
 from __future__ import annotations
 
-import httpx
-import pandas as pd
+from datetime import UTC, datetime, timedelta
 
-from sma_extreme_heat_backend.calculators.legacy_tg import LegacyTgResult
+import httpx
+
 from sma_extreme_heat_backend.clients.open_meteo import OpenMeteoClient
 from sma_extreme_heat_backend.core.errors import WeatherProviderError
 
 
-def _hourly_time_strings(times: list[pd.Timestamp]) -> list[str]:
+def _hourly_time_strings(times: list[datetime]) -> list[str]:
     normalized: list[str] = []
     for ts in times:
         if ts.tzinfo is None:
-            ts = ts.tz_localize("GMT")
+            ts = ts.replace(tzinfo=UTC)
         else:
-            ts = ts.tz_convert("GMT")
+            ts = ts.astimezone(UTC)
         normalized.append(ts.strftime("%Y-%m-%dT%H:%M"))
     return normalized
 
 
 def _hourly_payload(
     *,
-    times: list[pd.Timestamp],
+    times: list[datetime],
     tdb: list[float | None],
     rh: list[float | None],
-    cloud: list[float | None],
     wind: list[float | None],
-    direct_radiation: list[float | None],
     units_override: dict[str, str] | None = None,
 ) -> dict:
     units = {
         "temperature_2m": "°C",
         "relative_humidity_2m": "%",
-        "cloud_cover": "%",
         "wind_speed_10m": "m/s",
-        "direct_radiation": "W/m²",
     }
     if units_override:
         units.update(units_override)
@@ -45,9 +41,7 @@ def _hourly_payload(
             "time": _hourly_time_strings(times),
             "temperature_2m": tdb,
             "relative_humidity_2m": rh,
-            "cloud_cover": cloud,
             "wind_speed_10m": wind,
-            "direct_radiation": direct_radiation,
         },
     }
 
@@ -65,20 +59,18 @@ def _build_client(handler) -> tuple[OpenMeteoClient, httpx.AsyncClient]:
     return client, mock_client
 
 
-async def test_fetch_current_weather_derives_legacy_tg_tr(monkeypatch) -> None:
-    now = pd.Timestamp.now(tz="GMT").floor("h")
+async def test_fetch_current_weather_returns_selected_hourly_values() -> None:
+    now = datetime.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
     payload = _hourly_payload(
-        times=[now - pd.Timedelta(hours=2), now, now + pd.Timedelta(hours=1)],
+        times=[now - timedelta(hours=2), now, now + timedelta(hours=1)],
         tdb=[19.0, 31.0, 33.0],
         rh=[80.0, 62.0, 61.0],
-        cloud=[75.0, 65.0, 40.0],
         wind=[0.9, 1.5, 1.1],
-        direct_radiation=[50.0, 120.0, 200.0],
     )
 
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.params["hourly"] == (
-            "temperature_2m,relative_humidity_2m,cloud_cover,wind_speed_10m,direct_radiation"
+            "temperature_2m,relative_humidity_2m,wind_speed_10m"
         )
         assert request.url.params["wind_speed_unit"] == "ms"
         assert request.url.params["timezone"] == "GMT"
@@ -86,107 +78,21 @@ async def test_fetch_current_weather_derives_legacy_tg_tr(monkeypatch) -> None:
 
     client, mock_client = _build_client(handler)
 
-    monkeypatch.setattr(
-        "sma_extreme_heat_backend.clients.open_meteo._timezone_at",
-        lambda latitude, longitude: "Australia/Sydney",
-    )
-    monkeypatch.setattr(
-        "sma_extreme_heat_backend.clients.open_meteo.calculate_tg_tr_legacy",
-        lambda **kwargs: LegacyTgResult(
-            tg=2.4,
-            tr=35.7,
-            vr_adjusted=0.45,
-            delta_mrt=4.7,
-            meta={"source": "legacy"},
-        ),
-    )
-
-    weather = await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
-    await mock_client.aclose()
-
-    assert weather.tdb == 31.0
-    assert weather.rh == 62.0
-    assert weather.vr == 0.45
-    assert weather.tg == 2.4
-    assert weather.tr == 35.7
-    assert weather.legacy_meta == {"source": "legacy"}
-
-
-async def test_fetch_current_weather_sets_missing_tg_tr_when_timezone_missing(monkeypatch) -> None:
-    now = pd.Timestamp.now(tz="GMT").floor("h")
-    payload = _hourly_payload(
-        times=[now - pd.Timedelta(hours=2), now],
-        tdb=[24.0, 31.0],
-        rh=[70.0, 62.0],
-        cloud=[40.0, 65.0],
-        wind=[1.0, 1.5],
-        direct_radiation=[20.0, 100.0],
-    )
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(status_code=200, json=payload)
-
-    client, mock_client = _build_client(handler)
-
-    monkeypatch.setattr(
-        "sma_extreme_heat_backend.clients.open_meteo._timezone_at",
-        lambda latitude, longitude: None,
-    )
-
     weather = await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
     await mock_client.aclose()
 
     assert weather.tdb == 31.0
     assert weather.rh == 62.0
     assert weather.vr == 1.5
-    assert weather.tg is None
-    assert weather.tr is None
-    assert weather.legacy_meta is None
-
-
-async def test_fetch_current_weather_sets_missing_tg_tr_when_cloud_cover_missing(
-    monkeypatch,
-) -> None:
-    now = pd.Timestamp.now(tz="GMT").floor("h")
-    payload = _hourly_payload(
-        times=[now - pd.Timedelta(hours=2), now],
-        tdb=[24.0, 31.0],
-        rh=[70.0, 62.0],
-        cloud=[40.0, None],
-        wind=[1.0, 1.5],
-        direct_radiation=[20.0, 100.0],
-    )
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(status_code=200, json=payload)
-
-    client, mock_client = _build_client(handler)
-
-    monkeypatch.setattr(
-        "sma_extreme_heat_backend.clients.open_meteo._timezone_at",
-        lambda latitude, longitude: "Australia/Sydney",
-    )
-
-    weather = await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
-    await mock_client.aclose()
-
-    assert weather.tdb == 31.0
-    assert weather.rh == 62.0
-    assert weather.vr == 1.5
-    assert weather.tg is None
-    assert weather.tr is None
-    assert weather.legacy_meta is None
 
 
 async def test_fetch_current_weather_rejects_invalid_temperature_unit() -> None:
-    now = pd.Timestamp.now(tz="GMT").floor("h")
+    now = datetime.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
     payload = _hourly_payload(
         times=[now],
         tdb=[31.0],
         rh=[62.0],
-        cloud=[65.0],
         wind=[1.5],
-        direct_radiation=[100.0],
         units_override={"temperature_2m": "°F"},
     )
 
@@ -206,14 +112,12 @@ async def test_fetch_current_weather_rejects_invalid_temperature_unit() -> None:
 
 
 async def test_fetch_current_weather_rejects_invalid_wind_speed_unit() -> None:
-    now = pd.Timestamp.now(tz="GMT").floor("h")
+    now = datetime.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
     payload = _hourly_payload(
         times=[now],
         tdb=[31.0],
         rh=[62.0],
-        cloud=[65.0],
         wind=[1.5],
-        direct_radiation=[100.0],
         units_override={"wind_speed_10m": "km/h"},
     )
 
@@ -232,17 +136,14 @@ async def test_fetch_current_weather_rejects_invalid_wind_speed_unit() -> None:
         await mock_client.aclose()
 
 
-async def test_fetch_current_weather_raises_when_no_hourly_record_after_now_minus_1h(
-    monkeypatch,
-) -> None:
-    now = pd.Timestamp.now(tz="GMT").floor("h")
+async def test_fetch_current_weather_rejects_invalid_humidity_unit() -> None:
+    now = datetime.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
     payload = _hourly_payload(
-        times=[now - pd.Timedelta(hours=4), now - pd.Timedelta(hours=3)],
-        tdb=[20.0, 21.0],
-        rh=[70.0, 69.0],
-        cloud=[50.0, 55.0],
-        wind=[1.0, 1.2],
-        direct_radiation=[40.0, 45.0],
+        times=[now],
+        tdb=[31.0],
+        rh=[62.0],
+        wind=[1.5],
+        units_override={"relative_humidity_2m": "fraction"},
     )
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -250,10 +151,29 @@ async def test_fetch_current_weather_raises_when_no_hourly_record_after_now_minu
 
     client, mock_client = _build_client(handler)
 
-    monkeypatch.setattr(
-        "sma_extreme_heat_backend.clients.open_meteo._timezone_at",
-        lambda latitude, longitude: "Australia/Sydney",
+    try:
+        await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
+    except WeatherProviderError as exc:
+        assert "relative_humidity_2m" in str(exc.detail)
+    else:
+        raise AssertionError("Expected WeatherProviderError for invalid relative humidity unit")
+    finally:
+        await mock_client.aclose()
+
+
+async def test_fetch_current_weather_raises_when_no_hourly_record_after_now_minus_1h() -> None:
+    now = datetime.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
+    payload = _hourly_payload(
+        times=[now - timedelta(hours=4), now - timedelta(hours=3)],
+        tdb=[20.0, 21.0],
+        rh=[70.0, 69.0],
+        wind=[1.0, 1.2],
     )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(status_code=200, json=payload)
+
+    client, mock_client = _build_client(handler)
 
     try:
         await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
@@ -267,17 +187,13 @@ async def test_fetch_current_weather_raises_when_no_hourly_record_after_now_minu
         await mock_client.aclose()
 
 
-async def test_fetch_current_weather_selects_first_hourly_record_after_now_minus_1h(
-    monkeypatch,
-) -> None:
-    now = pd.Timestamp.now(tz="GMT").floor("h")
+async def test_fetch_current_weather_selects_first_hourly_record_after_now_minus_1h() -> None:
+    now = datetime.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
     payload = _hourly_payload(
-        times=[now - pd.Timedelta(hours=2), now, now + pd.Timedelta(hours=1)],
+        times=[now - timedelta(hours=2), now, now + timedelta(hours=1)],
         tdb=[20.0, 25.0, 33.0],
         rh=[70.0, 60.0, 50.0],
-        cloud=[40.0, 50.0, 60.0],
         wind=[0.9, 1.2, 1.8],
-        direct_radiation=[30.0, 40.0, 50.0],
     )
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -285,34 +201,39 @@ async def test_fetch_current_weather_selects_first_hourly_record_after_now_minus
 
     client, mock_client = _build_client(handler)
 
-    monkeypatch.setattr(
-        "sma_extreme_heat_backend.clients.open_meteo._timezone_at",
-        lambda latitude, longitude: "Australia/Sydney",
-    )
-
-    captured: dict[str, float] = {}
-
-    def fake_calculate_tg_tr_legacy(**kwargs) -> LegacyTgResult:
-        captured["tdb"] = kwargs["tdb"]
-        captured["wind_speed"] = kwargs["wind_speed"]
-        captured["cloud_cover"] = kwargs["cloud_cover"]
-        return LegacyTgResult(
-            tg=1.0,
-            tr=28.0,
-            vr_adjusted=0.36,
-            delta_mrt=3.0,
-            meta={"source": "legacy"},
-        )
-
-    monkeypatch.setattr(
-        "sma_extreme_heat_backend.clients.open_meteo.calculate_tg_tr_legacy",
-        fake_calculate_tg_tr_legacy,
-    )
-
     weather = await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
     await mock_client.aclose()
 
     assert weather.tdb == 25.0
-    assert captured["tdb"] == 25.0
-    assert captured["wind_speed"] == 1.2
-    assert captured["cloud_cover"] == 50.0
+    assert weather.rh == 60.0
+    assert weather.vr == 1.2
+
+
+async def test_fetch_current_weather_rejects_invalid_hourly_time_value() -> None:
+    payload = {
+        "hourly_units": {
+            "temperature_2m": "°C",
+            "relative_humidity_2m": "%",
+            "wind_speed_10m": "m/s",
+        },
+        "hourly": {
+            "time": ["invalid-time"],
+            "temperature_2m": [31.0],
+            "relative_humidity_2m": [62.0],
+            "wind_speed_10m": [1.5],
+        },
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(status_code=200, json=payload)
+
+    client, mock_client = _build_client(handler)
+
+    try:
+        await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
+    except WeatherProviderError as exc:
+        assert exc.detail == "Weather provider response contained invalid hourly.time values"
+    else:
+        raise AssertionError("Expected WeatherProviderError for invalid hourly.time values")
+    finally:
+        await mock_client.aclose()

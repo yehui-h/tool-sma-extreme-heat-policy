@@ -21,15 +21,20 @@ export default defineConfig([
     },
   },
   {
-    files: ["src/shared/**/*.{ts,tsx}"],
+    files: ["src/{api,config,domain,i18n,lib}/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["@/features/*", "@/features/*/*", "@/pages/*"],
-              message: "Shared layer must not import feature/page modules.",
+              group: [
+                "@/components/*",
+                "@/components/*/*",
+                "@/pages/*",
+                "@/pages/*/*",
+              ],
+              message: "Core layers must not import components/pages.",
             },
           ],
         },
@@ -37,31 +42,15 @@ export default defineConfig([
     },
   },
   {
-    files: ["src/features/home/**/*.{ts,tsx}"],
+    files: ["src/components/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["@/features/about/*", "@/features/about/*/*"],
-              message: "Home feature must not import About internals.",
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["src/features/about/**/*.{ts,tsx}"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@/features/home/*", "@/features/home/*/*"],
-              message: "About feature must not import Home internals.",
+              group: ["@/pages/*", "@/pages/*/*"],
+              message: "Components must not import pages.",
             },
           ],
         },

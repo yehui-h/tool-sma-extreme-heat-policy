@@ -5,26 +5,33 @@ import {
   Button,
   Container,
   Drawer,
+  Grid,
   Group,
   Image,
   Stack,
   Text,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
+import { MOBILE_LAYOUT_SPACING } from "@/app/layout/layoutSpacing";
 
-const navItems = [
-  { label: "Home", to: "/" },
-  { label: "About", to: "/about" },
-];
-
-function isRouteActive(currentPath: string, target: string) {
+function isRouteActive(currentPath: string, target: string): boolean {
   return target === "/" ? currentPath === "/" : currentPath.startsWith(target);
 }
 
+/**
+ * Renders the top site navigation with responsive desktop/mobile menus.
+ */
 export function SiteHeader() {
   const [opened, { open, close }] = useDisclosure(false);
   const location = useLocation();
+  const { t } = useTranslation();
+  const navItems = [
+    { label: t("nav.home"), to: "/" },
+    { label: t("nav.about"), to: "/about" },
+  ];
+
   const renderNavButton = (
     item: (typeof navItems)[number],
     options: {
@@ -53,81 +60,59 @@ export function SiteHeader() {
   };
 
   return (
-    <Box bg="#F1F1F1" py={0}>
-      <Container size="sm">
-        <Box
-          mih={{ base: 56, sm: 64 }}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <Box
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              minWidth: 0,
-            }}
-          >
+    <Box bg="#F1F1F1" p={0} mt={MOBILE_LAYOUT_SPACING} mb={0}>
+      <Container size="sm" px={{ base: MOBILE_LAYOUT_SPACING, sm: "md" }}>
+        <Grid align="center" gutter={0} py={0} m={0}>
+          <Grid.Col span={{ base: 2, sm: 4 }}>
             <Anchor component={Link} to="/" onClick={close}>
               <Image
                 src="/branding/logo-usyd-black.png"
-                alt="University of Sydney"
+                alt={t("nav.logoAlt")}
                 h={35}
                 w="auto"
                 fit="contain"
               />
             </Anchor>
-          </Box>
+          </Grid.Col>
 
-          <Text
-            fw={700}
-            fz={{ base: "md", sm: "lg" }}
-            ta="center"
-            px="xs"
-            style={{
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            Sports Heat Tool
-          </Text>
+          <Grid.Col span={{ base: 9, sm: 4 }}>
+            <Text
+              fw={700}
+              fz={{ base: "md", sm: "lg" }}
+              ta="center"
+              lineClamp={1}
+            >
+              {t("app.title")}
+            </Text>
+          </Grid.Col>
 
-          <Box
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              minWidth: 0,
-            }}
-          >
-            <Group visibleFrom="sm" gap="xs">
-              {navItems.map((item) =>
-                renderNavButton(item, {
-                  inactiveVariant: "subtle",
-                  size: "sm",
-                }),
-              )}
+          <Grid.Col span={{ base: 1, sm: 4 }}>
+            <Group justify="flex-end" wrap="nowrap">
+              <Group visibleFrom="sm" gap="xs">
+                {navItems.map((item) =>
+                  renderNavButton(item, {
+                    inactiveVariant: "subtle",
+                    size: "sm",
+                  }),
+                )}
+              </Group>
+
+              <Burger
+                hiddenFrom="sm"
+                opened={opened}
+                onClick={opened ? close : open}
+                aria-label={t("nav.toggleAriaLabel")}
+                pr={0}
+              />
             </Group>
-
-            <Burger
-              hiddenFrom="sm"
-              opened={opened}
-              onClick={opened ? close : open}
-              aria-label="Toggle navigation"
-            />
-          </Box>
-        </Box>
+          </Grid.Col>
+        </Grid>
       </Container>
 
       <Drawer
         opened={opened}
         onClose={close}
-        title="Navigation"
+        title={t("nav.drawerTitle")}
         hiddenFrom="sm"
         padding="md"
         position="right"
