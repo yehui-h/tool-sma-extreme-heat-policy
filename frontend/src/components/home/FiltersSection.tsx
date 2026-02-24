@@ -99,51 +99,6 @@ export function FiltersSection() {
       <Stack p={{ base: "xs", sm: 0 }}>
         <Group wrap="nowrap" align="center">
           <Text fw={600} miw={fieldLabelMinWidth}>
-            {t("home.sections.filters.sportLabel")}:
-          </Text>
-          <Box flex={1}>
-            <Select
-              aria-label={t("home.sections.filters.sportLabel")}
-              size="md"
-              data={sportOptions}
-              value={sport}
-              onChange={handleSportChange}
-              searchable
-              nothingFoundMessage={t("home.sections.filters.sportNotFound")}
-            />
-          </Box>
-        </Group>
-
-        <Box w="100%" maw={520} mx="auto">
-          {!hasSportImageError ? (
-            <Image
-              src={sportImageSrc}
-              alt={t("home.sections.filters.sportImageAlt", {
-                sportLabel: selectedSportLabel,
-              })}
-              w="100%"
-              h="auto"
-              radius="sm"
-              fit="contain"
-              onError={() => setHasSportImageError(true)}
-            />
-          ) : (
-            <Stack align="center" justify="center" gap={4} py="md">
-              <Text fw={500} fz="sm">
-                {t("home.sections.filters.sportImageUnavailable")}
-              </Text>
-              <Text c="dimmed" fz="xs" ta="center">
-                {t("home.sections.filters.sportImageHelp", {
-                  sportLabel: selectedSportLabel,
-                  path: sportImageSrc,
-                })}
-              </Text>
-            </Stack>
-          )}
-        </Box>
-
-        <Group wrap="nowrap" align="center">
-          <Text fw={600} miw={fieldLabelMinWidth}>
             {t("home.sections.filters.locationLabel")}:
           </Text>
           <Box flex={1}>
@@ -161,6 +116,47 @@ export function FiltersSection() {
             />
           </Box>
         </Group>
+        <Group wrap="nowrap" align="center">
+          <Text fw={600} miw={fieldLabelMinWidth}>
+            {t("home.sections.filters.sportLabel")}:
+          </Text>
+          <Box flex={1}>
+            <Select
+              aria-label={t("home.sections.filters.sportLabel")}
+              size="md"
+              data={sportOptions}
+              value={sport}
+              onChange={handleSportChange}
+              searchable
+              nothingFoundMessage={t("home.sections.filters.sportNotFound")}
+            />
+          </Box>
+        </Group>
+
+        {!hasSportImageError ? (
+          <Image
+            src={sportImageSrc}
+            alt={t("home.sections.filters.sportImageAlt", {
+              sportLabel: selectedSportLabel,
+            })}
+            w="100%"
+            h="100px"
+            radius="sm"
+            onError={() => setHasSportImageError(true)}
+          />
+        ) : (
+          <Stack align="center" justify="center" gap={4} py="md">
+            <Text fw={500} fz="sm">
+              {t("home.sections.filters.sportImageUnavailable")}
+            </Text>
+            <Text c="dimmed" fz="xs" ta="center">
+              {t("home.sections.filters.sportImageHelp", {
+                sportLabel: selectedSportLabel,
+                path: sportImageSrc,
+              })}
+            </Text>
+          </Stack>
+        )}
 
         {shouldShowStatus ? (
           <Stack gap="xs">
