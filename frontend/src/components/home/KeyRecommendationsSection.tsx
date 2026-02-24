@@ -40,7 +40,13 @@ export function KeyRecommendationsSection() {
       >
         {recommendations.map((item) => (
           <Stack key={item.label} align="center" gap="xs" p="md">
-            <Image src={item.icon} alt={item.label} w={52} h={52} fit="contain" />
+            <Image
+              src={item.icon}
+              alt={item.label}
+              w={52}
+              h={52}
+              fit="contain"
+            />
             <Text fw={600} ta="center">
               {item.label}
             </Text>

@@ -2,7 +2,8 @@ export type HomeSuggestErrorReason =
   | "missing_token"
   | "unavailable"
   | "no_results"
-  | "retrieve_failed";
+  | "retrieve_failed"
+  | "prefilled_location_not_matched";
 
 export type HomeCalculationErrorReason =
   | "missing_location_coordinates"
@@ -14,6 +15,7 @@ const SUGGEST_ERROR_I18N_KEY_BY_REASON: Record<HomeSuggestErrorReason, string> =
   {
     missing_token: "errors.mapbox.missingToken",
     retrieve_failed: "errors.mapbox.retrieveFailed",
+    prefilled_location_not_matched: "errors.location.prefilledNotMatched",
     unavailable: "errors.mapbox.unavailable",
     no_results: "errors.mapbox.noResults",
   };

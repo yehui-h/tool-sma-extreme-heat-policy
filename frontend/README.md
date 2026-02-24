@@ -73,9 +73,10 @@ Import rules:
 - Uses the official `zustand` npm package.
 - Server state uses React Query (`@tanstack/react-query`).
 - Location search uses Mapbox Search Box `suggest`; selecting a suggestion triggers Mapbox `retrieve` in frontend to resolve coordinates.
+- Prefilled location labels restored from shared URL (`loc`) or local persistence automatically attempt `suggest + retrieve` once using exact normalized label matching.
 - Risk API request sends `sport + latitude + longitude` (no Mapbox identifiers).
 - Risk is fetched automatically when:
-  - a location suggestion is selected and coordinates are resolved, and
+  - a location suggestion is selected (manual or auto-resolved) and coordinates are resolved, and
   - the sport changes.
 - Risk API failures are shown in UI and keep the last valid result (no silent fallback in `api` mode).
 - After a successful fetch:

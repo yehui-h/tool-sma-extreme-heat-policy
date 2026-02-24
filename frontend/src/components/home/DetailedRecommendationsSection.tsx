@@ -40,6 +40,7 @@ export function DetailedRecommendationsSection() {
           },
           control: {
             border: 0,
+            paddingInline: 0,
           },
         }}
       >

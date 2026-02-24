@@ -68,6 +68,8 @@ export function useHomeBootstrap(): UseHomeBootstrapResult {
       channel: bootstrapState.channel,
       sport: bootstrapState.sport,
       locationInput: bootstrapState.locationInput,
+      shouldAutoResolvePrefilledLocation:
+        bootstrapState.shouldAutoResolvePrefilledLocation,
     });
 
     hasBootstrappedRef.current = true;
@@ -75,6 +77,7 @@ export function useHomeBootstrap(): UseHomeBootstrapResult {
     bootstrapState.channel,
     bootstrapState.locationInput,
     bootstrapState.sport,
+    bootstrapState.shouldAutoResolvePrefilledLocation,
   ]);
 
   return {

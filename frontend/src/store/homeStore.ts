@@ -10,6 +10,8 @@ interface HomeStoreState {
   sport: SportType;
   locationInput: string;
   selectedLocation: LocationSuggestion | null;
+  shouldAutoResolvePrefilledLocation: boolean;
+  hasPrefilledLocationNotMatched: boolean;
   locationSessionToken: string;
   forecast: ForecastDay[];
 
@@ -17,10 +19,13 @@ interface HomeStoreState {
     channel: HomeChannel;
     sport: SportType;
     locationInput: string;
+    shouldAutoResolvePrefilledLocation: boolean;
   }) => void;
   setSport: (sport: SportType) => void;
   setLocationInput: (value: string) => void;
   selectLocation: (suggestion: LocationSuggestion) => void;
+  consumeAutoResolvePrefilledLocation: () => void;
+  setHasPrefilledLocationNotMatched: (value: boolean) => void;
   setForecast: (forecast: ForecastDay[]) => void;
 }
 
@@ -43,15 +48,24 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
   sport: DEFAULT_SPORT_TYPE,
   locationInput: "",
   selectedLocation: null,
+  shouldAutoResolvePrefilledLocation: false,
+  hasPrefilledLocationNotMatched: false,
   locationSessionToken: createSessionToken(),
   forecast: [],
 
-  bootstrap: ({ channel, sport, locationInput }) =>
+  bootstrap: ({
+    channel,
+    sport,
+    locationInput,
+    shouldAutoResolvePrefilledLocation,
+  }) =>
     set({
       channel,
       sport,
       locationInput,
       selectedLocation: null,
+      shouldAutoResolvePrefilledLocation,
+      hasPrefilledLocationNotMatched: false,
       locationSessionToken: createSessionToken(),
     }),
   setSport: (sport) => set({ sport }),
@@ -63,16 +77,28 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
         return {
           locationInput: value,
           selectedLocation: null,
+          shouldAutoResolvePrefilledLocation: false,
+          hasPrefilledLocationNotMatched: false,
           locationSessionToken: createSessionToken(),
         };
       }
 
-      return { locationInput: value };
+      return {
+        locationInput: value,
+        shouldAutoResolvePrefilledLocation: false,
+        hasPrefilledLocationNotMatched: false,
+      };
     }),
   selectLocation: (suggestion) =>
     set({
       selectedLocation: suggestion,
       locationInput: suggestion.formattedLocation,
+      shouldAutoResolvePrefilledLocation: false,
+      hasPrefilledLocationNotMatched: false,
     }),
+  consumeAutoResolvePrefilledLocation: () =>
+    set({ shouldAutoResolvePrefilledLocation: false }),
+  setHasPrefilledLocationNotMatched: (value) =>
+    set({ hasPrefilledLocationNotMatched: value }),
   setForecast: (forecast) => set({ forecast }),
 }));

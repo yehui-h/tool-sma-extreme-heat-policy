@@ -250,7 +250,7 @@
         "title": "Key recommendations:"
       },
       "detailedSuggestions": {
-        "title": "Detailed suggestions"
+        "title": "Detailed suggestions:"
       },
       "forecast": {
         "title": "Forecasted risk"
@@ -275,7 +275,8 @@
       "retrieveFailed": "Unable to resolve coordinates for the selected location. Please try another suggestion."
     },
     "location": {
-      "missingCoordinates": "Selected location is missing coordinates. Please select a suggestion again."
+      "missingCoordinates": "Selected location is missing coordinates. Please select a suggestion again.",
+      "prefilledNotMatched": "Unable to auto-match this prefilled location. Please select a suggestion manually."
     },
     "risk": {
       "missingApiBaseUrl": "Risk API is not configured. Set VITE_API_BASE_URL or use VITE_HOME_DATA_SOURCE=mock.",
@@ -302,7 +303,9 @@
   },
   "charts": {
     "gauge": {
-      "seriesName": "Heat Score"
+      "seriesName": "Heat Score",
+      "riskLabel": "Heat Risk",
+      "riskUnavailable": "N/A"
     },
     "forecast": {
       "xAxisName": "Time",
@@ -358,7 +361,7 @@
       "extreme": ["Consider Suspending Play"]
     },
     "detailed": {
-      "accordionLabel": "Detailed suggestions",
+      "accordionLabel": "Detailed suggestions:",
       "youShouldLabel": "You should:",
       "low": {
         "description": "Maintaining hydration through regular fluid consumption and modifying clothing is still a simple, yet effective, way of keeping cool and preserving health and performance during the summer months.",

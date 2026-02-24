@@ -6,6 +6,7 @@ export interface HomeBootstrapState {
   channel: HomeChannel;
   sport: SportType;
   locationInput: string;
+  shouldAutoResolvePrefilledLocation: boolean;
 }
 
 interface ResolveHomeBootstrapStateParams {
@@ -51,9 +52,12 @@ export function resolveHomeBootstrapState({
     locationInput = resolveInitialLocationLabel(persistedFilters.loc);
   }
 
+  const shouldAutoResolvePrefilledLocation = locationInput.length > 0;
+
   return {
     channel,
     sport,
     locationInput,
+    shouldAutoResolvePrefilledLocation,
   };
 }

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDebouncedValue } from "@mantine/hooks";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { retrieveLocationCoordinates } from "@/api/mapboxRetrieve";
 import { suggestLocations } from "@/api/mapboxSuggest";
 import type { HomeSuggestErrorReason } from "@/domain/homeErrorMap";
@@ -50,6 +50,32 @@ function dedupeSuggestionsByLabel(
   });
 }
 
+function normalizeLocationLabel(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/\s*,\s*/g, ", ");
+}
+
+function findExactNormalizedSuggestion(
+  suggestions: LocationSuggestion[],
+  value: string,
+): LocationSuggestion | null {
+  const normalizedValue = normalizeLocationLabel(value);
+  if (!normalizedValue) {
+    return null;
+  }
+
+  return (
+    suggestions.find(
+      (suggestion) =>
+        normalizeLocationLabel(suggestion.formattedLocation) ===
+        normalizedValue,
+    ) ?? null
+  );
+}
+
 function shouldRunSuggestQuery(params: {
   hasMapboxToken: boolean;
   hasDebounced: boolean;
@@ -74,6 +100,7 @@ function shouldRunSuggestQuery(params: {
 function toSuggestErrorReason(params: {
   hasMapboxToken: boolean;
   hasRetrieveError: boolean;
+  hasPrefilledNotMatched: boolean;
   shouldSuggest: boolean;
   isSuggestError: boolean;
   isSuggestSuccess: boolean;
@@ -82,6 +109,7 @@ function toSuggestErrorReason(params: {
   const {
     hasMapboxToken,
     hasRetrieveError,
+    hasPrefilledNotMatched,
     shouldSuggest,
     isSuggestError,
     isSuggestSuccess,
@@ -94,6 +122,10 @@ function toSuggestErrorReason(params: {
 
   if (hasRetrieveError) {
     return "retrieve_failed";
+  }
+
+  if (hasPrefilledNotMatched) {
+    return "prefilled_location_not_matched";
   }
 
   if (!shouldSuggest) {
@@ -170,9 +202,21 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
   const hasMapboxToken = mapboxAccessToken.length > 0;
   const locationInput = useHomeStore((state) => state.locationInput);
   const selectedLocation = useHomeStore((state) => state.selectedLocation);
+  const shouldAutoResolvePrefilledLocation = useHomeStore(
+    (state) => state.shouldAutoResolvePrefilledLocation,
+  );
+  const hasPrefilledNotMatched = useHomeStore(
+    (state) => state.hasPrefilledLocationNotMatched,
+  );
   const sessionToken = useHomeStore((state) => state.locationSessionToken);
   const setLocationInput = useHomeStore((state) => state.setLocationInput);
   const selectLocation = useHomeStore((state) => state.selectLocation);
+  const consumeAutoResolvePrefilledLocation = useHomeStore(
+    (state) => state.consumeAutoResolvePrefilledLocation,
+  );
+  const setHasPrefilledLocationNotMatched = useHomeStore(
+    (state) => state.setHasPrefilledLocationNotMatched,
+  );
   const [hasRetrieveError, setHasRetrieveError] = useState(false);
 
   const query = locationInput.trim();
@@ -212,9 +256,60 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
     [suggestions],
   );
 
+  useEffect(() => {
+    if (!shouldAutoResolvePrefilledLocation) {
+      return;
+    }
+
+    if (!hasDebounced || !queryForRequest || selectedLocation) {
+      return;
+    }
+
+    if (!suggestQuery.isSuccess) {
+      return;
+    }
+
+    consumeAutoResolvePrefilledLocation();
+
+    if (suggestions.length === 0) {
+      setHasPrefilledLocationNotMatched(false);
+      return;
+    }
+
+    const matchedSuggestion = findExactNormalizedSuggestion(suggestions, query);
+    if (!matchedSuggestion) {
+      setHasPrefilledLocationNotMatched(true);
+      return;
+    }
+
+    setHasPrefilledLocationNotMatched(false);
+    void retrieveAndSelectLocation({
+      selectedSuggestion: matchedSuggestion,
+      hasMapboxToken,
+      mapboxAccessToken,
+      selectLocation,
+      setHasRetrieveError,
+    });
+  }, [
+    consumeAutoResolvePrefilledLocation,
+    hasDebounced,
+    hasMapboxToken,
+    hasPrefilledNotMatched,
+    mapboxAccessToken,
+    query,
+    queryForRequest,
+    setHasPrefilledLocationNotMatched,
+    selectLocation,
+    selectedLocation,
+    shouldAutoResolvePrefilledLocation,
+    suggestQuery.isSuccess,
+    suggestions,
+  ]);
+
   const suggestErrorReason = toSuggestErrorReason({
     hasMapboxToken,
     hasRetrieveError,
+    hasPrefilledNotMatched,
     shouldSuggest,
     isSuggestError: suggestQuery.isError,
     isSuggestSuccess: suggestQuery.isSuccess,
@@ -225,10 +320,16 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
     if (hasRetrieveError) {
       setHasRetrieveError(false);
     }
+    if (hasPrefilledNotMatched) {
+      setHasPrefilledLocationNotMatched(false);
+    }
     setLocationInput(value);
   };
 
   const onLocationOptionSubmit = (value: string) => {
+    if (hasPrefilledNotMatched) {
+      setHasPrefilledLocationNotMatched(false);
+    }
     const selectedSuggestion = findSubmittedSuggestion(suggestions, value);
 
     if (!selectedSuggestion) {

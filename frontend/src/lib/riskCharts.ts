@@ -8,6 +8,7 @@ import { getRiskBands, getRiskColor } from "@/domain/riskRegistry";
 const FORECAST_LINE_COLOR = "#e64626";
 const RISK_BAND_STACK_NAME = "risk-band";
 const GAUGE_MAX_SCORE = 4;
+const FORECAST_HOUR_MINUTE_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 type ChartTypography = {
   gaugeAxis: number;
@@ -66,6 +67,7 @@ interface GaugeLabels {
 interface GaugeSeriesOptions {
   showPointer?: boolean;
   showProgress?: boolean;
+  showAxisLabel?: boolean;
   detailFormatter?: string;
   detailValueAnimation?: boolean;
 }
@@ -119,12 +121,14 @@ function createGaugeSeries(
   const {
     showPointer = true,
     showProgress = true,
+    showAxisLabel = true,
     detailFormatter = "{value}",
     detailValueAnimation = true,
   } = options;
 
   return {
     type: "gauge" as const,
+    radius: "88%",
     min: 0,
     max: GAUGE_MAX_SCORE,
     splitNumber: GAUGE_MAX_SCORE,
@@ -160,6 +164,7 @@ function createGaugeSeries(
       },
     },
     axisLabel: {
+      show: showAxisLabel,
       distance: -42,
       color: "#fff",
       fontSize: typography.gaugeAxis,
@@ -216,6 +221,24 @@ function toRiskBandSeries(lineValues: number[]) {
   }));
 }
 
+function formatForecastTimeLabel(rawTime: string): string {
+  const match = FORECAST_HOUR_MINUTE_PATTERN.exec(rawTime);
+  if (!match) {
+    return rawTime;
+  }
+
+  const hour24 = Number(match[1]);
+  const minute = Number(match[2]);
+  const meridiem = hour24 >= 12 ? "PM" : "AM";
+  const hour12 = hour24 % 12 || 12;
+
+  if (minute === 0) {
+    return `${hour12} ${meridiem}`;
+  }
+
+  return `${hour12}:${String(minute).padStart(2, "0")} ${meridiem}`;
+}
+
 function formatForecastTooltip(
   params: TooltipComponentFormatterCallbackParams,
   tooltipRiskLabel: string,
@@ -228,7 +251,7 @@ function formatForecastTooltip(
 
   const riskItem =
     items.find((item) => item.seriesName === tooltipRiskLabel) ?? firstItem;
-  const formattedTime = String(firstItem.name ?? "");
+  const formattedTime = formatForecastTimeLabel(String(firstItem.name ?? ""));
   const marker = typeof riskItem.marker === "string" ? riskItem.marker : "";
   const rawValue = Array.isArray(riskItem.value)
     ? riskItem.value[1]
@@ -258,7 +281,7 @@ function createForecastXAxis(
       fontSize: typography.axis,
       fontWeight: 400,
     },
-    data: points.map((point) => point.time),
+    data: points.map((point) => formatForecastTimeLabel(point.time)),
     axisLabel: {
       fontSize: typography.axis,
       interval: typography.xInterval,
@@ -402,6 +425,7 @@ export function buildPendingGaugeOption(
       createGaugeSeries(0, labels, typography, {
         showPointer: false,
         showProgress: false,
+        showAxisLabel: false,
         detailFormatter: "N/A",
         detailValueAnimation: false,
       }),

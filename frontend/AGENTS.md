@@ -89,7 +89,8 @@ Keep the current layer-first structure:
 ## Home contracts (Mapbox + risk flow)
 
 - `VITE_MAPBOX_ACCESS_TOKEN` is required for location `suggest + retrieve`.
-- Users must select a suggested location and frontend must resolve coordinates via retrieve before risk can be fetched.
+- Frontend must resolve coordinates via retrieve before risk can be fetched.
+- When a valid prefilled location (`loc`) is restored from shared URL or local persistence, frontend should automatically try `suggest + retrieve` and trigger risk without manual selector interaction.
 - Risk request payload to backend must be `sport + latitude + longitude` (no Mapbox identifiers).
 - Risk is fetched automatically when:
   - a location suggestion is selected and coordinates are resolved, and

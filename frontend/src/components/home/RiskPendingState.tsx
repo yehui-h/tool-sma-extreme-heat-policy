@@ -23,8 +23,7 @@ export function RiskPendingState({
   showMutedIcons = false,
 }: RiskPendingStateProps) {
   const { t } = useTranslation();
-  const paperStyle =
-    typeof minHeight === "number" ? { minHeight } : undefined;
+  const paperStyle = typeof minHeight === "number" ? { minHeight } : undefined;
 
   return (
     <Paper withBorder radius="md" p="xl" bg="gray.0" style={paperStyle}>
