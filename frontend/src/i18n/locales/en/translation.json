@@ -228,14 +228,14 @@
       "filters": {
         "sportLabel": "Sport",
         "locationLabel": "Location",
+        "defaultLocation": "North Sydney, Sydney, AU",
         "locationPlaceholder": "Search suburb, address, city, or venue",
         "sportNotFound": "No sport found",
         "selectedSportFallback": "Selected sport",
         "sportImageUnavailable": "Sport image unavailable",
         "sportImageHelp": "Add an image for {{sportLabel}} at {{path}}.",
         "sportImageAlt": "{{sportLabel}} preview",
-        "helperText": "Search and select a location to calculate risk automatically",
-        "calculatingLabel": "Calculating risk…"
+        "helperText": "Search and select a location to calculate risk automatically"
       },
       "currentRisk": {
         "title": "Current Sport Heat Score"
@@ -243,8 +243,7 @@
       "riskPending": {
         "setFiltersHint": "Select sport and location to calculate risk.",
         "scoreHint": "Current heat score will appear after calculation.",
-        "keyRecommendationsHint": "Key recommendations will appear after calculation.",
-        "detailedHint": "Detailed suggestions will appear after calculation."
+        "keyRecommendationsHint": "Key recommendations will appear after calculation."
       },
       "keyRecommendations": {
         "title": "Key recommendations:"
@@ -360,8 +359,10 @@
       ],
       "extreme": ["Consider Suspending Play"]
     },
+    "manual": {
+      "title": "Heat Stress Risk Categories"
+    },
     "detailed": {
-      "accordionLabel": "Detailed suggestions:",
       "youShouldLabel": "You should:",
       "low": {
         "description": "Maintaining hydration through regular fluid consumption and modifying clothing is still a simple, yet effective, way of keeping cool and preserving health and performance during the summer months.",

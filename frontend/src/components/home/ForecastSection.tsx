@@ -2,10 +2,12 @@
 import { Accordion, Badge, Flex, Group, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
+import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
 import { getRiskColor, getRiskLevelI18nKeys } from "@/domain/riskRegistry";
 import { buildForecastOption } from "@/lib/riskCharts";
 import { formatDateLabel, formatWeekdayLabel } from "@/lib/formatDate";
+import { ForecastSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { EChart } from "@/components/ui/EChart";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { useHomeStore } from "@/store/homeStore";
@@ -19,7 +21,16 @@ const MOBILE_FORECAST_CHART_HEIGHT = 280;
 export function ForecastSection() {
   const { t } = useTranslation();
   const isMobile = useMediaQuery("(max-width: 48em)");
+  const { hasCalculatedRisk, isFetching } = useHomeHeatRisk();
   const forecast = useHomeStore((state) => state.forecast);
+
+  if (!hasCalculatedRisk) {
+    return (
+      <SectionCard title={t("home.sections.forecast.title")}>
+        <ForecastSkeleton showLoader={isFetching} />
+      </SectionCard>
+    );
+  }
 
   if (forecast.length === 0) {
     return null;

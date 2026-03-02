@@ -1,17 +1,19 @@
 import type { SportType } from "@/domain/sport";
 import type { PersistedHomeFilters } from "@/pages/home/browserState";
-import type { HomeChannel } from "@/store/homeStore";
+import type { HomeChannel, LocationPrefillSource } from "@/store/homeStore";
 
 export interface HomeBootstrapState {
   channel: HomeChannel;
   sport: SportType;
   locationInput: string;
+  locationPrefillSource: LocationPrefillSource;
   shouldAutoResolvePrefilledLocation: boolean;
 }
 
 interface ResolveHomeBootstrapStateParams {
   hasUrlState: boolean;
   defaultSport: SportType;
+  defaultLocationLabel: string;
   urlSport: SportType | null;
   urlLocation: string | null;
   persistedFilters: PersistedHomeFilters | null;
@@ -32,6 +34,7 @@ export function resolveInitialLocationLabel(
 export function resolveHomeBootstrapState({
   hasUrlState,
   defaultSport,
+  defaultLocationLabel,
   urlSport,
   urlLocation,
   persistedFilters,
@@ -40,6 +43,7 @@ export function resolveHomeBootstrapState({
 
   let sport = defaultSport;
   let locationInput = "";
+  let locationPrefillSource: LocationPrefillSource = "none";
 
   if (channel === "shared") {
     if (urlSport) {
@@ -47,9 +51,20 @@ export function resolveHomeBootstrapState({
     }
 
     locationInput = resolveInitialLocationLabel(urlLocation);
+    if (locationInput.length > 0) {
+      locationPrefillSource = "url";
+    }
   } else if (persistedFilters) {
     sport = persistedFilters.sport;
     locationInput = resolveInitialLocationLabel(persistedFilters.loc);
+    if (locationInput.length > 0) {
+      locationPrefillSource = "persisted";
+    }
+  } else {
+    locationInput = resolveInitialLocationLabel(defaultLocationLabel);
+    if (locationInput.length > 0) {
+      locationPrefillSource = "default";
+    }
   }
 
   const shouldAutoResolvePrefilledLocation = locationInput.length > 0;
@@ -58,6 +73,7 @@ export function resolveHomeBootstrapState({
     channel,
     sport,
     locationInput,
+    locationPrefillSource,
     shouldAutoResolvePrefilledLocation,
   };
 }

@@ -1,4 +1,4 @@
-import { Paper, Stack, Text, Title } from "@mantine/core";
+import { Box, Paper, Text, Title } from "@mantine/core";
 import type { ReactNode } from "react";
 
 interface SectionCardProps {
@@ -15,24 +15,26 @@ export function SectionCard({ title, subtitle, children }: SectionCardProps) {
   const hasHeading = hasTitle || Boolean(subtitle);
 
   return (
-    <Paper shadow="xs" radius="md" p={{ base: 4, sm: "md" }} withBorder>
-      <Stack>
-        {hasHeading ? (
-          <Stack gap={4}>
-            {hasTitle ? (
-              <Title order={2} fz={{ base: "h3", sm: "h2" }}>
-                {title}
-              </Title>
-            ) : null}
-            {subtitle ? (
-              <Text c="dimmed" fz={{ base: "md", sm: "lg" }}>
-                {subtitle}
-              </Text>
-            ) : null}
-          </Stack>
-        ) : null}
-        {children}
-      </Stack>
+    <Paper radius="md" p={{ base: "sm", sm: "md" }}>
+      {hasHeading ? (
+        <Box mb="sm">
+          {hasTitle ? (
+            <Title order={2} fz={{ base: "h3", sm: "h2" }}>
+              {title}
+            </Title>
+          ) : null}
+          {subtitle ? (
+            <Text
+              c="dimmed"
+              fz={{ base: "md", sm: "lg" }}
+              mt={hasTitle ? 4 : 0}
+            >
+              {subtitle}
+            </Text>
+          ) : null}
+        </Box>
+      ) : null}
+      {children}
     </Paper>
   );
 }

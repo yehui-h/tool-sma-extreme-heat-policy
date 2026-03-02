@@ -1,4 +1,4 @@
-import { Anchor, Text, Title } from "@mantine/core";
+import { Anchor, Box, Text, Title } from "@mantine/core";
 import { Fragment } from "react";
 import type { AboutSection } from "@/domain/about";
 
@@ -11,10 +11,15 @@ interface AboutSectionBlockProps {
  */
 export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
   return (
-    <>
+    <Box>
       <Title order={2}>{section.title}</Title>
       {section.paragraphs.map((paragraph, paragraphIndex) => (
-        <Text c="dark.7" fs={paragraph.italic ? "italic" : undefined}>
+        <Text
+          key={`${section.title}-${paragraphIndex}`}
+          c="dark.7"
+          fs={paragraph.italic ? "italic" : undefined}
+          mt="xs"
+        >
           {paragraph.runs.map((run, runIndex) =>
             "href" in run ? (
               <Anchor
@@ -31,6 +36,6 @@ export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
           )}
         </Text>
       ))}
-    </>
+    </Box>
   );
 }

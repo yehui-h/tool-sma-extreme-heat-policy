@@ -205,6 +205,9 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
   const shouldAutoResolvePrefilledLocation = useHomeStore(
     (state) => state.shouldAutoResolvePrefilledLocation,
   );
+  const locationPrefillSource = useHomeStore(
+    (state) => state.locationPrefillSource,
+  );
   const hasPrefilledNotMatched = useHomeStore(
     (state) => state.hasPrefilledLocationNotMatched,
   );
@@ -276,15 +279,22 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
       return;
     }
 
-    const matchedSuggestion = findExactNormalizedSuggestion(suggestions, query);
-    if (!matchedSuggestion) {
+    const exactMatchedSuggestion = findExactNormalizedSuggestion(
+      suggestions,
+      query,
+    );
+    const selectedSuggestion =
+      exactMatchedSuggestion ??
+      (locationPrefillSource === "default" ? (suggestions[0] ?? null) : null);
+
+    if (!selectedSuggestion) {
       setHasPrefilledLocationNotMatched(true);
       return;
     }
 
     setHasPrefilledLocationNotMatched(false);
     void retrieveAndSelectLocation({
-      selectedSuggestion: matchedSuggestion,
+      selectedSuggestion,
       hasMapboxToken,
       mapboxAccessToken,
       selectLocation,
@@ -295,6 +305,7 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
     hasDebounced,
     hasMapboxToken,
     hasPrefilledNotMatched,
+    locationPrefillSource,
     mapboxAccessToken,
     query,
     queryForRequest,

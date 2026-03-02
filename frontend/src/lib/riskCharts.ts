@@ -2,7 +2,7 @@ import type {
   EChartsOption,
   TooltipComponentFormatterCallbackParams,
 } from "echarts";
-import type { ForecastPoint, RiskLevel } from "@/domain/risk";
+import { toRiskLevel, type ForecastPoint, type RiskLevel } from "@/domain/risk";
 import { getRiskBands, getRiskColor } from "@/domain/riskRegistry";
 
 const FORECAST_LINE_COLOR = "#e64626";
@@ -66,6 +66,7 @@ interface GaugeLabels {
 
 interface GaugeSeriesOptions {
   showPointer?: boolean;
+  pointerColor?: string;
   showProgress?: boolean;
   showAxisLabel?: boolean;
   detailFormatter?: string;
@@ -120,6 +121,7 @@ function createGaugeSeries(
 ) {
   const {
     showPointer = true,
+    pointerColor,
     showProgress = true,
     showAxisLabel = true,
     detailFormatter = "{value}",
@@ -142,6 +144,7 @@ function createGaugeSeries(
       show: showPointer,
       length: "58%",
       width: 6,
+      ...(pointerColor ? { itemStyle: { color: pointerColor } } : {}),
     },
     progress: {
       show: showProgress,
@@ -397,13 +400,19 @@ export function buildGaugeOption(
 ): EChartsOption {
   const typography = getTypography(isMobile);
   const safeScore = Number.isFinite(score) ? score : 0;
+  const pointerColor = getRiskColor(toRiskLevel(safeScore));
 
   return {
     animation: true,
     tooltip: {
       formatter: "{b}: {c}",
     },
-    series: [createGaugeSeries(safeScore, labels, typography)],
+    series: [
+      createGaugeSeries(safeScore, labels, typography, {
+        pointerColor,
+        showProgress: false,
+      }),
+    ],
   };
 }
 
