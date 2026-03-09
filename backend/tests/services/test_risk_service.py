@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from sma_extreme_heat_backend.calculators.base import SportsHeatStressInput, SportsHeatStressOutput
 from sma_extreme_heat_backend.clients.open_meteo import CurrentWeather
 from sma_extreme_heat_backend.core.errors import ModelInputUnavailableError
@@ -44,14 +46,11 @@ class FakeWeatherClient:
 class FakeCalculator:
     def __init__(self) -> None:
         self.calls = 0
+        self.payloads: list[SportsHeatStressInput] = []
 
     def model_sports_heat_stress(self, payload: SportsHeatStressInput) -> SportsHeatStressOutput:
         self.calls += 1
-        assert payload.sport == "SOCCER"
-        assert payload.tdb == 31.0
-        assert payload.rh == 62.0
-        assert payload.vr == 1.5
-        assert payload.tr == 31.0
+        self.payloads.append(payload)
         return SportsHeatStressOutput(
             data={
                 "risk_level_interpolated": 1.94,
@@ -60,7 +59,16 @@ class FakeCalculator:
                 "t_extreme": 39.2,
                 "recommendation": "Increase hydration & modify clothing",
             },
-            meta={"model": "pythermalcomfort.models.sports_heat_stress_risk"},
+            meta={
+                "model": "pythermalcomfort.models.sports_heat_stress_risk",
+                "inputs": {
+                    "sport": payload.sport,
+                    "tdb": payload.tdb,
+                    "rh": payload.rh,
+                    "vr": payload.vr,
+                    "tr": payload.tr,
+                },
+            },
         )
 
 
@@ -86,8 +94,14 @@ async def test_risk_service_uses_ttl_cache_for_same_input() -> None:
     assert weather_client.calls == 1
     assert calculator.calls == 1
     assert first == second
+    assert calculator.payloads[0].sport == "SOCCER"
+    assert calculator.payloads[0].tdb == 31.0
+    assert calculator.payloads[0].rh == 62.0
+    assert calculator.payloads[0].vr == 1.02
+    assert calculator.payloads[0].tr == 31.0
     assert "risk_level_interpolated" in first.heat_risk
     assert first.meta_data["location"] == {"latitude": -33.847, "longitude": 151.067}
+    assert first.meta_data["inputs"]["vr"] == 1.02
     assert "mapbox" not in first.meta_data
 
 
@@ -116,6 +130,72 @@ async def test_risk_service_cache_key_changes_with_coordinates() -> None:
 
     assert weather_client.calls == 2
     assert calculator.calls == 2
+
+
+async def test_risk_service_uses_sport_default_when_scaled_wind_is_lower() -> None:
+    weather_client = FakeWeatherClient(vr=0.9)
+    calculator = FakeCalculator()
+    service = RiskService(
+        weather_client=weather_client,
+        calculator=calculator,
+        ttl_seconds=600,
+    )
+
+    payload = RiskRequest(
+        sport="SOCCER",
+        latitude=-33.847,
+        longitude=151.067,
+    )
+
+    response = await service.calculate_home_risk(payload)
+
+    assert calculator.calls == 1
+    assert calculator.payloads[0].vr == 1.0
+    assert response.meta_data["inputs"]["vr"] == 1.0
+
+
+async def test_risk_service_uses_higher_sport_default_for_running() -> None:
+    weather_client = FakeWeatherClient(vr=1.5)
+    calculator = FakeCalculator()
+    service = RiskService(
+        weather_client=weather_client,
+        calculator=calculator,
+        ttl_seconds=600,
+    )
+
+    payload = RiskRequest(
+        sport="RUNNING",
+        latitude=-33.847,
+        longitude=151.067,
+    )
+
+    response = await service.calculate_home_risk(payload)
+
+    assert calculator.calls == 1
+    assert calculator.payloads[0].vr == 2.0
+    assert response.meta_data["inputs"]["vr"] == 2.0
+
+
+async def test_risk_service_preserves_scaled_wind_when_above_sport_default() -> None:
+    weather_client = FakeWeatherClient(vr=4.0)
+    calculator = FakeCalculator()
+    service = RiskService(
+        weather_client=weather_client,
+        calculator=calculator,
+        ttl_seconds=600,
+    )
+
+    payload = RiskRequest(
+        sport="RUNNING",
+        latitude=-33.847,
+        longitude=151.067,
+    )
+
+    response = await service.calculate_home_risk(payload)
+
+    assert calculator.calls == 1
+    assert calculator.payloads[0].vr == pytest.approx(2.72)
+    assert response.meta_data["inputs"]["vr"] == pytest.approx(2.72)
 
 
 async def test_risk_service_missing_vr_raises_unknown_inputs() -> None:

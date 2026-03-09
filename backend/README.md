@@ -45,7 +45,9 @@ Strict flow:
    - `wind_speed_10m: m/s`
 3. Select the first record where `time >= now_utc - 1h`.
 4. Validate strict model inputs: `tdb`, `rh`, `vr`.
-5. Set `tr = tdb` and call `sports_heat_stress_risk` with `tdb`, `tr`, `rh`, `vr`, `sport`.
+5. Scale raw `wind_speed_10m` to 1.1 m using `pythermalcomfort.utils.scale_wind_speed_log(v_z1=vr, z2=1.1, z1=10.0, z0=0.01, d=0.0, round_output=True)`.
+6. Apply the sport default wind-speed floor with `max(scaled_vr, Sports.<sport>.vr)`.
+7. Set `tr = tdb` and call `sports_heat_stress_risk` with `tdb`, `tr`, `rh`, effective `vr`, `sport`.
 
 Response body:
 - `heat_risk: object` (pythermalcomfort output keys and content, no business renaming)

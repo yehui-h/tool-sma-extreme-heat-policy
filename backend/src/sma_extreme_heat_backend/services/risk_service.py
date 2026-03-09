@@ -4,6 +4,9 @@ import time
 from dataclasses import dataclass
 from functools import lru_cache
 
+from pythermalcomfort.models.sports_heat_stress_risk import Sports
+from pythermalcomfort.utils.scale_wind_speed_log import scale_wind_speed_log
+
 from sma_extreme_heat_backend.calculators.base import (
     SportsHeatStressCalculator,
     SportsHeatStressInput,
@@ -21,6 +24,12 @@ from sma_extreme_heat_backend.schemas.home import RiskRequest, RiskResponse
 class CacheEntry:
     value: RiskResponse
     expires_at: float
+
+
+_API_WIND_HEIGHT_METERS = 10.0
+_MODEL_WIND_HEIGHT_METERS = 1.1
+_DEFAULT_TERRAIN_ROUGHNESS_LENGTH = 0.01
+_DEFAULT_ZERO_PLANE_DISPLACEMENT = 0.0
 
 
 class RiskService:
@@ -68,12 +77,13 @@ class RiskService:
             )
 
         tr = tdb
+        vr_effective = self._resolve_model_wind_speed(vr=vr, sport=payload.sport)
         computed = self.calculator.model_sports_heat_stress(
             SportsHeatStressInput(
                 sport=payload.sport,
                 tdb=tdb,
                 rh=rh,
-                vr=vr,
+                vr=vr_effective,
                 tr=tr,
             )
         )
@@ -99,6 +109,21 @@ class RiskService:
     @staticmethod
     def _cache_key(payload: RiskRequest) -> str:
         return f"{payload.sport}|{payload.latitude:.6f}|{payload.longitude:.6f}"
+
+    @staticmethod
+    def _resolve_model_wind_speed(*, vr: float, sport: str) -> float:
+        scaled_vr = float(
+            scale_wind_speed_log(
+                v_z1=vr,
+                z2=_MODEL_WIND_HEIGHT_METERS,
+                z1=_API_WIND_HEIGHT_METERS,
+                z0=_DEFAULT_TERRAIN_ROUGHNESS_LENGTH,
+                d=_DEFAULT_ZERO_PLANE_DISPLACEMENT,
+                round_output=True,
+            ).v_z2
+        )
+        sport_default_vr = getattr(Sports, sport).vr
+        return max(scaled_vr, sport_default_vr)
 
 
 @lru_cache(maxsize=1)
