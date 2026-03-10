@@ -17,6 +17,7 @@ interface HomeSectionSkeletonProps {
 const CURRENT_RISK_CHART_HEIGHT = 228;
 const FORECAST_CHART_HEIGHT = 340;
 const MOBILE_FORECAST_CHART_HEIGHT = 280;
+const MAP_HEIGHT = 160;
 const SKELETON_RECOMMENDATION_COUNT = 4;
 const SKELETON_FORECAST_ROW_COUNT = 3;
 
@@ -108,17 +109,9 @@ export function ForecastSkeleton({
  */
 export function MapSkeleton({ showLoader = false }: HomeSectionSkeletonProps) {
   return (
-    <Paper withBorder radius="md" p="xl" bg="gray.0">
+    <Paper radius="md">
       <Box pos="relative">
-        <Stack align="center" gap="sm">
-          <Skeleton h={20} w={220} />
-          <Skeleton h={14} w="78%" maw={360} />
-          <Group gap="xs" justify="center" wrap="wrap">
-            <Skeleton h={24} w={128} radius="xl" />
-            <Skeleton h={24} w={108} radius="xl" />
-            <Skeleton h={24} w={96} radius="xl" />
-          </Group>
-        </Stack>
+        <Skeleton h={MAP_HEIGHT} radius="md" />
         <SkeletonLoader showLoader={showLoader} />
       </Box>
     </Paper>

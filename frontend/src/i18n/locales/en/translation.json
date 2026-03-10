@@ -256,13 +256,9 @@
       },
       "map": {
         "title": "Location Map",
-        "placeholderTitle": "Map Preview Placeholder",
-        "placeholderBody": "Nearest weather station and heat-risk map details for {{location}} will appear here in the next implementation phase.",
-        "locationFallback": "Select a location",
-        "badges": {
-          "source": "Source: {{source}}",
-          "retrieveReady": "coordinates ready"
-        }
+        "missingCoordinatesTitle": "Map unavailable",
+        "missingCoordinatesBody": "Coordinates for {{location}} are unavailable, so the map cannot be displayed.",
+        "locationFallback": "Select a location"
       }
     }
   },

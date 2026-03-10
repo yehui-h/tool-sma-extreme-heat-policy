@@ -4,7 +4,7 @@ import { CurrentRiskSection } from "@/components/home/CurrentRiskSection";
 import { FiltersSection } from "@/components/home/FiltersSection";
 import { ForecastSection } from "@/components/home/ForecastSection";
 import { KeyRecommendationsSection } from "@/components/home/KeyRecommendationsSection";
-import { MapPlaceholderSection } from "@/components/home/MapPlaceholderSection";
+import { LocationMapSection } from "@/components/home/LocationMapSection";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { useHomeUrlSync } from "@/hooks/useHomeUrlSync";
 import { PAGE_SECTION_GAP } from "@/app/layout/layoutSpacing";
@@ -47,7 +47,7 @@ export function HomePage() {
       <CurrentRiskSection />
       <KeyRecommendationsSection />
       <ForecastSection />
-      <MapPlaceholderSection />
+      <LocationMapSection />
     </Stack>
   );
 }

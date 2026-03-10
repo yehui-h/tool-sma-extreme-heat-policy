@@ -1,4 +1,5 @@
 import "@mantine/core/styles.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
