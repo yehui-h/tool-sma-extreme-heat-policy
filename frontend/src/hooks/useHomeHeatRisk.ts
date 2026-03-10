@@ -34,6 +34,7 @@ interface UseHomeHeatRiskBaseResult {
   meta: HeatRiskMeta;
   isFetching: boolean;
   errorReason: HeatRiskCalculationErrorReason | null;
+  refresh: () => Promise<boolean>;
 }
 
 interface UseHomeHeatRiskCalculatedResult extends UseHomeHeatRiskBaseResult {
@@ -123,6 +124,21 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
   const calculated = riskQuery.data
     ? toCalculatedHeatRisk(riskQuery.data.data)
     : null;
+  async function refresh(): Promise<boolean> {
+    if (
+      !locationCoordinates ||
+      !debouncedSport ||
+      sport !== debouncedSport ||
+      !selectedLocation
+    ) {
+      return false;
+    }
+
+    const result = await riskQuery.refetch();
+
+    return !result.isError;
+  }
+
   const hasCalculatedRisk = Boolean(
     selectedLocation &&
     locationCoordinates &&
@@ -136,6 +152,7 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
       ...calculated,
       isFetching: riskQuery.isFetching,
       errorReason,
+      refresh,
       hasCalculatedRisk: true,
       canSyncSelection: true,
     };
@@ -148,6 +165,7 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
     meta: {},
     isFetching: riskQuery.isFetching,
     errorReason,
+    refresh,
     hasCalculatedRisk: false,
     canSyncSelection: false,
   };

@@ -77,7 +77,10 @@ export function ForecastSection() {
                       {formatDateLabel(day.date)}
                     </Text>
                   </Flex>
-                  <Badge color={getRiskColor(day.risk)} mr={"sm"}>
+                  <Badge
+                    color={getRiskColor(day.risk)}
+                    mr="sm"
+                  >
                     {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
                   </Badge>
                 </Group>

@@ -9,6 +9,9 @@ import { getRiskBands, getRiskColor } from "@/domain/riskRegistry";
 
 const FORECAST_LINE_COLOR = "#e64626";
 const FORECAST_BAND_WHITE_MIX = 0.15;
+const GAUGE_SERIES_ID = "current-risk-gauge";
+const FORECAST_VISUAL_SERIES_ID = "forecast-visual-line";
+const FORECAST_TOOLTIP_SERIES_ID = "forecast-tooltip-line";
 const FORECAST_HIGHLIGHT_SERIES_ID = "forecast-highlight-point";
 const GAUGE_MAX_SCORE = 4;
 const FORECAST_HOUR_MINUTE_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -141,10 +144,11 @@ function createGaugeSeries(
     showProgress = true,
     showAxisLabel = true,
     detailFormatter = "{value}",
-    detailValueAnimation = true,
+    detailValueAnimation = false,
   } = options;
 
   return {
+    id: GAUGE_SERIES_ID,
     type: "gauge" as const,
     radius: "88%",
     min: 0,
@@ -628,6 +632,7 @@ function createForecastSeries(
   return [
     ...toRiskBandSeries(chartPoints),
     {
+      id: FORECAST_VISUAL_SERIES_ID,
       name: `${labels.tooltipRiskLabel}-visual`,
       type: "line",
       yAxisIndex: 0,
@@ -642,6 +647,7 @@ function createForecastSeries(
       data: chartPoints.map(toForecastPointDatum),
     },
     {
+      id: FORECAST_TOOLTIP_SERIES_ID,
       name: labels.tooltipRiskLabel,
       type: "line",
       yAxisIndex: 0,
@@ -695,7 +701,7 @@ export function buildGaugeOption(
   const pointerColor = getRiskColor(toRiskLevel(safeScore));
 
   return {
-    animation: true,
+    animation: false,
     tooltip: {
       formatter: "{b}: {c}",
     },
@@ -748,6 +754,7 @@ export function buildForecastOption(
   const chartPoints = toForecastChartPoints(forecastPoints);
 
   return {
+    animation: false,
     title: title
       ? {
           text: title,

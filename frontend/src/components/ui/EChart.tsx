@@ -35,7 +35,10 @@ export function EChart({ option, height, bindChart }: EChartProps) {
   }, []);
 
   useEffect(() => {
-    chartRef.current?.setOption(option, true);
+    chartRef.current?.setOption(option, {
+      notMerge: false,
+      lazyUpdate: true,
+    });
   }, [option]);
 
   useEffect(() => {

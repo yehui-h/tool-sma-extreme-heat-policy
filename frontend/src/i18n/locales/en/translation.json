@@ -224,6 +224,9 @@
     ]
   },
   "home": {
+    "notifications": {
+      "forecastUpdated": "Forecast data has been updated"
+    },
     "sections": {
       "filters": {
         "sportLabel": "Sport",
