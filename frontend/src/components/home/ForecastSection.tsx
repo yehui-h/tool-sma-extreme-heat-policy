@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
 import { getRiskColor, getRiskLevelI18nKeys } from "@/domain/riskRegistry";
-import { buildForecastOption } from "@/lib/riskCharts";
+import { bindForecastHoverPoint, buildForecastOption } from "@/lib/riskCharts";
 import { formatDateLabel, formatWeekdayLabel } from "@/lib/formatDate";
 import { ForecastSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { EChart } from "@/components/ui/EChart";
@@ -60,6 +60,9 @@ export function ForecastSection() {
             isMobile,
           )}
           height={chartHeight}
+          bindChart={(chart, container) =>
+            bindForecastHoverPoint(chart, container, today.points)
+          }
         />
 
         <Accordion chevronPosition="right" variant="separated" radius="md">
@@ -89,6 +92,9 @@ export function ForecastSection() {
                     isMobile,
                   )}
                   height={chartHeight}
+                  bindChart={(chart, container) =>
+                    bindForecastHoverPoint(chart, container, day.points)
+                  }
                 />
               </Accordion.Panel>
             </Accordion.Item>

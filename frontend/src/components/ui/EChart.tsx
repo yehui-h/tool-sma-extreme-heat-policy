@@ -6,12 +6,18 @@ import { useEffect, useRef } from "react";
 interface EChartProps {
   option: EChartsOption;
   height: number;
+  bindChart?:
+    | ((
+        chart: EChartsType,
+        container: HTMLDivElement,
+      ) => void | (() => void))
+    | undefined;
 }
 
 /**
  * Hosts and resizes an ECharts instance for the provided option payload.
  */
-export function EChart({ option, height }: EChartProps) {
+export function EChart({ option, height, bindChart }: EChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<EChartsType | null>(null);
 
@@ -31,6 +37,17 @@ export function EChart({ option, height }: EChartProps) {
   useEffect(() => {
     chartRef.current?.setOption(option, true);
   }, [option]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    const container = containerRef.current;
+
+    if (!chart || !container || !bindChart) {
+      return;
+    }
+
+    return bindChart(chart, container);
+  }, [bindChart]);
 
   useEffect(() => {
     if (!containerRef.current) {
