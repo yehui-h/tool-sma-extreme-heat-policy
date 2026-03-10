@@ -27,6 +27,7 @@
   "about": {
     "sections": [
       {
+        "iconKey": "overview",
         "title": "The University of Sydney Sports Heat Tool",
         "paragraphs": [
           {
@@ -54,6 +55,7 @@
         ]
       },
       {
+        "iconKey": "functionalities",
         "title": "Functionalities",
         "paragraphs": [
           {
@@ -73,6 +75,7 @@
         ]
       },
       {
+        "iconKey": "heat-risk",
         "title": "Vigorous exercise places some people at risk of heat illness, especially in hot weather.",
         "paragraphs": [
           {
@@ -107,6 +110,7 @@
         ]
       },
       {
+        "iconKey": "uv-guide",
         "title": "UV Exposure & Heat Illness Guide",
         "paragraphs": [
           {
@@ -127,6 +131,7 @@
         ]
       },
       {
+        "iconKey": "terms",
         "title": "Terms and conditions",
         "paragraphs": [
           {
@@ -146,6 +151,7 @@
         ]
       },
       {
+        "iconKey": "medical-disclaimer",
         "title": "Medical disclaimer",
         "paragraphs": [
           {
@@ -158,6 +164,7 @@
         ]
       },
       {
+        "iconKey": "warranty",
         "title": "Warranty and general disclaimer",
         "paragraphs": [
           {
@@ -170,6 +177,7 @@
         ]
       },
       {
+        "iconKey": "privacy",
         "title": "Privacy",
         "paragraphs": [
           {
@@ -182,6 +190,7 @@
         ]
       },
       {
+        "iconKey": "unacceptable-activity",
         "title": "Unacceptable Activity",
         "paragraphs": [
           {
