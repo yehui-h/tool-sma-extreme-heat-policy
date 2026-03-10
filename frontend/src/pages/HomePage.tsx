@@ -8,7 +8,6 @@ import { MapPlaceholderSection } from "@/components/home/MapPlaceholderSection";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { useHomeUrlSync } from "@/hooks/useHomeUrlSync";
 import { PAGE_SECTION_GAP } from "@/app/layout/layoutSpacing";
-import { forecastFixture } from "@/pages/home/fixtures/forecastFixture";
 import { useHomeBootstrap } from "@/pages/home/useHomeBootstrap";
 import { useHomeStore } from "@/store/homeStore";
 
@@ -22,7 +21,6 @@ export function HomePage() {
   const { canSyncSelection } = useHomeHeatRisk();
   const sport = useHomeStore((state) => state.sport);
   const selectedLocation = useHomeStore((state) => state.selectedLocation);
-  const setForecast = useHomeStore((state) => state.setForecast);
 
   useHomeUrlSync({
     setQueryStates,
@@ -42,10 +40,6 @@ export function HomePage() {
       window.clearTimeout(timeoutId);
     };
   }, [selectedLocation, sport]);
-
-  useEffect(() => {
-    setForecast(forecastFixture);
-  }, [setForecast]);
 
   return (
     <Stack gap={PAGE_SECTION_GAP}>

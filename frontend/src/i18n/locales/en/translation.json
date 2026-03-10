@@ -278,7 +278,7 @@
       "prefilledNotMatched": "Unable to auto-match this prefilled location. Please select a suggestion manually."
     },
     "risk": {
-      "missingApiBaseUrl": "Risk API is not configured. Set VITE_API_BASE_URL or use VITE_HOME_DATA_SOURCE=mock.",
+      "missingApiBaseUrl": "Risk API is not configured. Set VITE_API_BASE_URL.",
       "invalidResponse": "Risk API returned an invalid response. Please try again.",
       "network": "Risk calculation is temporarily unavailable. Please try again."
     }

@@ -39,6 +39,7 @@
 - Response shape:
   - `heat_risk` -> raw pythermalcomfort output keys
   - `meta_data` -> context and source payload references (no mapbox payload)
+  - `forecast` -> UTC hourly points with `time_utc` and `risk_level_interpolated`
 - API contract style is snake_case only; do not default to camelCase request keys or legacy `data/meta` response keys.
 
 ## Validation Checklist Before Handoff

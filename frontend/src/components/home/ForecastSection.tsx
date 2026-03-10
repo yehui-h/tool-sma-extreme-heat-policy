@@ -10,7 +10,6 @@ import { formatDateLabel, formatWeekdayLabel } from "@/lib/formatDate";
 import { ForecastSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { EChart } from "@/components/ui/EChart";
 import { SectionCard } from "@/components/ui/SectionCard";
-import { useHomeStore } from "@/store/homeStore";
 
 const DEFAULT_FORECAST_CHART_HEIGHT = 340;
 const MOBILE_FORECAST_CHART_HEIGHT = 280;
@@ -21,8 +20,7 @@ const MOBILE_FORECAST_CHART_HEIGHT = 280;
 export function ForecastSection() {
   const { t } = useTranslation();
   const isMobile = useMediaQuery("(max-width: 48em)");
-  const { hasCalculatedRisk, isFetching } = useHomeHeatRisk();
-  const forecast = useHomeStore((state) => state.forecast);
+  const { hasCalculatedRisk, isFetching, forecast } = useHomeHeatRisk();
 
   if (!hasCalculatedRisk) {
     return (

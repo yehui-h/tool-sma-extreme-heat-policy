@@ -10,20 +10,20 @@ import { SectionCard } from "@/components/ui/SectionCard";
  */
 export function KeyRecommendationsSection() {
   const { t } = useTranslation();
-  const { riskLevel, hasCalculatedRisk, isFetching } = useHomeHeatRisk();
+  const heatRisk = useHomeHeatRisk();
 
-  if (!hasCalculatedRisk) {
+  if (!heatRisk.hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.keyRecommendations.title")}>
-        <KeyRecommendationsSkeleton showLoader={isFetching} />
+        <KeyRecommendationsSkeleton showLoader={heatRisk.isFetching} />
       </SectionCard>
     );
   }
 
-  const labels = t(RISK_REGISTRY[riskLevel].keyRecommendationsKey, {
+  const labels = t(RISK_REGISTRY[heatRisk.riskLevel].keyRecommendationsKey, {
     returnObjects: true,
   }) as string[];
-  const icons = RISK_REGISTRY[riskLevel].keyIconPaths;
+  const icons = RISK_REGISTRY[heatRisk.riskLevel].keyIconPaths;
 
   const recommendations = icons
     .map((icon, index) => ({ icon, label: labels[index] ?? "" }))

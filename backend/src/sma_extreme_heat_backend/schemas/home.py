@@ -23,6 +23,12 @@ class RiskRequest(BaseModel):
         return value
 
 
+class ForecastPoint(BaseModel):
+    time_utc: str = Field(min_length=1)
+    risk_level_interpolated: FiniteFloat
+
+
 class RiskResponse(BaseModel):
     heat_risk: dict[str, Any] = Field(default_factory=dict)
     meta_data: dict[str, Any] = Field(default_factory=dict)
+    forecast: list[ForecastPoint] = Field(default_factory=list)

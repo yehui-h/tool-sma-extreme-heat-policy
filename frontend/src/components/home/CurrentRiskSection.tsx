@@ -19,14 +19,14 @@ const BADGE_SLOT_HEIGHT = 44;
 export function CurrentRiskSection() {
   const { t } = useTranslation();
   const isMobile = useMediaQuery("(max-width: 48em)");
-  const { risk, riskLevel, hasCalculatedRisk, isFetching } = useHomeHeatRisk();
+  const heatRisk = useHomeHeatRisk();
   const shortRiskLabels = createRiskLevelLabels((key) => t(key), "short");
   const longRiskLabels = createRiskLevelLabels((key) => t(key), "long");
 
-  if (!hasCalculatedRisk) {
+  if (!heatRisk.hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.currentRisk.title")}>
-        <CurrentRiskSkeleton showLoader={isFetching} />
+        <CurrentRiskSkeleton showLoader={heatRisk.isFetching} />
       </SectionCard>
     );
   }
@@ -36,12 +36,12 @@ export function CurrentRiskSection() {
     riskLevelShort: shortRiskLabels,
   };
   const gaugeOption = buildGaugeOption(
-    risk.riskLevelInterpolated,
+    heatRisk.risk.riskLevelInterpolated,
     gaugeLabels,
     isMobile,
   );
-  const riskBadgeColor = getRiskColor(riskLevel);
-  const riskBadgeValue = longRiskLabels[riskLevel].toUpperCase();
+  const riskBadgeColor = getRiskColor(heatRisk.riskLevel);
+  const riskBadgeValue = longRiskLabels[heatRisk.riskLevel].toUpperCase();
 
   return (
     <SectionCard title={t("home.sections.currentRisk.title")}>

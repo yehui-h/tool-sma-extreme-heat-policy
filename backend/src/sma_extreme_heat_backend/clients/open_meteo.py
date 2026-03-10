@@ -29,6 +29,20 @@ class CurrentWeather:
     raw: dict[str, Any]
 
 
+@dataclass(frozen=True)
+class HourlyWeatherPoint:
+    time_utc: datetime
+    tdb: float | None
+    rh: float | None
+    vr: float | None
+
+
+@dataclass(frozen=True)
+class WeatherForecast:
+    points: list[HourlyWeatherPoint]
+    raw: dict[str, Any]
+
+
 def _to_float_or_none(value: Any) -> float | None:
     if value is None:
         return None
@@ -71,7 +85,7 @@ def _validate_hourly_units(payload: dict[str, Any]) -> None:
             )
 
 
-def _select_hourly_row(payload: dict[str, Any]) -> dict[str, Any]:
+def _extract_hourly_series(payload: dict[str, Any]) -> tuple[list[datetime], dict[str, list[Any]]]:
     hourly = payload.get("hourly")
     if not isinstance(hourly, dict):
         raise WeatherProviderError("Weather provider response was missing hourly data")
@@ -95,21 +109,30 @@ def _select_hourly_row(payload: dict[str, Any]) -> dict[str, Any]:
             )
         series_data[field] = values
 
+    return timestamps, series_data
+
+
+def _select_hourly_points(payload: dict[str, Any]) -> list[HourlyWeatherPoint]:
+    timestamps, series_data = _extract_hourly_series(payload)
     threshold = datetime.now(tz=UTC) - timedelta(hours=1)
-    candidate_indexes = [
-        idx
+    forecast_window_end = threshold + timedelta(days=7)
+    candidate_rows = [
+        (idx, timestamp)
         for idx, timestamp in sorted(enumerate(timestamps), key=lambda item: item[1])
-        if timestamp >= threshold
+        if threshold <= timestamp < forecast_window_end
     ]
-    if not candidate_indexes:
+    if not candidate_rows:
         raise WeatherProviderError("No hourly record after now-1h")
 
-    selected = candidate_indexes[0]
-    return {
-        "tdb": series_data["temperature_2m"][selected],
-        "rh": series_data["relative_humidity_2m"][selected],
-        "wind": series_data["wind_speed_10m"][selected],
-    }
+    return [
+        HourlyWeatherPoint(
+            time_utc=timestamp,
+            tdb=_to_float_or_none(series_data["temperature_2m"][idx]),
+            rh=_to_float_or_none(series_data["relative_humidity_2m"][idx]),
+            vr=_to_float_or_none(series_data["wind_speed_10m"][idx]),
+        )
+        for idx, timestamp in candidate_rows
+    ]
 
 
 class OpenMeteoClient:
@@ -126,7 +149,7 @@ class OpenMeteoClient:
             timeout=timeout_seconds,
         )
 
-    async def fetch_current_weather(self, *, latitude: float, longitude: float) -> CurrentWeather:
+    async def fetch_weather_forecast(self, *, latitude: float, longitude: float) -> WeatherForecast:
         params = {
             "latitude": latitude,
             "longitude": longitude,
@@ -143,13 +166,22 @@ class OpenMeteoClient:
             raise WeatherProviderError() from exc
 
         _validate_hourly_units(payload)
-        selected_row = _select_hourly_row(payload)
-
-        return CurrentWeather(
-            tdb=_to_float_or_none(selected_row.get("tdb")),
-            rh=_to_float_or_none(selected_row.get("rh")),
-            vr=_to_float_or_none(selected_row.get("wind")),
+        return WeatherForecast(
+            points=_select_hourly_points(payload),
             raw=payload,
+        )
+
+    async def fetch_current_weather(self, *, latitude: float, longitude: float) -> CurrentWeather:
+        forecast = await self.fetch_weather_forecast(
+            latitude=latitude,
+            longitude=longitude,
+        )
+        current = forecast.points[0]
+        return CurrentWeather(
+            tdb=current.tdb,
+            rh=current.rh,
+            vr=current.vr,
+            raw=forecast.raw,
         )
 
     async def aclose(self) -> None:

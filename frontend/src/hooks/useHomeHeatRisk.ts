@@ -2,14 +2,19 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
   fetchHeatRisk,
+  type HeatRiskApiResponse,
   type HeatRiskErrorReason,
-  type HeatRiskMeta,
 } from "@/api/heatRisk";
-import { heatRiskFixture } from "@/api/heatRisk.fixture";
 import type { HomeCalculationErrorReason } from "@/domain/homeErrorMap";
-import type { HeatRisk, RiskLevel } from "@/domain/risk";
+import type { ForecastDay, HeatRisk, RiskLevel } from "@/domain/risk";
 import { toRiskLevel } from "@/domain/risk";
 import { toCoordinatesOrNull } from "@/lib/coordinates";
+import {
+  toForecastDays,
+  toHeatRisk,
+  toHeatRiskMeta,
+  type HeatRiskMeta,
+} from "@/lib/homeRisk";
 import { useHomeStore } from "@/store/homeStore";
 
 export type HeatRiskCalculationErrorReason = HomeCalculationErrorReason;
@@ -24,14 +29,45 @@ class HeatRiskQueryError extends Error {
   }
 }
 
-interface UseHomeHeatRiskResult {
-  risk: HeatRisk;
-  riskLevel: RiskLevel;
+interface UseHomeHeatRiskBaseResult {
+  forecast: ForecastDay[];
   meta: HeatRiskMeta;
   isFetching: boolean;
   errorReason: HeatRiskCalculationErrorReason | null;
-  hasCalculatedRisk: boolean;
-  canSyncSelection: boolean;
+}
+
+interface UseHomeHeatRiskCalculatedResult extends UseHomeHeatRiskBaseResult {
+  risk: HeatRisk;
+  riskLevel: RiskLevel;
+  hasCalculatedRisk: true;
+  canSyncSelection: true;
+}
+
+interface UseHomeHeatRiskPendingResult extends UseHomeHeatRiskBaseResult {
+  risk: null;
+  riskLevel: null;
+  hasCalculatedRisk: false;
+  canSyncSelection: false;
+}
+
+type UseHomeHeatRiskResult =
+  | UseHomeHeatRiskCalculatedResult
+  | UseHomeHeatRiskPendingResult;
+
+function toCalculatedHeatRisk(data: HeatRiskApiResponse): {
+  risk: HeatRisk;
+  riskLevel: RiskLevel;
+  forecast: ForecastDay[];
+  meta: HeatRiskMeta;
+} {
+  const risk = toHeatRisk(data.heat_risk);
+
+  return {
+    risk,
+    riskLevel: toRiskLevel(risk.riskLevelInterpolated),
+    forecast: toForecastDays(data.forecast),
+    meta: toHeatRiskMeta(data.meta_data),
+  };
 }
 
 /**
@@ -84,25 +120,35 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
         ? riskQuery.error.reason
         : null;
 
-  const risk = riskQuery.data?.data ?? heatRiskFixture;
-  const riskLevel = toRiskLevel(risk.riskLevelInterpolated);
-  const meta = riskQuery.data?.meta ?? {};
+  const calculated = riskQuery.data
+    ? toCalculatedHeatRisk(riskQuery.data.data)
+    : null;
   const hasCalculatedRisk = Boolean(
     selectedLocation &&
     locationCoordinates &&
-    riskQuery.data &&
+    calculated &&
     !riskQuery.isPlaceholderData &&
     sport === debouncedSport,
   );
-  const canSyncSelection = hasCalculatedRisk;
+
+  if (hasCalculatedRisk && calculated) {
+    return {
+      ...calculated,
+      isFetching: riskQuery.isFetching,
+      errorReason,
+      hasCalculatedRisk: true,
+      canSyncSelection: true,
+    };
+  }
 
   return {
-    risk,
-    riskLevel,
-    meta,
+    risk: null,
+    riskLevel: null,
+    forecast: [],
+    meta: {},
     isFetching: riskQuery.isFetching,
     errorReason,
-    hasCalculatedRisk,
-    canSyncSelection,
+    hasCalculatedRisk: false,
+    canSyncSelection: false,
   };
 }

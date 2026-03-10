@@ -86,6 +86,43 @@ async def test_fetch_current_weather_returns_selected_hourly_values() -> None:
     assert weather.vr == 1.5
 
 
+async def test_fetch_weather_forecast_returns_hourly_points_from_now_minus_1h() -> None:
+    now = datetime.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
+    payload = _hourly_payload(
+        times=[
+            now - timedelta(hours=2),
+            now,
+            now + timedelta(hours=1),
+            now + timedelta(hours=2),
+        ],
+        tdb=[19.0, 31.0, 33.0, 34.0],
+        rh=[80.0, 62.0, 61.0, 60.0],
+        wind=[0.9, 1.5, 1.1, 1.0],
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.params["hourly"] == (
+            "temperature_2m,relative_humidity_2m,wind_speed_10m"
+        )
+        assert request.url.params["wind_speed_unit"] == "ms"
+        assert request.url.params["timezone"] == "GMT"
+        return httpx.Response(status_code=200, json=payload)
+
+    client, mock_client = _build_client(handler)
+
+    weather = await client.fetch_weather_forecast(latitude=-33.847, longitude=151.067)
+    await mock_client.aclose()
+
+    assert [point.time_utc for point in weather.points] == [
+        now,
+        now + timedelta(hours=1),
+        now + timedelta(hours=2),
+    ]
+    assert [point.tdb for point in weather.points] == [31.0, 33.0, 34.0]
+    assert [point.rh for point in weather.points] == [62.0, 61.0, 60.0]
+    assert [point.vr for point in weather.points] == [1.5, 1.1, 1.0]
+
+
 async def test_fetch_current_weather_rejects_invalid_temperature_unit() -> None:
     now = datetime.now(tz=UTC).replace(minute=0, second=0, microsecond=0)
     payload = _hourly_payload(
@@ -176,7 +213,7 @@ async def test_fetch_current_weather_raises_when_no_hourly_record_after_now_minu
     client, mock_client = _build_client(handler)
 
     try:
-        await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
+        await client.fetch_weather_forecast(latitude=-33.847, longitude=151.067)
     except WeatherProviderError as exc:
         assert exc.detail == "No hourly record after now-1h"
     else:
@@ -201,12 +238,12 @@ async def test_fetch_current_weather_selects_first_hourly_record_after_now_minus
 
     client, mock_client = _build_client(handler)
 
-    weather = await client.fetch_current_weather(latitude=-33.847, longitude=151.067)
+    weather = await client.fetch_weather_forecast(latitude=-33.847, longitude=151.067)
     await mock_client.aclose()
 
-    assert weather.tdb == 25.0
-    assert weather.rh == 60.0
-    assert weather.vr == 1.2
+    assert weather.points[0].tdb == 25.0
+    assert weather.points[0].rh == 60.0
+    assert weather.points[0].vr == 1.2
 
 
 async def test_fetch_current_weather_rejects_invalid_hourly_time_value() -> None:

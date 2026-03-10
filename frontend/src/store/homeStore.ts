@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import type { LocationSuggestion } from "@/domain/location";
-import type { ForecastDay } from "@/domain/risk";
 import { DEFAULT_SPORT_TYPE, type SportType } from "@/domain/sport";
 
 export type HomeChannel = "shared" | "direct";
@@ -16,7 +15,6 @@ interface HomeStoreState {
   shouldAutoResolvePrefilledLocation: boolean;
   hasPrefilledLocationNotMatched: boolean;
   locationSessionToken: string;
-  forecast: ForecastDay[];
 
   bootstrap: (payload: {
     channel: HomeChannel;
@@ -30,7 +28,6 @@ interface HomeStoreState {
   selectLocation: (suggestion: LocationSuggestion) => void;
   consumeAutoResolvePrefilledLocation: () => void;
   setHasPrefilledLocationNotMatched: (value: boolean) => void;
-  setForecast: (forecast: ForecastDay[]) => void;
 }
 
 function createSessionToken(): string {
@@ -57,7 +54,6 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
   shouldAutoResolvePrefilledLocation: false,
   hasPrefilledLocationNotMatched: false,
   locationSessionToken: createSessionToken(),
-  forecast: [],
 
   bootstrap: ({
     channel,
@@ -112,5 +108,4 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
     set({ shouldAutoResolvePrefilledLocation: false }),
   setHasPrefilledLocationNotMatched: (value) =>
     set({ hasPrefilledLocationNotMatched: value }),
-  setForecast: (forecast) => set({ forecast }),
 }));
