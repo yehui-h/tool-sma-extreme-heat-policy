@@ -13,12 +13,14 @@
 - Use `pythermalcomfort.models.sports_heat_stress_risk.sports_heat_stress_risk` directly.
 - Model inputs are `tdb`, `tr`, `rh`, `vr`, `sport`.
 - Set `tr = tdb` in backend service orchestration.
+- Convert Open-Meteo `wind_speed_10m` to 1.1 m with `pythermalcomfort.utils.scale_wind_speed_log(..., round_output=True)` before model call.
+- Apply a sport wind-speed floor after scaling: `vr = max(scaled_vr, Sports.<sport>.vr)`.
 - Globe temperature (`tg`) is out of scope and must not be introduced.
 - Do not introduce assumptions before model call:
   - no clamping
   - no interpolation
   - no default fill
-  - no business-side input remapping
+  - no business-side input remapping beyond the approved wind-height scaling and sport default floor
 - If required weather inputs are missing/uncertain (`tdb`, `rh`, `vr`), return `422` with `unknown_inputs`.
 - Return pythermalcomfort output in `response.heat_risk` with original field names.
 
@@ -37,6 +39,7 @@
 - Response shape:
   - `heat_risk` -> raw pythermalcomfort output keys
   - `meta_data` -> context and source payload references (no mapbox payload)
+  - `forecast` -> UTC hourly points with `time_utc` and `risk_level_interpolated`
 - API contract style is snake_case only; do not default to camelCase request keys or legacy `data/meta` response keys.
 
 ## Validation Checklist Before Handoff

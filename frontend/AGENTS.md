@@ -98,7 +98,7 @@ Keep the current layer-first structure:
 - Missing Mapbox token must show a configuration error; no silent fallbacks.
 - Suggest API failures must show a retryable error message; no local fallback flow.
 - Retrieve API failures must show a retryable error message and must not trigger risk fetch.
-- Risk API failures must be shown in UI and must keep the last valid result (no silent fallback to fixtures in `api` mode).
+- Risk API failures must be shown in UI and must keep the last valid result (no silent fallback to fixtures).
 - URL + persistence:
   - After a successful fetch, update query params (`sport`, `loc`) using replace history.
   - Persist to localStorage only for direct visits (not shared links).

@@ -1,4 +1,5 @@
 import "@mantine/core/styles.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ import { SiteShell } from "@/app/layout/SiteShell";
 import { appTheme } from "@/config/mantineTheme";
 import { i18n } from "@/i18n/i18n";
 import { AboutPage } from "@/pages/AboutPage";
+import { DetailedRecommendationsPage } from "@/pages/DetailedRecommendationsPage";
 import { HomePage } from "@/pages/HomePage";
 
 const router = createBrowserRouter([
@@ -28,6 +30,10 @@ const router = createBrowserRouter([
       {
         path: "about",
         element: <AboutPage />,
+      },
+      {
+        path: "detailed-recommendations",
+        element: <DetailedRecommendationsPage />,
       },
       {
         path: "*",

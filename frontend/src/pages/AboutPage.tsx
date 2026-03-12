@@ -1,7 +1,7 @@
 import { Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { AboutSectionBlock } from "@/components/about/AboutSectionBlock";
-import { MOBILE_LAYOUT_SPACING } from "@/app/layout/layoutSpacing";
+import { PAGE_SECTION_GAP } from "@/app/layout/layoutSpacing";
 import type { AboutSection } from "@/domain/about";
 
 /**
@@ -14,7 +14,7 @@ export function AboutPage() {
   }) as AboutSection[];
 
   return (
-    <Stack gap={MOBILE_LAYOUT_SPACING} mt="md">
+    <Stack gap={PAGE_SECTION_GAP}>
       {sections.map((section) => (
         <AboutSectionBlock key={section.title} section={section} />
       ))}

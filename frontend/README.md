@@ -9,7 +9,7 @@ This app provides:
 - Location-based heat stress risk assessment (via backend `POST /home/risk`)
 - Evidence-based recommendations for each risk level
 - Sport selection with translated labels and per-sport images
-- Forecast risk chart UI (currently backed by fixtures)
+- Forecast risk chart UI backed by backend hourly forecast data
 
 Based on:
 
@@ -32,19 +32,17 @@ cp .env.example .env.local
 
 Then fill in values (do not commit real tokens/keys):
 
-You can get a Mapbox public token for free at https://account.mapbox.com/access-tokens/ (create a free account if you don't have one). 
+You can get a Mapbox public token for free at https://account.mapbox.com/access-tokens/ (create a free account if you don't have one).
 
 ```bash
 VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_public_token
-VITE_HOME_DATA_SOURCE=api
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
 Notes:
 
 - `VITE_MAPBOX_ACCESS_TOKEN` is required for Home location `suggest + retrieve`.
-- `VITE_HOME_DATA_SOURCE` controls risk source mode: `api` (default) or `mock`.
-- `VITE_API_BASE_URL` is required when `VITE_HOME_DATA_SOURCE=api`.
+- `VITE_API_BASE_URL` is required for backend current-risk and forecast data.
 - `.env.local` is ignored by git via `*.local`.
 
 ## Project structure (Layer-first)
@@ -77,10 +75,11 @@ Import rules:
 - Location search uses Mapbox Search Box `suggest`; selecting a suggestion triggers Mapbox `retrieve` in frontend to resolve coordinates.
 - Prefilled location labels restored from shared URL (`loc`) or local persistence automatically attempt `suggest + retrieve` once using exact normalized label matching.
 - Risk API request sends `sport + latitude + longitude` (no Mapbox identifiers).
+- Risk API response returns current `heat_risk` plus hourly `forecast` points; frontend groups forecast days in browser local timezone.
 - Risk is fetched automatically when:
   - a location suggestion is selected (manual or auto-resolved) and coordinates are resolved, and
   - the sport changes.
-- Risk API failures are shown in UI and keep the last valid result (no silent fallback in `api` mode).
+- Risk API failures are shown in UI and keep the last valid result (no silent fallback to fixtures).
 - After a successful fetch:
   - URL query params update (`sport`, `loc`) and
   - the last selection is persisted to localStorage only for direct visits (not shared links).

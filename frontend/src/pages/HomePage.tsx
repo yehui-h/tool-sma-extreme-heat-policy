@@ -1,43 +1,90 @@
 import { Stack } from "@mantine/core";
-import { useEffect } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { CurrentRiskSection } from "@/components/home/CurrentRiskSection";
-import { DetailedRecommendationsSection } from "@/components/home/DetailedRecommendationsSection";
 import { FiltersSection } from "@/components/home/FiltersSection";
 import { ForecastSection } from "@/components/home/ForecastSection";
 import { KeyRecommendationsSection } from "@/components/home/KeyRecommendationsSection";
-import { MapPlaceholderSection } from "@/components/home/MapPlaceholderSection";
+import { LocationMapSection } from "@/components/home/LocationMapSection";
+import { BottomToast } from "@/components/ui/BottomToast";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { useHomeUrlSync } from "@/hooks/useHomeUrlSync";
-import { MOBILE_LAYOUT_SPACING } from "@/app/layout/layoutSpacing";
-import { forecastFixture } from "@/pages/home/fixtures/forecastFixture";
+import { PAGE_SECTION_GAP } from "@/app/layout/layoutSpacing";
 import { useHomeBootstrap } from "@/pages/home/useHomeBootstrap";
 import { useHomeStore } from "@/store/homeStore";
+import { useTranslation } from "react-i18next";
+
+const HOME_AUTO_REFRESH_INTERVAL_MS = 20 * 60 * 1000;
 
 /**
  * Renders the Home page and wires Home-level state side effects.
  */
 export function HomePage() {
+  const { t } = useTranslation();
   const { setQueryStates } = useHomeBootstrap();
-  const { canSyncSelection } = useHomeHeatRisk();
-  const setForecast = useHomeStore((state) => state.setForecast);
+  const { canSyncSelection, hasCalculatedRisk, refresh } = useHomeHeatRisk();
+  const sport = useHomeStore((state) => state.sport);
+  const selectedLocation = useHomeStore((state) => state.selectedLocation);
+  const [refreshToastEventId, setRefreshToastEventId] = useState(0);
 
   useHomeUrlSync({
     setQueryStates,
     canSyncSelection,
   });
 
+  const runScheduledRefresh = useEffectEvent(async () => refresh());
+
   useEffect(() => {
-    setForecast(forecastFixture);
-  }, [setForecast]);
+    if (!(selectedLocation !== null && Boolean(sport) && hasCalculatedRisk)) {
+      return;
+    }
+
+    let timeoutId: number | null = null;
+    let isCancelled = false;
+
+    const scheduleNextRefresh = () => {
+      timeoutId = window.setTimeout(async () => {
+        const didRefresh = await runScheduledRefresh();
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (didRefresh) {
+          setRefreshToastEventId((currentId) => currentId + 1);
+        }
+
+        scheduleNextRefresh();
+      }, HOME_AUTO_REFRESH_INTERVAL_MS);
+    };
+
+    scheduleNextRefresh();
+
+    return () => {
+      isCancelled = true;
+
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [
+    hasCalculatedRisk,
+    selectedLocation,
+    sport,
+  ]);
 
   return (
-    <Stack gap={MOBILE_LAYOUT_SPACING}>
-      <FiltersSection />
-      <CurrentRiskSection />
-      <KeyRecommendationsSection />
-      <DetailedRecommendationsSection />
-      <ForecastSection />
-      <MapPlaceholderSection />
-    </Stack>
+    <>
+      <Stack gap={PAGE_SECTION_GAP}>
+        <FiltersSection />
+        <CurrentRiskSection />
+        <KeyRecommendationsSection />
+        <ForecastSection />
+        <LocationMapSection />
+      </Stack>
+      <BottomToast
+        eventId={refreshToastEventId}
+        message={t("home.notifications.forecastUpdated")}
+      />
+    </>
   );
 }

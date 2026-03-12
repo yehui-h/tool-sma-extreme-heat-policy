@@ -2,13 +2,14 @@
 import { Accordion, Badge, Flex, Group, Stack, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
+import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
 import { getRiskColor, getRiskLevelI18nKeys } from "@/domain/riskRegistry";
-import { buildForecastOption } from "@/lib/riskCharts";
+import { bindForecastHoverPoint, buildForecastOption } from "@/lib/riskCharts";
 import { formatDateLabel, formatWeekdayLabel } from "@/lib/formatDate";
+import { ForecastSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { EChart } from "@/components/ui/EChart";
 import { SectionCard } from "@/components/ui/SectionCard";
-import { useHomeStore } from "@/store/homeStore";
 
 const DEFAULT_FORECAST_CHART_HEIGHT = 340;
 const MOBILE_FORECAST_CHART_HEIGHT = 280;
@@ -19,7 +20,15 @@ const MOBILE_FORECAST_CHART_HEIGHT = 280;
 export function ForecastSection() {
   const { t } = useTranslation();
   const isMobile = useMediaQuery("(max-width: 48em)");
-  const forecast = useHomeStore((state) => state.forecast);
+  const { hasCalculatedRisk, isFetching, forecast } = useHomeHeatRisk();
+
+  if (!hasCalculatedRisk) {
+    return (
+      <SectionCard title={t("home.sections.forecast.title")}>
+        <ForecastSkeleton showLoader={isFetching} />
+      </SectionCard>
+    );
+  }
 
   if (forecast.length === 0) {
     return null;
@@ -51,6 +60,9 @@ export function ForecastSection() {
             isMobile,
           )}
           height={chartHeight}
+          bindChart={(chart, container) =>
+            bindForecastHoverPoint(chart, container, today.points)
+          }
         />
 
         <Accordion chevronPosition="right" variant="separated" radius="md">
@@ -65,7 +77,10 @@ export function ForecastSection() {
                       {formatDateLabel(day.date)}
                     </Text>
                   </Flex>
-                  <Badge color={getRiskColor(day.risk)} mr={"sm"}>
+                  <Badge
+                    color={getRiskColor(day.risk)}
+                    mr="sm"
+                  >
                     {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
                   </Badge>
                 </Group>
@@ -80,6 +95,9 @@ export function ForecastSection() {
                     isMobile,
                   )}
                   height={chartHeight}
+                  bindChart={(chart, container) =>
+                    bindForecastHoverPoint(chart, container, day.points)
+                  }
                 />
               </Accordion.Panel>
             </Accordion.Item>

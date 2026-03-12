@@ -1,24 +1,26 @@
 import { create } from "zustand";
 import type { LocationSuggestion } from "@/domain/location";
-import type { ForecastDay } from "@/domain/risk";
 import { DEFAULT_SPORT_TYPE, type SportType } from "@/domain/sport";
 
 export type HomeChannel = "shared" | "direct";
+export type LocationPrefillSource = "url" | "persisted" | "default" | "none";
 
 interface HomeStoreState {
+  isBootstrapped: boolean;
   channel: HomeChannel;
   sport: SportType;
   locationInput: string;
+  locationPrefillSource: LocationPrefillSource;
   selectedLocation: LocationSuggestion | null;
   shouldAutoResolvePrefilledLocation: boolean;
   hasPrefilledLocationNotMatched: boolean;
   locationSessionToken: string;
-  forecast: ForecastDay[];
 
   bootstrap: (payload: {
     channel: HomeChannel;
     sport: SportType;
     locationInput: string;
+    locationPrefillSource: LocationPrefillSource;
     shouldAutoResolvePrefilledLocation: boolean;
   }) => void;
   setSport: (sport: SportType) => void;
@@ -26,7 +28,6 @@ interface HomeStoreState {
   selectLocation: (suggestion: LocationSuggestion) => void;
   consumeAutoResolvePrefilledLocation: () => void;
   setHasPrefilledLocationNotMatched: (value: boolean) => void;
-  setForecast: (forecast: ForecastDay[]) => void;
 }
 
 function createSessionToken(): string {
@@ -44,25 +45,29 @@ function createSessionToken(): string {
  * Central Home store for filters and applied selection.
  */
 export const useHomeStore = create<HomeStoreState>((set) => ({
+  isBootstrapped: false,
   channel: "direct",
   sport: DEFAULT_SPORT_TYPE,
   locationInput: "",
+  locationPrefillSource: "none",
   selectedLocation: null,
   shouldAutoResolvePrefilledLocation: false,
   hasPrefilledLocationNotMatched: false,
   locationSessionToken: createSessionToken(),
-  forecast: [],
 
   bootstrap: ({
     channel,
     sport,
     locationInput,
+    locationPrefillSource,
     shouldAutoResolvePrefilledLocation,
   }) =>
     set({
+      isBootstrapped: true,
       channel,
       sport,
       locationInput,
+      locationPrefillSource,
       selectedLocation: null,
       shouldAutoResolvePrefilledLocation,
       hasPrefilledLocationNotMatched: false,
@@ -76,6 +81,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
       if (state.selectedLocation && value !== selectedLocationValue) {
         return {
           locationInput: value,
+          locationPrefillSource: "none",
           selectedLocation: null,
           shouldAutoResolvePrefilledLocation: false,
           hasPrefilledLocationNotMatched: false,
@@ -85,6 +91,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
 
       return {
         locationInput: value,
+        locationPrefillSource: "none",
         shouldAutoResolvePrefilledLocation: false,
         hasPrefilledLocationNotMatched: false,
       };
@@ -93,6 +100,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
     set({
       selectedLocation: suggestion,
       locationInput: suggestion.formattedLocation,
+      locationPrefillSource: "none",
       shouldAutoResolvePrefilledLocation: false,
       hasPrefilledLocationNotMatched: false,
     }),
@@ -100,5 +108,4 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
     set({ shouldAutoResolvePrefilledLocation: false }),
   setHasPrefilledLocationNotMatched: (value) =>
     set({ hasPrefilledLocationNotMatched: value }),
-  setForecast: (forecast) => set({ forecast }),
 }));

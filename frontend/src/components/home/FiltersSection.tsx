@@ -10,25 +10,23 @@ import {
 } from "@mantine/core";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
-import { useHomeLocationSuggest } from "@/hooks/useHomeLocationSuggest";
 import {
   isSportType,
   sports,
   toSportAssetName,
   type SportType,
 } from "@/domain/sport";
-import {
-  toCalculationErrorI18nKey,
-  toSuggestErrorI18nKey,
-} from "@/domain/homeErrorMap";
-import { SectionCard } from "@/components/ui/SectionCard";
+import { useHomeLocationSuggest } from "@/hooks/useHomeLocationSuggest";
 import { useHomeStore } from "@/store/homeStore";
+import { SectionCard } from "@/components/ui/SectionCard";
 
 interface SelectOption<T extends string = string> {
   value: T;
   label: string;
 }
+
+const FIELD_LABEL_WIDTH = 72;
+const SPORT_IMAGE_HEIGHT = 104;
 
 /**
  * Renders sport and location filters for Home risk calculation.
@@ -38,7 +36,6 @@ export function FiltersSection() {
   const sport = useHomeStore((state) => state.sport);
   const setSport = useHomeStore((state) => state.setSport);
   const [hasSportImageError, setHasSportImageError] = useState(false);
-  const fieldLabelMinWidth = 72;
 
   const sportOptions = useMemo<SelectOption<SportType>[]>(
     () =>
@@ -67,11 +64,9 @@ export function FiltersSection() {
     locationInput,
     suggestionLabels,
     isSuggestLoading,
-    suggestErrorReason,
     onLocationInputChange,
     onLocationOptionSubmit,
   } = useHomeLocationSuggest();
-  const { isFetching: isCalculating, errorReason } = useHomeHeatRisk();
 
   const handleSportChange = (value: string | null) => {
     setHasSportImageError(false);
@@ -85,20 +80,11 @@ export function FiltersSection() {
     }
   };
 
-  const suggestErrorKey = toSuggestErrorI18nKey(suggestErrorReason);
-  const calculateErrorKey = toCalculationErrorI18nKey(errorReason);
-  const suggestError = suggestErrorKey ? t(suggestErrorKey) : null;
-  const calculateError = calculateErrorKey ? t(calculateErrorKey) : null;
-  const shouldShowStatus =
-    Boolean(suggestError) ||
-    Boolean(calculateError) ||
-    (!suggestError && !calculateError && isCalculating);
-
   return (
-    <SectionCard title="">
-      <Stack p={{ base: "xs", sm: 0 }}>
-        <Group wrap="nowrap" align="center">
-          <Text fw={600} miw={fieldLabelMinWidth}>
+    <SectionCard>
+      <Stack gap="sm">
+        <Group wrap="nowrap" align="center" gap="sm">
+          <Text fw={600} w={FIELD_LABEL_WIDTH} ta="right">
             {t("home.sections.filters.locationLabel")}:
           </Text>
           <Box flex={1}>
@@ -116,8 +102,9 @@ export function FiltersSection() {
             />
           </Box>
         </Group>
-        <Group wrap="nowrap" align="center">
-          <Text fw={600} miw={fieldLabelMinWidth}>
+
+        <Group wrap="nowrap" align="center" gap="sm">
+          <Text fw={600} w={FIELD_LABEL_WIDTH} ta="right">
             {t("home.sections.filters.sportLabel")}:
           </Text>
           <Box flex={1}>
@@ -133,52 +120,32 @@ export function FiltersSection() {
           </Box>
         </Group>
 
-        {!hasSportImageError ? (
-          <Image
-            src={sportImageSrc}
-            alt={t("home.sections.filters.sportImageAlt", {
-              sportLabel: selectedSportLabel,
-            })}
-            w="100%"
-            h="100px"
-            radius="sm"
-            onError={() => setHasSportImageError(true)}
-          />
-        ) : (
-          <Stack align="center" justify="center" gap={4} py="md">
-            <Text fw={500} fz="sm">
-              {t("home.sections.filters.sportImageUnavailable")}
-            </Text>
-            <Text c="dimmed" fz="xs" ta="center">
-              {t("home.sections.filters.sportImageHelp", {
+        <Box h={SPORT_IMAGE_HEIGHT}>
+          {!hasSportImageError ? (
+            <Image
+              src={sportImageSrc}
+              alt={t("home.sections.filters.sportImageAlt", {
                 sportLabel: selectedSportLabel,
-                path: sportImageSrc,
               })}
-            </Text>
-          </Stack>
-        )}
-
-        {shouldShowStatus ? (
-          <Stack gap="xs">
-            {suggestError ? (
-              <Text c="orange.7" fz="sm">
-                {suggestError}
+              w="100%"
+              h={SPORT_IMAGE_HEIGHT}
+              radius="sm"
+              onError={() => setHasSportImageError(true)}
+            />
+          ) : (
+            <Stack align="center" justify="center" gap={4} h="100%" px="md">
+              <Text fw={500} fz="sm">
+                {t("home.sections.filters.sportImageUnavailable")}
               </Text>
-            ) : null}
-
-            {calculateError ? (
-              <Text c="red.7" fz="sm">
-                {calculateError}
+              <Text c="dimmed" fz="xs" ta="center">
+                {t("home.sections.filters.sportImageHelp", {
+                  sportLabel: selectedSportLabel,
+                  path: sportImageSrc,
+                })}
               </Text>
-            ) : null}
-
-            {!suggestError && !calculateError && isCalculating ? (
-              <Text c="dimmed" fz="sm">
-                {t("home.sections.filters.calculatingLabel")}
-              </Text>
-            ) : null}
-          </Stack>
-        ) : null}
+            </Stack>
+          )}
+        </Box>
       </Stack>
     </SectionCard>
   );

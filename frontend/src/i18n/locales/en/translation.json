@@ -27,6 +27,7 @@
   "about": {
     "sections": [
       {
+        "iconKey": "overview",
         "title": "The University of Sydney Sports Heat Tool",
         "paragraphs": [
           {
@@ -54,6 +55,7 @@
         ]
       },
       {
+        "iconKey": "functionalities",
         "title": "Functionalities",
         "paragraphs": [
           {
@@ -73,6 +75,7 @@
         ]
       },
       {
+        "iconKey": "heat-risk",
         "title": "Vigorous exercise places some people at risk of heat illness, especially in hot weather.",
         "paragraphs": [
           {
@@ -107,6 +110,7 @@
         ]
       },
       {
+        "iconKey": "uv-guide",
         "title": "UV Exposure & Heat Illness Guide",
         "paragraphs": [
           {
@@ -127,6 +131,7 @@
         ]
       },
       {
+        "iconKey": "terms",
         "title": "Terms and conditions",
         "paragraphs": [
           {
@@ -146,6 +151,7 @@
         ]
       },
       {
+        "iconKey": "medical-disclaimer",
         "title": "Medical disclaimer",
         "paragraphs": [
           {
@@ -158,6 +164,7 @@
         ]
       },
       {
+        "iconKey": "warranty",
         "title": "Warranty and general disclaimer",
         "paragraphs": [
           {
@@ -170,6 +177,7 @@
         ]
       },
       {
+        "iconKey": "privacy",
         "title": "Privacy",
         "paragraphs": [
           {
@@ -182,6 +190,7 @@
         ]
       },
       {
+        "iconKey": "unacceptable-activity",
         "title": "Unacceptable Activity",
         "paragraphs": [
           {
@@ -224,18 +233,21 @@
     ]
   },
   "home": {
+    "notifications": {
+      "forecastUpdated": "Forecast data has been updated"
+    },
     "sections": {
       "filters": {
         "sportLabel": "Sport",
         "locationLabel": "Location",
+        "defaultLocation": "North Sydney, Sydney, AU",
         "locationPlaceholder": "Search suburb, address, city, or venue",
         "sportNotFound": "No sport found",
         "selectedSportFallback": "Selected sport",
         "sportImageUnavailable": "Sport image unavailable",
         "sportImageHelp": "Add an image for {{sportLabel}} at {{path}}.",
         "sportImageAlt": "{{sportLabel}} preview",
-        "helperText": "Search and select a location to calculate risk automatically",
-        "calculatingLabel": "Calculating risk…"
+        "helperText": "Search and select a location to calculate risk automatically"
       },
       "currentRisk": {
         "title": "Current Sport Heat Score"
@@ -243,8 +255,7 @@
       "riskPending": {
         "setFiltersHint": "Select sport and location to calculate risk.",
         "scoreHint": "Current heat score will appear after calculation.",
-        "keyRecommendationsHint": "Key recommendations will appear after calculation.",
-        "detailedHint": "Detailed suggestions will appear after calculation."
+        "keyRecommendationsHint": "Key recommendations will appear after calculation."
       },
       "keyRecommendations": {
         "title": "Key recommendations:"
@@ -257,13 +268,9 @@
       },
       "map": {
         "title": "Location Map",
-        "placeholderTitle": "Map Preview Placeholder",
-        "placeholderBody": "Nearest weather station and heat-risk map details for {{location}} will appear here in the next implementation phase.",
-        "locationFallback": "Select a location",
-        "badges": {
-          "source": "Source: {{source}}",
-          "retrieveReady": "coordinates ready"
-        }
+        "missingCoordinatesTitle": "Map unavailable",
+        "missingCoordinatesBody": "Coordinates for {{location}} are unavailable, so the map cannot be displayed.",
+        "locationFallback": "Select a location"
       }
     }
   },
@@ -279,7 +286,7 @@
       "prefilledNotMatched": "Unable to auto-match this prefilled location. Please select a suggestion manually."
     },
     "risk": {
-      "missingApiBaseUrl": "Risk API is not configured. Set VITE_API_BASE_URL or use VITE_HOME_DATA_SOURCE=mock.",
+      "missingApiBaseUrl": "Risk API is not configured. Set VITE_API_BASE_URL.",
       "invalidResponse": "Risk API returned an invalid response. Please try again.",
       "network": "Risk calculation is temporarily unavailable. Please try again."
     }
@@ -360,8 +367,10 @@
       ],
       "extreme": ["Consider Suspending Play"]
     },
+    "manual": {
+      "title": "Heat Stress Risk Categories"
+    },
     "detailed": {
-      "accordionLabel": "Detailed suggestions:",
       "youShouldLabel": "You should:",
       "low": {
         "description": "Maintaining hydration through regular fluid consumption and modifying clothing is still a simple, yet effective, way of keeping cool and preserving health and performance during the summer months.",

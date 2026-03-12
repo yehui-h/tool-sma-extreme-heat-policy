@@ -1,6 +1,7 @@
 import { useQueryStates } from "nuqs";
 import { useOptimisticSearchParams } from "nuqs/adapters/react-router/v7";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { DEFAULT_SPORT_TYPE, type SportType } from "@/domain/sport";
 import { loadPersistedHomeFilters } from "@/pages/home/browserState";
 import {
@@ -33,12 +34,12 @@ interface UseHomeBootstrapResult {
  * Boots Home store state from URL/local persistence and exposes query setters.
  */
 export function useHomeBootstrap(): UseHomeBootstrapResult {
+  const { t } = useTranslation();
   const optimisticSearchParams = useOptimisticSearchParams();
   const [{ sport: urlSport, location: urlLocation }, setQueryStates] =
     useQueryStates(HOME_QUERY_PARSERS, {
       urlKeys: HOME_QUERY_URL_KEYS,
     });
-  const hasBootstrappedRef = useRef(false);
 
   const hasUrlState =
     optimisticSearchParams.has("sport") || optimisticSearchParams.has("loc");
@@ -52,15 +53,16 @@ export function useHomeBootstrap(): UseHomeBootstrapResult {
       resolveHomeBootstrapState({
         hasUrlState,
         defaultSport: DEFAULT_SPORT_TYPE,
+        defaultLocationLabel: t("home.sections.filters.defaultLocation"),
         urlSport,
         urlLocation,
         persistedFilters,
       }),
-    [hasUrlState, persistedFilters, urlLocation, urlSport],
+    [hasUrlState, persistedFilters, t, urlLocation, urlSport],
   );
 
   useEffect(() => {
-    if (hasBootstrappedRef.current) {
+    if (useHomeStore.getState().isBootstrapped) {
       return;
     }
 
@@ -68,14 +70,14 @@ export function useHomeBootstrap(): UseHomeBootstrapResult {
       channel: bootstrapState.channel,
       sport: bootstrapState.sport,
       locationInput: bootstrapState.locationInput,
+      locationPrefillSource: bootstrapState.locationPrefillSource,
       shouldAutoResolvePrefilledLocation:
         bootstrapState.shouldAutoResolvePrefilledLocation,
     });
-
-    hasBootstrappedRef.current = true;
   }, [
     bootstrapState.channel,
     bootstrapState.locationInput,
+    bootstrapState.locationPrefillSource,
     bootstrapState.sport,
     bootstrapState.shouldAutoResolvePrefilledLocation,
   ]);

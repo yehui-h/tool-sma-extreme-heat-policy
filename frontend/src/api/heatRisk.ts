@@ -1,21 +1,10 @@
-import type { HeatRisk } from "@/domain/risk";
 import type { SportType } from "@/domain/sport";
-import { heatRiskFixture } from "@/api/heatRisk.fixture";
 import { endpoints } from "@/api/endpoints";
 import { httpClient } from "@/api/httpClient";
-import { toCoordinatesOrNull } from "@/lib/coordinates";
 
-interface UnknownRecord {
-  [key: string]: unknown;
-}
+export type HeatRiskApiMeta = Record<string, unknown>;
 
 export interface HeatRiskRequest {
-  sport: SportType;
-  latitude: number;
-  longitude: number;
-}
-
-interface HeatRiskApiRequestDto {
   sport: SportType;
   latitude: number;
   longitude: number;
@@ -29,19 +18,15 @@ export interface HeatRiskApiData {
   recommendation: string;
 }
 
-interface HeatRiskApiResponseDto {
-  heat_risk: HeatRiskApiData;
-  meta_data: UnknownRecord;
+export interface ForecastApiPoint {
+  time_utc: string;
+  risk_level_interpolated: number;
 }
 
 export interface HeatRiskApiResponse {
-  heatRisk: HeatRiskApiData;
-  metaData: UnknownRecord;
-}
-
-export interface HeatRiskMeta {
-  latitude?: number;
-  longitude?: number;
+  heat_risk: HeatRiskApiData;
+  meta_data: HeatRiskApiMeta;
+  forecast: ForecastApiPoint[];
 }
 
 export type HeatRiskErrorReason =
@@ -49,30 +34,30 @@ export type HeatRiskErrorReason =
   | "invalid_response"
   | "network_error";
 
-export type HeatRiskResult =
+export type HeatRiskApiResult =
   | {
       ok: true;
-      data: HeatRisk;
-      meta: HeatRiskMeta;
+      data: HeatRiskApiResponse;
     }
   | {
       ok: false;
       reason: HeatRiskErrorReason;
     };
 
-function resolveHeatRiskDataSource(): "api" | "mock" {
-  const rawSource = String(import.meta.env.VITE_HOME_DATA_SOURCE ?? "api")
-    .trim()
-    .toLowerCase();
-  return rawSource === "mock" ? "mock" : "api";
-}
-
-function isRecord(value: unknown): value is UnknownRecord {
+function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function isValidIsoDateTime(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    value.length > 0 &&
+    !Number.isNaN(Date.parse(value))
+  );
 }
 
 function isHeatRiskApiData(value: unknown): value is HeatRiskApiData {
@@ -89,12 +74,23 @@ function isHeatRiskApiData(value: unknown): value is HeatRiskApiData {
   );
 }
 
+function isForecastApiPoint(value: unknown): value is ForecastApiPoint {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isValidIsoDateTime(value.time_utc) &&
+    isFiniteNumber(value.risk_level_interpolated)
+  );
+}
+
 /**
  * Validates the backend heat-risk response payload shape at runtime.
  */
 export function isHeatRiskApiResponse(
   value: unknown,
-): value is HeatRiskApiResponseDto {
+): value is HeatRiskApiResponse {
   if (!isRecord(value)) {
     return false;
   }
@@ -103,79 +99,22 @@ export function isHeatRiskApiResponse(
     return false;
   }
 
-  return isRecord(value.meta_data);
-}
-
-function toHeatRiskRequestDto(payload: HeatRiskRequest): HeatRiskApiRequestDto {
-  return {
-    sport: payload.sport,
-    latitude: payload.latitude,
-    longitude: payload.longitude,
-  };
-}
-
-function toHeatRiskApiResponse(
-  dto: HeatRiskApiResponseDto,
-): HeatRiskApiResponse {
-  return {
-    heatRisk: dto.heat_risk,
-    metaData: dto.meta_data,
-  };
-}
-
-function toHeatRisk(api: HeatRiskApiData): HeatRisk {
-  return {
-    riskLevelInterpolated: api.risk_level_interpolated,
-    mediumThreshold: api.t_medium,
-    highThreshold: api.t_high,
-    extremeThreshold: api.t_extreme,
-    recommendation: api.recommendation,
-  };
-}
-
-function toLocationCoordinates(meta: UnknownRecord): HeatRiskMeta {
-  const location = meta.location;
-  if (!isRecord(location)) {
-    return {};
+  if (!isRecord(value.meta_data)) {
+    return false;
   }
 
-  const coordinates = toCoordinatesOrNull({
-    latitude: location.latitude,
-    longitude: location.longitude,
-  });
-
-  if (!coordinates) {
-    return {};
-  }
-
-  return {
-    latitude: coordinates.latitude,
-    longitude: coordinates.longitude,
-  };
-}
-
-function toHeatRiskMeta(meta: UnknownRecord): HeatRiskMeta {
-  return toLocationCoordinates(meta);
+  return (
+    Array.isArray(value.forecast) && value.forecast.every(isForecastApiPoint)
+  );
 }
 
 /**
- * Fetches heat risk results from the backend or returns fixtures in mock mode.
- *
- * Time contract: any future request/response datetime fields must be ISO-8601 UTC.
- * Current payload intentionally contains no datetime field.
+ * Fetches and validates the raw backend heat-risk response payload.
  */
 export async function fetchHeatRisk(
   payload: HeatRiskRequest,
   options?: { signal?: AbortSignal },
-): Promise<HeatRiskResult> {
-  if (resolveHeatRiskDataSource() === "mock") {
-    return {
-      ok: true,
-      data: heatRiskFixture,
-      meta: {},
-    };
-  }
-
+): Promise<HeatRiskApiResult> {
   if (!import.meta.env.VITE_API_BASE_URL) {
     return {
       ok: false,
@@ -184,26 +123,23 @@ export async function fetchHeatRisk(
   }
 
   try {
-    const requestDto = toHeatRiskRequestDto(payload);
     const response = await httpClient<unknown>(endpoints.heatRisk, {
       method: "POST",
-      body: JSON.stringify(requestDto),
+      body: JSON.stringify(payload),
       signal: options?.signal,
     });
+    const isValidResponse = isHeatRiskApiResponse(response);
 
-    if (!isHeatRiskApiResponse(response)) {
+    if (!isValidResponse) {
       return {
         ok: false,
         reason: "invalid_response",
       };
     }
 
-    const mappedResponse = toHeatRiskApiResponse(response);
-
     return {
       ok: true,
-      data: toHeatRisk(mappedResponse.heatRisk),
-      meta: toHeatRiskMeta(mappedResponse.metaData),
+      data: response,
     };
   } catch {
     return {

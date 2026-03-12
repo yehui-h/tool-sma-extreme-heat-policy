@@ -2,7 +2,7 @@ import { Image, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { RISK_REGISTRY } from "@/domain/riskRegistry";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
-import { RiskPendingState } from "@/components/home/RiskPendingState";
+import { KeyRecommendationsSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { SectionCard } from "@/components/ui/SectionCard";
 
 /**
@@ -10,32 +10,37 @@ import { SectionCard } from "@/components/ui/SectionCard";
  */
 export function KeyRecommendationsSection() {
   const { t } = useTranslation();
-  const { riskLevel, hasCalculatedRisk } = useHomeHeatRisk();
+  const heatRisk = useHomeHeatRisk();
 
-  if (!hasCalculatedRisk) {
+  if (!heatRisk.hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.keyRecommendations.title")}>
-        <RiskPendingState
-          message={t("home.sections.riskPending.keyRecommendationsHint")}
-          showMutedIcons
-        />
+        <KeyRecommendationsSkeleton showLoader={heatRisk.isFetching} />
       </SectionCard>
     );
   }
 
-  const labels = t(RISK_REGISTRY[riskLevel].keyRecommendationsKey, {
+  const labels = t(RISK_REGISTRY[heatRisk.riskLevel].keyRecommendationsKey, {
     returnObjects: true,
   }) as string[];
-  const icons = RISK_REGISTRY[riskLevel].keyIconPaths;
+  const icons = RISK_REGISTRY[heatRisk.riskLevel].keyIconPaths;
 
   const recommendations = icons
     .map((icon, index) => ({ icon, label: labels[index] ?? "" }))
     .filter((item) => item.label);
+  const recommendationColumnCount = Math.max(recommendations.length, 1);
+  const mobileRecommendationColumnCount = Math.min(
+    recommendationColumnCount,
+    2,
+  );
 
   return (
     <SectionCard title={t("home.sections.keyRecommendations.title")}>
       <SimpleGrid
-        cols={{ base: 1, xs: 2, sm: recommendations.length > 3 ? 4 : 3 }}
+        cols={{
+          base: mobileRecommendationColumnCount,
+          sm: recommendationColumnCount,
+        }}
         spacing="sm"
       >
         {recommendations.map((item) => (
@@ -47,7 +52,16 @@ export function KeyRecommendationsSection() {
               h={52}
               fit="contain"
             />
-            <Text fw={600} ta="center">
+            <Text
+              fw={600}
+              ta="center"
+              title={item.label}
+              style={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               {item.label}
             </Text>
           </Stack>

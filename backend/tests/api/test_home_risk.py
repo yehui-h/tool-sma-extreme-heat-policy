@@ -22,6 +22,16 @@ class SuccessfulRiskService:
                 "recommendation": "Increase hydration & modify clothing",
             },
             meta_data={"source": "test"},
+            forecast=[
+                {
+                    "time_utc": "2026-03-09T00:00:00Z",
+                    "risk_level_interpolated": 1.2,
+                },
+                {
+                    "time_utc": "2026-03-09T01:00:00Z",
+                    "risk_level_interpolated": 1.4,
+                },
+            ],
         )
 
 
@@ -54,6 +64,16 @@ def test_post_home_risk_success_returns_pythermalcomfort_data() -> None:
     assert response.status_code == 200
     assert response.json()["heat_risk"]["risk_level_interpolated"] == 1.2
     assert "recommendation" in response.json()["heat_risk"]
+    assert response.json()["forecast"] == [
+        {
+            "time_utc": "2026-03-09T00:00:00Z",
+            "risk_level_interpolated": 1.2,
+        },
+        {
+            "time_utc": "2026-03-09T01:00:00Z",
+            "risk_level_interpolated": 1.4,
+        },
+    ]
 
 
 def test_post_home_risk_missing_latitude_returns_422() -> None:

@@ -1,29 +1,29 @@
-// Simplify SiteHeader layout: replace deep Grid/Box nesting with a flatter Header/Container/Group structure
 import {
   Anchor,
+  Box,
+  Burger,
   Button,
   Container,
   Drawer,
   Group,
-  // Header removed because Mantine doesn't export Header; use Box instead
   Image,
-  Text,
-  Burger,
   Stack,
-  Box,
+  Text,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { useMediaQuery } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
-import { MOBILE_LAYOUT_SPACING } from "@/app/layout/layoutSpacing";
+import { PAGE_CONTAINER_PADDING } from "@/app/layout/layoutSpacing";
+
+const HEADER_HEIGHT = 50;
 
 function isRouteActive(currentPath: string, target: string): boolean {
   return target === "/" ? currentPath === "/" : currentPath.startsWith(target);
 }
 
 /**
- * Renders the top site navigation with a simpler, less-nested layout.
+ * Renders a three-slot header with stable title alignment across breakpoints.
  */
 export function SiteHeader() {
   const [opened, { open, close }] = useDisclosure(false);
@@ -34,6 +34,12 @@ export function SiteHeader() {
     { label: t("nav.home"), to: "/" },
     { label: t("nav.about"), to: "/about" },
   ];
+
+  useEffect(() => {
+    if (opened && isDesktop) {
+      close();
+    }
+  }, [close, isDesktop, opened]);
 
   const renderNavButton = (
     item: (typeof navItems)[number],
@@ -63,24 +69,26 @@ export function SiteHeader() {
   };
 
   return (
-    <Box component="header" style={{ background: "#F1F1F1", height: 60 }}>
-      <Container
-        size="sm"
-        px={{ base: MOBILE_LAYOUT_SPACING, sm: "md" }}
-        style={{ height: "100%" }}
-      >
-        <Group
-          justify="space-between"
-          align="center"
-          wrap="nowrap"
-          style={{ height: "100%" }}
+    <Box component="header" bg="gray.1" h={HEADER_HEIGHT}>
+      <Container size="sm" px={PAGE_CONTAINER_PADDING} h="100%">
+        <Box
+          h="100%"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+            alignItems: "center",
+            columnGap: "12px",
+          }}
         >
-          {/* Left: logo */}
           <Anchor
             component={Link}
             to="/"
             onClick={close}
-            style={{ display: "flex", alignItems: "center" }}
+            style={{
+              justifySelf: "start",
+              display: "inline-flex",
+              alignItems: "center",
+            }}
           >
             <Image
               src="/branding/logo-usyd-black.png"
@@ -91,21 +99,19 @@ export function SiteHeader() {
             />
           </Anchor>
 
-          {/* Center: title - flex so it stays centered between left and right items */}
           <Text
             fw={700}
             fz={{ base: "md", sm: "lg" }}
             ta="center"
             lineClamp={1}
-            style={{ flex: 1, marginLeft: 12, marginRight: 12 }}
+            style={{ justifySelf: "center" }}
           >
             {t("app.title")}
           </Text>
 
-          {/* Right: nav buttons + burger - render based on viewport */}
-          <Group gap="xs" wrap="nowrap">
+          <Box style={{ justifySelf: "end" }}>
             {isDesktop ? (
-              <Group gap="xs">
+              <Group gap="xs" wrap="nowrap">
                 {navItems.map((item) =>
                   renderNavButton(item, {
                     inactiveVariant: "subtle",
@@ -118,11 +124,10 @@ export function SiteHeader() {
                 opened={opened}
                 onClick={opened ? close : open}
                 aria-label={t("nav.toggleAriaLabel")}
-                pr={0}
               />
             )}
-          </Group>
-        </Group>
+          </Box>
+        </Box>
       </Container>
 
       <Drawer
@@ -133,7 +138,7 @@ export function SiteHeader() {
         position="right"
         size="66.67vw"
       >
-        <Stack>
+        <Stack gap="xs">
           {navItems.map((item) =>
             renderNavButton(item, {
               inactiveVariant: "light",
