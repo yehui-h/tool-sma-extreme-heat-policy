@@ -26,6 +26,9 @@ export const RISK_LEVELS: readonly RiskLevel[] = [
   "extreme",
 ];
 
+const LOW_RISK_BADGE_FOREGROUND_COLOR = "#000000";
+const NON_LOW_RISK_BADGE_FOREGROUND_COLOR = "#ffffff";
+
 export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
   low: {
     scoreLowerInclusive: 0,
@@ -102,6 +105,15 @@ export function toRiskLevel(score: number): RiskLevel {
  */
 export function getRiskColor(level: RiskLevel): string {
   return RISK_REGISTRY[level].color;
+}
+
+/**
+ * Returns the foreground color to use for risk badges.
+ */
+export function getRiskBadgeForegroundColor(level: RiskLevel): string {
+  return level === "low"
+    ? LOW_RISK_BADGE_FOREGROUND_COLOR
+    : NON_LOW_RISK_BADGE_FOREGROUND_COLOR;
 }
 
 /**

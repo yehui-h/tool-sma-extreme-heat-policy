@@ -69,14 +69,14 @@ export function useHomeBootstrap(): UseHomeBootstrapResult {
     useHomeStore.getState().bootstrap({
       channel: bootstrapState.channel,
       sport: bootstrapState.sport,
-      locationInput: bootstrapState.locationInput,
+      locationSearchInput: bootstrapState.locationSearchInput,
       locationPrefillSource: bootstrapState.locationPrefillSource,
       shouldAutoResolvePrefilledLocation:
         bootstrapState.shouldAutoResolvePrefilledLocation,
     });
   }, [
     bootstrapState.channel,
-    bootstrapState.locationInput,
+    bootstrapState.locationSearchInput,
     bootstrapState.locationPrefillSource,
     bootstrapState.sport,
     bootstrapState.shouldAutoResolvePrefilledLocation,

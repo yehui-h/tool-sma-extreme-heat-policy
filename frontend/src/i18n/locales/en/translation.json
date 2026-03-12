@@ -5,6 +5,7 @@
   "nav": {
     "home": "Home",
     "about": "About",
+    "detailedRecommendations": "Recommendations",
     "drawerTitle": "Navigation",
     "toggleAriaLabel": "Toggle navigation",
     "logoAlt": "University of Sydney"
@@ -264,7 +265,8 @@
         "title": "Detailed suggestions:"
       },
       "forecast": {
-        "title": "Forecasted risk"
+        "title": "Forecasted risk",
+        "maxRiskLabel": "Max risk:"
       },
       "map": {
         "title": "Location Map",

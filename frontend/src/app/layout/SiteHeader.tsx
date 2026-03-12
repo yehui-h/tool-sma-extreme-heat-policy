@@ -34,6 +34,13 @@ export function SiteHeader() {
     { label: t("nav.home"), to: "/" },
     { label: t("nav.about"), to: "/about" },
   ];
+  const mobileNavItems = [
+    ...navItems,
+    {
+      label: t("nav.detailedRecommendations"),
+      to: "/detailed-recommendations",
+    },
+  ];
 
   useEffect(() => {
     if (opened && isDesktop) {
@@ -139,7 +146,7 @@ export function SiteHeader() {
         size="66.67vw"
       >
         <Stack gap="xs">
-          {navItems.map((item) =>
+          {mobileNavItems.map((item) =>
             renderNavButton(item, {
               inactiveVariant: "light",
               size: "md",

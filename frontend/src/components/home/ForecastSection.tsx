@@ -4,7 +4,11 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
-import { getRiskColor, getRiskLevelI18nKeys } from "@/domain/riskRegistry";
+import {
+  getRiskBadgeForegroundColor,
+  getRiskColor,
+  getRiskLevelI18nKeys,
+} from "@/domain/riskRegistry";
 import { bindForecastHoverPoint, buildForecastOption } from "@/lib/riskCharts";
 import { formatDateLabel, formatWeekdayLabel } from "@/lib/formatDate";
 import { ForecastSkeleton } from "@/components/home/HomeSectionSkeletons";
@@ -77,12 +81,21 @@ export function ForecastSection() {
                       {formatDateLabel(day.date)}
                     </Text>
                   </Flex>
-                  <Badge
-                    color={getRiskColor(day.risk)}
-                    mr="sm"
-                  >
-                    {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
-                  </Badge>
+                  <Group gap="xs" mr="sm" wrap="nowrap">
+                    <Text fz="sm">
+                      {t("home.sections.forecast.maxRiskLabel")}
+                    </Text>
+                    <Badge
+                      color={getRiskColor(day.risk)}
+                      styles={{
+                        root: {
+                          color: getRiskBadgeForegroundColor(day.risk),
+                        },
+                      }}
+                    >
+                      {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
+                    </Badge>
+                  </Group>
                 </Group>
               </Accordion.Control>
 

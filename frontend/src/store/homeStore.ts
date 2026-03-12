@@ -9,7 +9,7 @@ interface HomeStoreState {
   isBootstrapped: boolean;
   channel: HomeChannel;
   sport: SportType;
-  locationInput: string;
+  locationSearchInput: string;
   locationPrefillSource: LocationPrefillSource;
   selectedLocation: LocationSuggestion | null;
   shouldAutoResolvePrefilledLocation: boolean;
@@ -19,12 +19,12 @@ interface HomeStoreState {
   bootstrap: (payload: {
     channel: HomeChannel;
     sport: SportType;
-    locationInput: string;
+    locationSearchInput: string;
     locationPrefillSource: LocationPrefillSource;
     shouldAutoResolvePrefilledLocation: boolean;
   }) => void;
   setSport: (sport: SportType) => void;
-  setLocationInput: (value: string) => void;
+  setLocationSearchInput: (value: string) => void;
   selectLocation: (suggestion: LocationSuggestion) => void;
   consumeAutoResolvePrefilledLocation: () => void;
   setHasPrefilledLocationNotMatched: (value: boolean) => void;
@@ -48,7 +48,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
   isBootstrapped: false,
   channel: "direct",
   sport: DEFAULT_SPORT_TYPE,
-  locationInput: "",
+  locationSearchInput: "",
   locationPrefillSource: "none",
   selectedLocation: null,
   shouldAutoResolvePrefilledLocation: false,
@@ -58,7 +58,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
   bootstrap: ({
     channel,
     sport,
-    locationInput,
+    locationSearchInput,
     locationPrefillSource,
     shouldAutoResolvePrefilledLocation,
   }) =>
@@ -66,7 +66,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
       isBootstrapped: true,
       channel,
       sport,
-      locationInput,
+      locationSearchInput,
       locationPrefillSource,
       selectedLocation: null,
       shouldAutoResolvePrefilledLocation,
@@ -74,32 +74,29 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
       locationSessionToken: createSessionToken(),
     }),
   setSport: (sport) => set({ sport }),
-  setLocationInput: (value) =>
+  setLocationSearchInput: (value) =>
     set((state) => {
       const selectedLocationValue =
         state.selectedLocation?.formattedLocation ?? "";
-      if (state.selectedLocation && value !== selectedLocationValue) {
-        return {
-          locationInput: value,
-          locationPrefillSource: "none",
-          selectedLocation: null,
-          shouldAutoResolvePrefilledLocation: false,
-          hasPrefilledLocationNotMatched: false,
-          locationSessionToken: createSessionToken(),
-        };
-      }
+      const isStartingNewSearch =
+        Boolean(state.selectedLocation) &&
+        state.locationSearchInput === selectedLocationValue &&
+        value !== selectedLocationValue;
 
       return {
-        locationInput: value,
+        locationSearchInput: value,
         locationPrefillSource: "none",
         shouldAutoResolvePrefilledLocation: false,
         hasPrefilledLocationNotMatched: false,
+        ...(isStartingNewSearch
+          ? { locationSessionToken: createSessionToken() }
+          : {}),
       };
     }),
   selectLocation: (suggestion) =>
     set({
       selectedLocation: suggestion,
-      locationInput: suggestion.formattedLocation,
+      locationSearchInput: suggestion.formattedLocation,
       locationPrefillSource: "none",
       shouldAutoResolvePrefilledLocation: false,
       hasPrefilledLocationNotMatched: false,

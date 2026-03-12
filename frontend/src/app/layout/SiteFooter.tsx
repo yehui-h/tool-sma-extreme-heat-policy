@@ -8,11 +8,13 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 
 const APP_VERSION = "1.2.2";
 const COPYRIGHT_YEAR = 2025;
 const REVIEW_YEAR = 2025;
+const MOBILE_FOOTER_LOGO_HEIGHT = 52;
 
 const footerLinkStyles = {
   root: {
@@ -30,30 +32,40 @@ const footerLinkStyles = {
  */
 export function SiteFooter() {
   const { t } = useTranslation();
+  const isMobile = useMediaQuery("(max-width: 48em)");
 
   return (
     <Box component="footer" bg="#e64626">
       <Container size="sm" py="lg">
         <Grid gutter="md" align="start">
           <Grid.Col span={{ base: 12, sm: 4 }}>
-            <Stack gap="xs">
-              <Text c="#111">{t("footer.developedBy")}</Text>
-              <Image
-                src="/branding/logo-usyd-black.png"
-                alt={t("footer.usydLogoAlt")}
-                w={150}
-                fit="contain"
-              />
-              <Text c="#111" mt="xs">
-                {t("footer.endorsedBy")}
-              </Text>
-              <Image
-                src="/branding/sma-black.png"
-                alt={t("footer.smaLogoAlt")}
-                w={140}
-                fit="contain"
-              />
-            </Stack>
+            <Grid gutter="md" align="start">
+              <Grid.Col span={{ base: 6, sm: 12 }}>
+                <Stack gap="xs" align="flex-start">
+                  <Text c="#111">{t("footer.developedBy")}</Text>
+                  <Image
+                    src="/branding/logo-usyd-black.png"
+                    alt={t("footer.usydLogoAlt")}
+                    w={isMobile ? "auto" : 150}
+                    h={isMobile ? MOBILE_FOOTER_LOGO_HEIGHT : undefined}
+                    fit="contain"
+                  />
+                </Stack>
+              </Grid.Col>
+
+              <Grid.Col span={{ base: 6, sm: 12 }}>
+                <Stack gap="xs" align="flex-start">
+                  <Text c="#111">{t("footer.endorsedBy")}</Text>
+                  <Image
+                    src="/branding/sma-black.png"
+                    alt={t("footer.smaLogoAlt")}
+                    w={isMobile ? "auto" : 140}
+                    h={isMobile ? MOBILE_FOOTER_LOGO_HEIGHT : undefined}
+                    fit="contain"
+                  />
+                </Stack>
+              </Grid.Col>
+            </Grid>
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, sm: 8 }}>

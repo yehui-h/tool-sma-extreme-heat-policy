@@ -1,10 +1,11 @@
+import { IconInfoCircle } from "@tabler/icons-react";
 import { Badge, Box, Center, Stack } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
-import { getRiskColor } from "@/domain/riskRegistry";
+import { getRiskBadgeForegroundColor, getRiskColor } from "@/domain/riskRegistry";
 import { buildGaugeOption } from "@/lib/riskCharts";
 import { CurrentRiskSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { SectionCard } from "@/components/ui/SectionCard";
@@ -12,6 +13,8 @@ import { EChart } from "@/components/ui/EChart";
 
 const CURRENT_RISK_CHART_HEIGHT = 228;
 const BADGE_SLOT_HEIGHT = 44;
+const BADGE_INFO_ICON_SIZE = 14;
+const BADGE_INFO_ICON_STROKE = 2;
 
 /**
  * Renders the current risk gauge for the selected sport/location.
@@ -41,6 +44,9 @@ export function CurrentRiskSection() {
     isMobile,
   );
   const riskBadgeColor = getRiskColor(heatRisk.riskLevel);
+  const riskBadgeForegroundColor = getRiskBadgeForegroundColor(
+    heatRisk.riskLevel,
+  );
   const riskBadgeValue = longRiskLabels[heatRisk.riskLevel].toUpperCase();
 
   return (
@@ -55,17 +61,30 @@ export function CurrentRiskSection() {
               color={riskBadgeColor}
               size={isMobile ? "lg" : "xl"}
               radius="xl"
+              rightSection={
+                <IconInfoCircle
+                  size={BADGE_INFO_ICON_SIZE}
+                  stroke={BADGE_INFO_ICON_STROKE}
+                  aria-hidden={true}
+                />
+              }
               style={{
                 textDecoration: "none",
               }}
               styles={{
                 root: {
-                  paddingInline: isMobile ? 16 : 20,
+                  color: riskBadgeForegroundColor,
+                  paddingInlineStart: isMobile ? 16 : 20,
+                  paddingInlineEnd: isMobile ? 10 : 14,
                 },
                 label: {
                   fontSize: isMobile ? "1rem" : "1.125rem",
                   fontWeight: 700,
                   letterSpacing: "0.06em",
+                  textAlign: "left",
+                },
+                section: {
+                  marginInlineStart: isMobile ? 4 : 6,
                 },
               }}
             >

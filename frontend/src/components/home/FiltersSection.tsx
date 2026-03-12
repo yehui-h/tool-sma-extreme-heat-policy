@@ -61,10 +61,10 @@ export function FiltersSection() {
     selectedSportMeta?.imagePath ?? `/sports/${toSportAssetName(sport)}.webp`;
 
   const {
-    locationInput,
+    locationSearchInput,
     suggestionLabels,
     isSuggestLoading,
-    onLocationInputChange,
+    onLocationSearchInputChange,
     onLocationOptionSubmit,
   } = useHomeLocationSuggest();
 
@@ -92,12 +92,13 @@ export function FiltersSection() {
               aria-label={t("home.sections.filters.locationLabel")}
               size="md"
               placeholder={t("home.sections.filters.locationPlaceholder")}
-              value={locationInput}
-              onChange={onLocationInputChange}
+              value={locationSearchInput}
+              onChange={onLocationSearchInputChange}
               onOptionSubmit={onLocationOptionSubmit}
               data={suggestionLabels}
               filter={({ options }) => options}
-              rightSection={isSuggestLoading ? <Loader size={16} /> : null}
+              clearable={!isSuggestLoading}
+              rightSection={isSuggestLoading ? <Loader size={16} /> : undefined}
               autoComplete="off"
             />
           </Box>
