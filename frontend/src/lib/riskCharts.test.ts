@@ -1,20 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRiskColor } from "@/domain/riskRegistry";
-import {
-  buildForecastOption,
-  buildGaugeOption,
-  buildPendingGaugeOption,
-} from "@/lib/riskCharts";
-
-const gaugeLabels = {
-  title: "Current risk",
-  riskLevelShort: {
-    low: "Low",
-    moderate: "Moderate",
-    high: "High",
-    extreme: "Extreme",
-  },
-};
+import { buildForecastOption } from "@/lib/riskCharts";
 
 const forecastLabels = {
   xAxisName: "Time",
@@ -27,37 +12,6 @@ const forecastLabels = {
     extreme: "Extreme",
   },
 };
-
-describe("buildGaugeOption", () => {
-  it("configures a gauge with the matching high-risk pointer color", () => {
-    const option = buildGaugeOption(2.4, gaugeLabels, true);
-    const [series] = Array.isArray(option.series) ? option.series : [];
-
-    expect(series).toMatchObject({
-      type: "gauge",
-      data: [{ value: 2.4, name: "Current risk" }],
-      pointer: {
-        itemStyle: {
-          color: getRiskColor("high"),
-        },
-      },
-    });
-  });
-});
-
-describe("buildPendingGaugeOption", () => {
-  it("hides live gauge affordances while data is pending", () => {
-    const option = buildPendingGaugeOption(gaugeLabels);
-    const [series] = Array.isArray(option.series) ? option.series : [];
-
-    expect(series).toMatchObject({
-      pointer: { show: false },
-      progress: { show: false },
-      axisLabel: { show: false },
-      detail: { formatter: "N/A" },
-    });
-  });
-});
 
 describe("buildForecastOption", () => {
   it("adds threshold crossing points to the visual forecast series", () => {

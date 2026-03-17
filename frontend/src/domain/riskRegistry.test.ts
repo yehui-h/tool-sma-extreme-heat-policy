@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getRiskBands, toRiskLevel } from "@/domain/riskRegistry";
+import {
+  getRiskBadgeForegroundColor,
+  getRiskBands,
+  toRiskLevel,
+} from "@/domain/riskRegistry";
 
 describe("toRiskLevel", () => {
   it("maps threshold boundaries into the expected risk levels", () => {
@@ -19,5 +23,14 @@ describe("getRiskBands", () => {
       { level: "high", lower: 2, upper: 3, color: "#CF3838" },
       { level: "extreme", lower: 3, upper: 4, color: "#8C2439" },
     ]);
+  });
+});
+
+describe("getRiskBadgeForegroundColor", () => {
+  it("uses the highest-contrast text color for each risk badge", () => {
+    expect(getRiskBadgeForegroundColor("low")).toBe("#000000");
+    expect(getRiskBadgeForegroundColor("moderate")).toBe("#000000");
+    expect(getRiskBadgeForegroundColor("high")).toBe("#ffffff");
+    expect(getRiskBadgeForegroundColor("extreme")).toBe("#ffffff");
   });
 });

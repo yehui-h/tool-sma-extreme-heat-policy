@@ -5,24 +5,23 @@ import type {
   TooltipComponentFormatterCallbackParams,
 } from "echarts";
 import { toRiskLevel, type ForecastPoint, type RiskLevel } from "@/domain/risk";
-import { getRiskBands, getRiskColor } from "@/domain/riskRegistry";
+import {
+  getRiskBands,
+  getRiskColor,
+  MAX_RISK_SCORE,
+} from "@/domain/riskRegistry";
 
 const FORECAST_LINE_COLOR = "#e64626";
 const FORECAST_ZERO_RISK_COLOR = "#9ca3af";
 const FORECAST_BAND_WHITE_MIX = 0.15;
-const GAUGE_SERIES_ID = "current-risk-gauge";
 const FORECAST_VISUAL_SERIES_ID = "forecast-visual-line";
 const FORECAST_TOOLTIP_SERIES_ID = "forecast-tooltip-line";
 const FORECAST_HIGHLIGHT_SERIES_ID = "forecast-highlight-point";
-const GAUGE_MAX_SCORE = 4;
 const FORECAST_HOUR_MINUTE_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const FORECAST_DISPLAY_PRECISION = 1;
 const FORECAST_ZERO_RISK_SYMBOL_SIZE = 6;
 
 type ChartTypography = {
-  gaugeAxis: number;
-  gaugeValue: number;
-  gaugeTitle: number;
   forecastTitle: number;
   axis: number;
   riskBandAxis: number;
@@ -40,18 +39,12 @@ type ForecastLayout = {
 
 const CHART_TYPOGRAPHY: Record<"mobile" | "desktop", ChartTypography> = {
   mobile: {
-    gaugeAxis: 12,
-    gaugeValue: 28,
-    gaugeTitle: 14,
     forecastTitle: 15,
     axis: 12,
     riskBandAxis: 12,
     xAxisIntervalMinutes: 120,
   },
   desktop: {
-    gaugeAxis: 11,
-    gaugeValue: 26,
-    gaugeTitle: 13,
     forecastTitle: 14,
     axis: 11,
     riskBandAxis: 11,
@@ -67,20 +60,6 @@ const FORECAST_LAYOUT: ForecastLayout = {
   yAxisNameGap: 20,
   axisLabelMargin: 10,
 };
-
-interface GaugeLabels {
-  title: string;
-  riskLevelShort: Record<RiskLevel, string>;
-}
-
-interface GaugeSeriesOptions {
-  showPointer?: boolean;
-  pointerColor?: string;
-  showProgress?: boolean;
-  showAxisLabel?: boolean;
-  detailFormatter?: string;
-  detailValueAnimation?: boolean;
-}
 
 interface ForecastLabels {
   xAxisName: string;
@@ -102,117 +81,8 @@ interface ForecastAxisPointerEvent {
   axesInfo?: ForecastAxisPointerInfo[];
 }
 
-const GAUGE_LABEL_ORDER: RiskLevel[] = [
-  "low",
-  "moderate",
-  "high",
-  "extreme",
-  "extreme",
-];
-
 function getTypography(isMobile: boolean): ChartTypography {
   return isMobile ? CHART_TYPOGRAPHY.mobile : CHART_TYPOGRAPHY.desktop;
-}
-
-function toGaugeColorStops(): [number, string][] {
-  return getRiskBands().map((band) => [
-    band.upper / GAUGE_MAX_SCORE,
-    getRiskColor(band.level),
-  ]);
-}
-
-function getGaugeRiskLabel(
-  value: number,
-  labels: GaugeLabels["riskLevelShort"],
-): string {
-  const roundedValue = Math.round(value);
-  const riskLevel = GAUGE_LABEL_ORDER[roundedValue];
-
-  if (!riskLevel) {
-    return "";
-  }
-
-  return labels[riskLevel];
-}
-
-function createGaugeSeries(
-  score: number,
-  labels: GaugeLabels,
-  typography: ChartTypography,
-  options: GaugeSeriesOptions = {},
-) {
-  const {
-    showPointer = true,
-    pointerColor,
-    showProgress = true,
-    showAxisLabel = true,
-    detailFormatter = "{value}",
-    detailValueAnimation = false,
-  } = options;
-
-  return {
-    id: GAUGE_SERIES_ID,
-    type: "gauge" as const,
-    radius: "88%",
-    min: 0,
-    max: GAUGE_MAX_SCORE,
-    splitNumber: GAUGE_MAX_SCORE,
-    axisLine: {
-      lineStyle: {
-        width: 18,
-        color: toGaugeColorStops(),
-      },
-    },
-    pointer: {
-      show: showPointer,
-      length: "58%",
-      width: 6,
-      ...(pointerColor ? { itemStyle: { color: pointerColor } } : {}),
-    },
-    progress: {
-      show: showProgress,
-      width: 18,
-    },
-    axisTick: {
-      distance: -24,
-      splitNumber: 4,
-      lineStyle: {
-        width: 1,
-        color: "#fff",
-      },
-    },
-    splitLine: {
-      distance: -26,
-      length: 12,
-      lineStyle: {
-        width: 2,
-        color: "#fff",
-      },
-    },
-    axisLabel: {
-      show: showAxisLabel,
-      distance: -42,
-      color: "#fff",
-      fontSize: typography.gaugeAxis,
-      formatter(value: number) {
-        return getGaugeRiskLabel(value, labels.riskLevelShort);
-      },
-    },
-    detail: {
-      valueAnimation: detailValueAnimation,
-      formatter: detailFormatter,
-      offsetCenter: [0, "70%"],
-      color: "#1f2937",
-      fontSize: typography.gaugeValue,
-      fontWeight: 700,
-    },
-    title: {
-      offsetCenter: [0, "40%"],
-      color: "#4b5563",
-      fontSize: typography.gaugeTitle,
-    },
-    data: [{ value: Number(score.toFixed(1)), name: labels.title }],
-  };
 }
 
 function getBandUpperValue(value: number, upper: number): number {
@@ -281,7 +151,7 @@ function toForecastChartPoints(
 
   const thresholds = getRiskBands()
     .map((band) => band.upper)
-    .filter((threshold) => threshold > 0 && threshold < GAUGE_MAX_SCORE);
+    .filter((threshold) => threshold > 0 && threshold < MAX_RISK_SCORE);
   const expandedPoints: ForecastChartPoint[] = [points[0]];
 
   for (let index = 1; index < points.length; index += 1) {
@@ -578,7 +448,7 @@ function createForecastYAxis(
     {
       type: "value" as const,
       min: 0,
-      max: GAUGE_MAX_SCORE,
+      max: MAX_RISK_SCORE,
       interval: 1,
       axisPointer: {
         show: false,
@@ -717,58 +587,6 @@ function createForecastSeries(
       data: [],
     },
   ];
-}
-
-/**
- * Builds ECharts option for the current risk gauge chart.
- */
-export function buildGaugeOption(
-  score: number,
-  labels: GaugeLabels,
-  isMobile = false,
-): EChartsOption {
-  const typography = getTypography(isMobile);
-  const safeScore = Number.isFinite(score) ? score : 0;
-  const pointerColor = getRiskColor(toRiskLevel(safeScore));
-
-  return {
-    animation: false,
-    tooltip: {
-      formatter: "{b}: {c}",
-    },
-    series: [
-      createGaugeSeries(safeScore, labels, typography, {
-        pointerColor,
-        showProgress: false,
-      }),
-    ],
-  };
-}
-
-/**
- * Builds ECharts option for pending state of current risk gauge chart.
- */
-export function buildPendingGaugeOption(
-  labels: GaugeLabels,
-  isMobile = false,
-): EChartsOption {
-  const typography = getTypography(isMobile);
-
-  return {
-    animation: false,
-    tooltip: {
-      show: false,
-    },
-    series: [
-      createGaugeSeries(0, labels, typography, {
-        showPointer: false,
-        showProgress: false,
-        showAxisLabel: false,
-        detailFormatter: "N/A",
-        detailValueAnimation: false,
-      }),
-    ],
-  };
 }
 
 /**

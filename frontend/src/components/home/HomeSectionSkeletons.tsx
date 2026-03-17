@@ -14,7 +14,8 @@ interface HomeSectionSkeletonProps {
   showLoader?: boolean;
 }
 
-const CURRENT_RISK_CHART_HEIGHT = 228;
+const CURRENT_RISK_GAUGE_WIDTH = 400;
+const CURRENT_RISK_GAUGE_HEIGHT = 232;
 const FORECAST_CHART_HEIGHT = 340;
 const MOBILE_FORECAST_CHART_HEIGHT = 280;
 const MAP_HEIGHT = 160;
@@ -42,7 +43,14 @@ export function CurrentRiskSkeleton({
   return (
     <Stack gap="sm">
       <Box pos="relative">
-        <Skeleton h={CURRENT_RISK_CHART_HEIGHT} radius="md" />
+        <Center>
+          <Skeleton
+            h={CURRENT_RISK_GAUGE_HEIGHT}
+            w="100%"
+            maw={CURRENT_RISK_GAUGE_WIDTH}
+            radius="xl"
+          />
+        </Center>
         <SkeletonLoader showLoader={showLoader} />
       </Box>
       <Group justify="center">

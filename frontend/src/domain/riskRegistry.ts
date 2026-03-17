@@ -1,4 +1,5 @@
 import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
+import { getReadableTextColor } from "@/lib/colorContrast";
 
 export type RiskLevel = "low" | "moderate" | "high" | "extreme";
 
@@ -27,9 +28,7 @@ export const RISK_LEVELS: readonly RiskLevel[] = [
   "high",
   "extreme",
 ];
-
-const LOW_RISK_BADGE_FOREGROUND_COLOR = "#000000";
-const NON_LOW_RISK_BADGE_FOREGROUND_COLOR = "#ffffff";
+export const MAX_RISK_SCORE = 4;
 
 export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
   low: {
@@ -116,9 +115,7 @@ export function getRiskColor(level: RiskLevel): string {
  * Returns the foreground color to use for risk badges.
  */
 export function getRiskBadgeForegroundColor(level: RiskLevel): string {
-  return level === "low"
-    ? LOW_RISK_BADGE_FOREGROUND_COLOR
-    : NON_LOW_RISK_BADGE_FOREGROUND_COLOR;
+  return getReadableTextColor(getRiskColor(level));
 }
 
 /**
@@ -141,7 +138,10 @@ export function getRiskBands(): RiskBand[] {
   return RISK_LEVELS.map((level) => ({
     level,
     lower: RISK_REGISTRY[level].scoreLowerInclusive,
-    upper: level === "extreme" ? 4 : RISK_REGISTRY[level].scoreUpperExclusive,
+    upper:
+      level === "extreme"
+        ? MAX_RISK_SCORE
+        : RISK_REGISTRY[level].scoreUpperExclusive,
     color: RISK_REGISTRY[level].color,
   }));
 }
