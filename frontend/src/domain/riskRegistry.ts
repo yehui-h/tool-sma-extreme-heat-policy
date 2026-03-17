@@ -1,3 +1,5 @@
+import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
+
 export type RiskLevel = "low" | "moderate" | "high" | "extreme";
 
 export interface RiskRegistryEntry {
@@ -34,7 +36,10 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreLowerInclusive: 0,
     scoreUpperExclusive: 1,
     color: "#FFE478",
-    keyIconPaths: ["/actions/hydration.png", "/actions/clothing.png"],
+    keyIconPaths: [
+      toPublicAssetUrl("actions/hydration.png"),
+      toPublicAssetUrl("actions/clothing.png"),
+    ],
     levelKey: "risk.level.low",
     levelShortKey: "risk.levelShort.low",
     keyRecommendationsKey: "recommendations.key.low",
@@ -46,9 +51,9 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreUpperExclusive: 2,
     color: "#F5810C",
     keyIconPaths: [
-      "/actions/hydration.png",
-      "/actions/clothing.png",
-      "/actions/pause.png",
+      toPublicAssetUrl("actions/hydration.png"),
+      toPublicAssetUrl("actions/clothing.png"),
+      toPublicAssetUrl("actions/pause.png"),
     ],
     levelKey: "risk.level.moderate",
     levelShortKey: "risk.levelShort.moderate",
@@ -61,10 +66,10 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreUpperExclusive: 3,
     color: "#CF3838",
     keyIconPaths: [
-      "/actions/hydration.png",
-      "/actions/clothing.png",
-      "/actions/pause.png",
-      "/actions/cooling.png",
+      toPublicAssetUrl("actions/hydration.png"),
+      toPublicAssetUrl("actions/clothing.png"),
+      toPublicAssetUrl("actions/pause.png"),
+      toPublicAssetUrl("actions/cooling.png"),
     ],
     levelKey: "risk.level.high",
     levelShortKey: "risk.levelShort.high",
@@ -76,7 +81,7 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreLowerInclusive: 3,
     scoreUpperExclusive: Number.POSITIVE_INFINITY,
     color: "#8C2439",
-    keyIconPaths: ["/actions/stop.png"],
+    keyIconPaths: [toPublicAssetUrl("actions/stop.png")],
     levelKey: "risk.level.extreme",
     levelShortKey: "risk.levelShort.extreme",
     keyRecommendationsKey: "recommendations.key.extreme",

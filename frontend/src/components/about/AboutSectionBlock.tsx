@@ -28,7 +28,12 @@ const ABOUT_TITLE_ICON_SIZE = 18;
 const ABOUT_TITLE_ICON_STROKE = 1.8;
 const ABOUT_DEFAULT_TITLE_ICON_CONFIG: AboutTitleIconConfig = {
   color: "teal",
-  icon: <IconInfoCircle size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />,
+  icon: (
+    <IconInfoCircle
+      size={ABOUT_TITLE_ICON_SIZE}
+      stroke={ABOUT_TITLE_ICON_STROKE}
+    />
+  ),
 };
 
 const ABOUT_TITLE_ICON_CONFIG_BY_KEY: Record<
@@ -37,11 +42,21 @@ const ABOUT_TITLE_ICON_CONFIG_BY_KEY: Record<
 > = {
   overview: {
     color: "teal",
-    icon: <IconWorldWww size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />,
+    icon: (
+      <IconWorldWww
+        size={ABOUT_TITLE_ICON_SIZE}
+        stroke={ABOUT_TITLE_ICON_STROKE}
+      />
+    ),
   },
   functionalities: {
     color: "blue",
-    icon: <IconLayoutGrid size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />,
+    icon: (
+      <IconLayoutGrid
+        size={ABOUT_TITLE_ICON_SIZE}
+        stroke={ABOUT_TITLE_ICON_STROKE}
+      />
+    ),
   },
   "heat-risk": {
     color: "orange",
@@ -54,11 +69,21 @@ const ABOUT_TITLE_ICON_CONFIG_BY_KEY: Record<
   },
   "uv-guide": {
     color: "yellow",
-    icon: <IconSunHigh size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />,
+    icon: (
+      <IconSunHigh
+        size={ABOUT_TITLE_ICON_SIZE}
+        stroke={ABOUT_TITLE_ICON_STROKE}
+      />
+    ),
   },
   terms: {
     color: "gray",
-    icon: <IconScale size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />,
+    icon: (
+      <IconScale
+        size={ABOUT_TITLE_ICON_SIZE}
+        stroke={ABOUT_TITLE_ICON_STROKE}
+      />
+    ),
   },
   "medical-disclaimer": {
     color: "orange",
@@ -71,20 +96,36 @@ const ABOUT_TITLE_ICON_CONFIG_BY_KEY: Record<
   },
   warranty: {
     color: "gray",
-    icon: <IconFileAlert size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />,
+    icon: (
+      <IconFileAlert
+        size={ABOUT_TITLE_ICON_SIZE}
+        stroke={ABOUT_TITLE_ICON_STROKE}
+      />
+    ),
   },
   privacy: {
     color: "indigo",
-    icon: <IconShieldLock size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />,
+    icon: (
+      <IconShieldLock
+        size={ABOUT_TITLE_ICON_SIZE}
+        stroke={ABOUT_TITLE_ICON_STROKE}
+      />
+    ),
   },
   "unacceptable-activity": {
     color: "red",
-    icon: <IconBan size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />,
+    icon: (
+      <IconBan size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />
+    ),
   },
 };
 
-function getAboutTitleIconConfig(iconKey: AboutSectionIconKey): AboutTitleIconConfig {
-  return ABOUT_TITLE_ICON_CONFIG_BY_KEY[iconKey] ?? ABOUT_DEFAULT_TITLE_ICON_CONFIG;
+function getAboutTitleIconConfig(
+  iconKey: AboutSectionIconKey,
+): AboutTitleIconConfig {
+  return (
+    ABOUT_TITLE_ICON_CONFIG_BY_KEY[iconKey] ?? ABOUT_DEFAULT_TITLE_ICON_CONFIG
+  );
 }
 
 /**
@@ -123,7 +164,9 @@ export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
                   {run.text}
                 </Anchor>
               ) : (
-                <Fragment key={`${section.title}-${paragraphIndex}-${runIndex}`}>
+                <Fragment
+                  key={`${section.title}-${paragraphIndex}-${runIndex}`}
+                >
                   {run.text}
                 </Fragment>
               ),

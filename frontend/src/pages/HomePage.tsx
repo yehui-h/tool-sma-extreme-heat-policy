@@ -66,11 +66,7 @@ export function HomePage() {
         window.clearTimeout(timeoutId);
       }
     };
-  }, [
-    hasCalculatedRisk,
-    selectedLocation,
-    sport,
-  ]);
+  }, [hasCalculatedRisk, selectedLocation, sport]);
 
   return (
     <>

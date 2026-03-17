@@ -1,3 +1,5 @@
+import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
+
 export const SportType = {
   Abseiling: "ABSEILING",
   Archery: "ARCHERY",
@@ -60,7 +62,7 @@ export const sports: readonly SportMeta[] = Object.values(SportType).map(
       type,
       assetName,
       labelKey: `sports.${assetName}`,
-      imagePath: `/sports/${assetName}.webp`,
+      imagePath: toPublicAssetUrl(`sports/${assetName}.webp`),
     };
   },
 );

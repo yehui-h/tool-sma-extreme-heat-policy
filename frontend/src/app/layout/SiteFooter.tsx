@@ -10,6 +10,7 @@ import {
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
+import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
 
 const APP_VERSION = "1.2.2";
 const COPYRIGHT_YEAR = 2025;
@@ -44,7 +45,7 @@ export function SiteFooter() {
                 <Stack gap="xs" align="flex-start">
                   <Text c="#111">{t("footer.developedBy")}</Text>
                   <Image
-                    src="/branding/logo-usyd-black.png"
+                    src={toPublicAssetUrl("branding/logo-usyd-black.png")}
                     alt={t("footer.usydLogoAlt")}
                     w={isMobile ? "auto" : 150}
                     h={isMobile ? MOBILE_FOOTER_LOGO_HEIGHT : undefined}
@@ -57,7 +58,7 @@ export function SiteFooter() {
                 <Stack gap="xs" align="flex-start">
                   <Text c="#111">{t("footer.endorsedBy")}</Text>
                   <Image
-                    src="/branding/sma-black.png"
+                    src={toPublicAssetUrl("branding/sma-black.png")}
                     alt={t("footer.smaLogoAlt")}
                     w={isMobile ? "auto" : 140}
                     h={isMobile ? MOBILE_FOOTER_LOGO_HEIGHT : undefined}

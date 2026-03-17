@@ -1,5 +1,6 @@
 import { Group, Image, Paper, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
+import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
 
 interface RiskPendingStateProps {
   message: string;
@@ -8,10 +9,10 @@ interface RiskPendingStateProps {
 }
 
 const MUTED_ICON_PATHS = [
-  "/actions/hydration.png",
-  "/actions/clothing.png",
-  "/actions/pause.png",
-  "/actions/cooling.png",
+  toPublicAssetUrl("actions/hydration.png"),
+  toPublicAssetUrl("actions/clothing.png"),
+  toPublicAssetUrl("actions/pause.png"),
+  toPublicAssetUrl("actions/cooling.png"),
 ];
 
 /**

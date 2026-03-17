@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { PAGE_CONTAINER_PADDING } from "@/app/layout/layoutSpacing";
+import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
 
 const HEADER_HEIGHT = 50;
 
@@ -98,7 +99,7 @@ export function SiteHeader() {
             }}
           >
             <Image
-              src="/branding/logo-usyd-black.png"
+              src={toPublicAssetUrl("branding/logo-usyd-black.png")}
               alt={t("nav.logoAlt")}
               height={35}
               width="auto"

@@ -260,7 +260,7 @@ function toForecastCoordinatePoints(
       parsedMinuteOffset !== null && parsedMinuteOffset > previousMinuteOffset
         ? parsedMinuteOffset
         : previousMinuteOffset < 0
-          ? parsedMinuteOffset ?? 0
+          ? (parsedMinuteOffset ?? 0)
           : previousMinuteOffset + 60;
 
     previousMinuteOffset = minuteOffset;
@@ -272,7 +272,9 @@ function toForecastCoordinatePoints(
   });
 }
 
-function toForecastChartPoints(points: ForecastChartPoint[]): ForecastChartPoint[] {
+function toForecastChartPoints(
+  points: ForecastChartPoint[],
+): ForecastChartPoint[] {
   if (points.length === 0) {
     return [];
   }
@@ -415,7 +417,10 @@ export function bindForecastHoverPoint(
       numericAxisValue,
     );
 
-    if (!nearestPoint || nearestPoint.minuteOffset === highlightedMinuteOffset) {
+    if (
+      !nearestPoint ||
+      nearestPoint.minuteOffset === highlightedMinuteOffset
+    ) {
       return;
     }
 
@@ -494,9 +499,8 @@ function formatForecastTooltip(
     return "";
   }
 
-  const axisValue = (
-    firstItem as typeof firstItem & { axisValue?: unknown }
-  ).axisValue;
+  const axisValue = (firstItem as typeof firstItem & { axisValue?: unknown })
+    .axisValue;
   const numericAxisValue =
     typeof axisValue === "number" ? axisValue : Number(axisValue);
   const nearestPoint = Number.isFinite(numericAxisValue)

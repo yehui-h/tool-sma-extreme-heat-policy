@@ -1,4 +1,13 @@
-import { Accordion, Badge, Box, Image, List, SimpleGrid, Stack, Text } from "@mantine/core";
+import {
+  Accordion,
+  Badge,
+  Box,
+  Image,
+  List,
+  SimpleGrid,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 import {

@@ -19,6 +19,7 @@ import {
 import { useHomeLocationSuggest } from "@/hooks/useHomeLocationSuggest";
 import { useHomeStore } from "@/store/homeStore";
 import { SectionCard } from "@/components/ui/SectionCard";
+import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
 
 interface SelectOption<T extends string = string> {
   value: T;
@@ -58,7 +59,8 @@ export function FiltersSection() {
     [sport, sportOptions, t],
   );
   const sportImageSrc =
-    selectedSportMeta?.imagePath ?? `/sports/${toSportAssetName(sport)}.webp`;
+    selectedSportMeta?.imagePath ??
+    toPublicAssetUrl(`sports/${toSportAssetName(sport)}.webp`);
 
   const {
     locationSearchInput,

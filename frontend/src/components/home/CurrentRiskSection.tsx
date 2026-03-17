@@ -5,7 +5,10 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
-import { getRiskBadgeForegroundColor, getRiskColor } from "@/domain/riskRegistry";
+import {
+  getRiskBadgeForegroundColor,
+  getRiskColor,
+} from "@/domain/riskRegistry";
 import { buildGaugeOption } from "@/lib/riskCharts";
 import { CurrentRiskSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { SectionCard } from "@/components/ui/SectionCard";
