@@ -5,6 +5,10 @@ import { RISK_REGISTRY } from "@/domain/riskRegistry";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { KeyRecommendationsSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { SectionCard } from "@/components/ui/SectionCard";
+import {
+  COMPACT_RECOMMENDATION_LAYOUT_QUERY,
+  getActionImageIconSize,
+} from "@/config/uiScale";
 
 const MOBILE_RECOMMENDATION_GRID_SPACING = "xs";
 const DESKTOP_RECOMMENDATION_GRID_SPACING = "sm";
@@ -12,7 +16,6 @@ const MOBILE_RECOMMENDATION_CARD_PADDING = "xs";
 const DESKTOP_RECOMMENDATION_CARD_PADDING = "md";
 const MOBILE_RECOMMENDATION_CARD_GAP = 4;
 const DESKTOP_RECOMMENDATION_CARD_GAP = "xs";
-const COMPACT_RECOMMENDATION_LAYOUT_QUERY = "(max-width: 36em)";
 
 /**
  * Renders compact recommendation cards for the current risk level.
@@ -50,6 +53,9 @@ export function KeyRecommendationsSection() {
     mobileRecommendationColumnCount === 2 &&
     recommendations.length > 1 &&
     recommendations.length % 2 === 1;
+  const recommendationIconSize = getActionImageIconSize(
+    isCompactRecommendationLayout,
+  );
 
   return (
     <SectionCard title={t("home.sections.keyRecommendations.title")}>
@@ -94,8 +100,8 @@ export function KeyRecommendationsSection() {
               <Image
                 src={item.icon}
                 alt={item.label}
-                w={52}
-                h={52}
+                w={recommendationIconSize}
+                h={recommendationIconSize}
                 fit="contain"
               />
               <Text

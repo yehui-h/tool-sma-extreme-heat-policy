@@ -14,6 +14,11 @@ import { Anchor, Stack, Text, ThemeIcon } from "@mantine/core";
 import { Fragment, type ReactNode } from "react";
 import { SectionCard } from "@/components/ui/SectionCard";
 import type { AboutSection, AboutSectionIconKey } from "@/domain/about";
+import {
+  UI_TITLE_ICON_SIZE,
+  UI_TITLE_ICON_STROKE,
+  UI_TITLE_THEME_ICON_SIZE,
+} from "@/config/uiScale";
 
 interface AboutSectionBlockProps {
   section: AboutSection;
@@ -24,15 +29,10 @@ interface AboutTitleIconConfig {
   icon: ReactNode;
 }
 
-const ABOUT_TITLE_ICON_SIZE = 18;
-const ABOUT_TITLE_ICON_STROKE = 1.8;
 const ABOUT_DEFAULT_TITLE_ICON_CONFIG: AboutTitleIconConfig = {
   color: "teal",
   icon: (
-    <IconInfoCircle
-      size={ABOUT_TITLE_ICON_SIZE}
-      stroke={ABOUT_TITLE_ICON_STROKE}
-    />
+    <IconInfoCircle size={UI_TITLE_ICON_SIZE} stroke={UI_TITLE_ICON_STROKE} />
   ),
 };
 
@@ -43,80 +43,58 @@ const ABOUT_TITLE_ICON_CONFIG_BY_KEY: Record<
   overview: {
     color: "teal",
     icon: (
-      <IconWorldWww
-        size={ABOUT_TITLE_ICON_SIZE}
-        stroke={ABOUT_TITLE_ICON_STROKE}
-      />
+      <IconWorldWww size={UI_TITLE_ICON_SIZE} stroke={UI_TITLE_ICON_STROKE} />
     ),
   },
   functionalities: {
     color: "blue",
     icon: (
-      <IconLayoutGrid
-        size={ABOUT_TITLE_ICON_SIZE}
-        stroke={ABOUT_TITLE_ICON_STROKE}
-      />
+      <IconLayoutGrid size={UI_TITLE_ICON_SIZE} stroke={UI_TITLE_ICON_STROKE} />
     ),
   },
   "heat-risk": {
     color: "orange",
     icon: (
       <IconHeartRateMonitor
-        size={ABOUT_TITLE_ICON_SIZE}
-        stroke={ABOUT_TITLE_ICON_STROKE}
+        size={UI_TITLE_ICON_SIZE}
+        stroke={UI_TITLE_ICON_STROKE}
       />
     ),
   },
   "uv-guide": {
     color: "yellow",
     icon: (
-      <IconSunHigh
-        size={ABOUT_TITLE_ICON_SIZE}
-        stroke={ABOUT_TITLE_ICON_STROKE}
-      />
+      <IconSunHigh size={UI_TITLE_ICON_SIZE} stroke={UI_TITLE_ICON_STROKE} />
     ),
   },
   terms: {
     color: "gray",
-    icon: (
-      <IconScale
-        size={ABOUT_TITLE_ICON_SIZE}
-        stroke={ABOUT_TITLE_ICON_STROKE}
-      />
-    ),
+    icon: <IconScale size={UI_TITLE_ICON_SIZE} stroke={UI_TITLE_ICON_STROKE} />,
   },
   "medical-disclaimer": {
     color: "orange",
     icon: (
       <IconAlertTriangle
-        size={ABOUT_TITLE_ICON_SIZE}
-        stroke={ABOUT_TITLE_ICON_STROKE}
+        size={UI_TITLE_ICON_SIZE}
+        stroke={UI_TITLE_ICON_STROKE}
       />
     ),
   },
   warranty: {
     color: "gray",
     icon: (
-      <IconFileAlert
-        size={ABOUT_TITLE_ICON_SIZE}
-        stroke={ABOUT_TITLE_ICON_STROKE}
-      />
+      <IconFileAlert size={UI_TITLE_ICON_SIZE} stroke={UI_TITLE_ICON_STROKE} />
     ),
   },
   privacy: {
     color: "indigo",
     icon: (
-      <IconShieldLock
-        size={ABOUT_TITLE_ICON_SIZE}
-        stroke={ABOUT_TITLE_ICON_STROKE}
-      />
+      <IconShieldLock size={UI_TITLE_ICON_SIZE} stroke={UI_TITLE_ICON_STROKE} />
     ),
   },
   "unacceptable-activity": {
     color: "red",
-    icon: (
-      <IconBan size={ABOUT_TITLE_ICON_SIZE} stroke={ABOUT_TITLE_ICON_STROKE} />
-    ),
+    icon: <IconBan size={UI_TITLE_ICON_SIZE} stroke={UI_TITLE_ICON_STROKE} />,
   },
 };
 
@@ -141,7 +119,7 @@ export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
         <ThemeIcon
           color={titleIconConfig.color}
           variant="light"
-          size="lg"
+          size={UI_TITLE_THEME_ICON_SIZE}
           radius="xl"
         >
           {titleIconConfig.icon}

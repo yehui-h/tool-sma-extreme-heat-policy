@@ -17,6 +17,10 @@ import {
   getRiskColor,
 } from "@/domain/riskRegistry";
 import { SectionCard } from "@/components/ui/SectionCard";
+import {
+  COMPACT_RECOMMENDATION_LAYOUT_QUERY,
+  getActionImageIconSize,
+} from "@/config/uiScale";
 
 const MOBILE_RECOMMENDATION_GRID_SPACING = "xs";
 const DESKTOP_RECOMMENDATION_GRID_SPACING = "sm";
@@ -24,7 +28,6 @@ const MOBILE_RECOMMENDATION_CARD_PADDING = "xs";
 const DESKTOP_RECOMMENDATION_CARD_PADDING = "sm";
 const MOBILE_RECOMMENDATION_CARD_GAP = 4;
 const DESKTOP_RECOMMENDATION_CARD_GAP = "xs";
-const COMPACT_RECOMMENDATION_LAYOUT_QUERY = "(max-width: 36em)";
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
@@ -77,6 +80,9 @@ export function DetailedRecommendationsSection() {
             mobileKeyRecommendationColumnCount === 2 &&
             keyRecommendations.length > 1 &&
             keyRecommendations.length % 2 === 1;
+          const recommendationIconSize = getActionImageIconSize(
+            isCompactRecommendationLayout,
+          );
           const description = t(details.detailedDescriptionKey);
           const suggestions = toStringArray(
             t(details.detailedSuggestionsKey, {
@@ -96,7 +102,7 @@ export function DetailedRecommendationsSection() {
                       paddingInline: 16,
                     },
                     label: {
-                      fontSize: "0.95rem",
+                      fontSize: "var(--mantine-font-size-md)",
                       fontWeight: 700,
                       letterSpacing: "0.06em",
                     },
@@ -148,8 +154,8 @@ export function DetailedRecommendationsSection() {
                           <Image
                             src={item.iconPath}
                             alt={item.label}
-                            w={52}
-                            h={52}
+                            w={recommendationIconSize}
+                            h={recommendationIconSize}
                             fit="contain"
                           />
                           <Text

@@ -12,9 +12,8 @@ import {
 import { CurrentRiskSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { RiskGauge } from "@/components/home/RiskGauge";
 import { SectionCard } from "@/components/ui/SectionCard";
+import { UI_INLINE_ICON_SIZE, UI_INLINE_ICON_STROKE } from "@/config/uiScale";
 
-const BADGE_INFO_ICON_SIZE = 14;
-const BADGE_INFO_ICON_STROKE = 2;
 const RISK_BADGE_SHADOW = "0 10px 24px rgba(15, 23, 42, 0.08)";
 
 /**
@@ -57,8 +56,8 @@ export function CurrentRiskSection() {
           radius="xl"
           rightSection={
             <IconInfoCircle
-              size={BADGE_INFO_ICON_SIZE}
-              stroke={BADGE_INFO_ICON_STROKE}
+              size={UI_INLINE_ICON_SIZE}
+              stroke={UI_INLINE_ICON_STROKE}
               aria-hidden={true}
             />
           }
@@ -73,7 +72,9 @@ export function CurrentRiskSection() {
               paddingInlineEnd: isMobile ? 10 : 14,
             },
             label: {
-              fontSize: isMobile ? "1rem" : "1.125rem",
+              fontSize: isMobile
+                ? "var(--mantine-font-size-md)"
+                : "var(--mantine-font-size-lg)",
               fontWeight: 700,
               letterSpacing: "0.06em",
               textAlign: "left",

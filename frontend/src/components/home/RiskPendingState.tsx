@@ -1,5 +1,10 @@
 import { Group, Image, Paper, Stack, Text } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
+import {
+  COMPACT_RECOMMENDATION_LAYOUT_QUERY,
+  getActionImageIconSize,
+} from "@/config/uiScale";
 import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
 
 interface RiskPendingStateProps {
@@ -24,7 +29,11 @@ export function RiskPendingState({
   showMutedIcons = false,
 }: RiskPendingStateProps) {
   const { t } = useTranslation();
+  const isCompactRecommendationLayout = useMediaQuery(
+    COMPACT_RECOMMENDATION_LAYOUT_QUERY,
+  );
   const paperStyle = typeof minHeight === "number" ? { minHeight } : undefined;
+  const mutedIconSize = getActionImageIconSize(isCompactRecommendationLayout);
 
   return (
     <Paper withBorder radius="md" p="xl" bg="gray.0" style={paperStyle}>
@@ -42,8 +51,8 @@ export function RiskPendingState({
                 key={iconPath}
                 src={iconPath}
                 alt=""
-                w={42}
-                h={42}
+                w={mutedIconSize}
+                h={mutedIconSize}
                 fit="contain"
                 style={{ filter: "grayscale(1)", opacity: 0.45 }}
               />

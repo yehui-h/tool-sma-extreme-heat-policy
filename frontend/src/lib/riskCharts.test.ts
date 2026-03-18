@@ -39,10 +39,25 @@ describe("buildForecastOption", () => {
         entry.name === "Risk",
     );
     const xAxis = Array.isArray(option.xAxis) ? option.xAxis[0] : option.xAxis;
+    const yAxes = Array.isArray(option.yAxis) ? option.yAxis : [];
+    const categoryYAxis = yAxes[1];
 
     expect(series).toHaveLength(7);
-    expect(option.title).toMatchObject({ text: "Today" });
-    expect(xAxis).toMatchObject({ min: 480, max: 540, name: "Time" });
+    expect(option.title).toMatchObject({
+      text: "Today",
+      textStyle: { fontSize: 14, fontWeight: 600 },
+    });
+    expect(xAxis).toMatchObject({
+      min: 480,
+      max: 540,
+      name: "Time",
+      nameTextStyle: { fontSize: 12, fontWeight: 400 },
+      axisLabel: { fontSize: 12 },
+    });
+    expect(categoryYAxis).toMatchObject({
+      nameTextStyle: { fontSize: 12, fontWeight: 400 },
+      axisLabel: { fontSize: 12 },
+    });
     expect(visualSeries).toMatchObject({
       data: [
         [480, 0.5],

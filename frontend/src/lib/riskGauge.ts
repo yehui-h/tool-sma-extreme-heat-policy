@@ -55,18 +55,18 @@ const RISK_GAUGE_LAYOUTS: {
     pointerWidth: 5,
     radius: "148%",
     unavailableFontSize: 20,
-    valueFontSize: 30,
+    valueFontSize: 32,
   },
   max: {
     arcWidth: 108,
     centerY: "94%",
     labelDistance: 54,
-    labelFontSize: 18,
+    labelFontSize: 16,
     pointerBorderWidth: 2,
     pointerWidth: 7,
     radius: "168%",
-    unavailableFontSize: 28,
-    valueFontSize: 50,
+    unavailableFontSize: 24,
+    valueFontSize: 48,
   },
 };
 
@@ -380,7 +380,9 @@ export function getRiskGaugeValueLayout(
   const normalizedScore = normalizeRiskGaugeScore(score);
   const layout = getRiskGaugeLayout(isMobile, containerWidth);
   const fontSize =
-    normalizedScore === null ? layout.unavailableFontSize : layout.valueFontSize;
+    normalizedScore === null
+      ? layout.unavailableFontSize
+      : layout.valueFontSize;
 
   return {
     bottomOffset: 5,
@@ -416,12 +418,7 @@ export function buildRiskGaugeOption(
     tooltip: {
       show: false,
     },
-    graphic: buildRiskGaugeGraphic(
-      score,
-      activeLevel,
-      layout,
-      dimensions,
-    ),
+    graphic: buildRiskGaugeGraphic(score, activeLevel, layout, dimensions),
     series: [
       {
         type: "gauge",

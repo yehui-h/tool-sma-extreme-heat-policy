@@ -9,6 +9,10 @@ import {
   Stack,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
+import {
+  COMPACT_RECOMMENDATION_LAYOUT_QUERY,
+  getActionImageIconSize,
+} from "@/config/uiScale";
 
 interface HomeSectionSkeletonProps {
   showLoader?: boolean;
@@ -66,6 +70,13 @@ export function CurrentRiskSkeleton({
 export function KeyRecommendationsSkeleton({
   showLoader = false,
 }: HomeSectionSkeletonProps) {
+  const isCompactRecommendationLayout = useMediaQuery(
+    COMPACT_RECOMMENDATION_LAYOUT_QUERY,
+  );
+  const iconSkeletonSize = getActionImageIconSize(
+    isCompactRecommendationLayout,
+  );
+
   return (
     <Box pos="relative">
       <SimpleGrid cols={SKELETON_RECOMMENDATION_COUNT}>
@@ -76,7 +87,7 @@ export function KeyRecommendationsSkeleton({
             gap="xs"
             p="md"
           >
-            <Skeleton h={52} w={52} circle />
+            <Skeleton h={iconSkeletonSize} w={iconSkeletonSize} circle />
             <Skeleton h={14} w="70%" maw={120} />
           </Stack>
         ))}

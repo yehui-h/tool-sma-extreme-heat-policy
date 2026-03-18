@@ -109,19 +109,19 @@ describe("riskGauge helpers", () => {
   it("returns responsive overlay font sizing for the center value", () => {
     expect(getRiskGaugeValueLayout(2.4, false, 200)).toEqual({
       bottomOffset: 5,
-      fontSize: 30,
+      fontSize: 32,
       fontWeight: 800,
       lineHeight: 0.82,
     });
     expect(getRiskGaugeValueLayout(2.4, false, 400)).toEqual({
       bottomOffset: 5,
-      fontSize: 50,
+      fontSize: 48,
       fontWeight: 800,
       lineHeight: 0.82,
     });
     expect(getRiskGaugeValueLayout(Number.NaN, false, 400)).toEqual({
       bottomOffset: 5,
-      fontSize: 28,
+      fontSize: 24,
       fontWeight: 800,
       lineHeight: 0.82,
     });

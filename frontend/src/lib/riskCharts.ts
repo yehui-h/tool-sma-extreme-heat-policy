@@ -39,15 +39,15 @@ type ForecastLayout = {
 
 const CHART_TYPOGRAPHY: Record<"mobile" | "desktop", ChartTypography> = {
   mobile: {
-    forecastTitle: 15,
+    forecastTitle: 14,
     axis: 12,
     riskBandAxis: 12,
     xAxisIntervalMinutes: 120,
   },
   desktop: {
     forecastTitle: 14,
-    axis: 11,
-    riskBandAxis: 11,
+    axis: 12,
+    riskBandAxis: 12,
     xAxisIntervalMinutes: 60,
   },
 };
