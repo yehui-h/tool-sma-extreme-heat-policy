@@ -10,15 +10,27 @@ import {
   IconSunHigh,
   IconWorldWww,
 } from "@tabler/icons-react";
-import { Anchor, Stack, Text, ThemeIcon } from "@mantine/core";
+import {
+  Accordion,
+  Anchor,
+  Group,
+  List,
+  Stack,
+  Text,
+  ThemeIcon,
+} from "@mantine/core";
 import { Fragment, type ReactNode } from "react";
-import { SectionCard } from "@/components/ui/SectionCard";
-import type { AboutSection, AboutSectionIconKey } from "@/domain/about";
+import type {
+  AboutParagraph,
+  AboutSection,
+  AboutSectionIconKey,
+} from "@/domain/about";
 import {
   UI_TITLE_ICON_SIZE,
   UI_TITLE_ICON_STROKE,
   UI_TITLE_THEME_ICON_SIZE,
 } from "@/config/uiScale";
+import { buildAboutContentBlocks } from "@/lib/aboutLayout";
 
 interface AboutSectionBlockProps {
   section: AboutSection;
@@ -106,52 +118,96 @@ function getAboutTitleIconConfig(
   );
 }
 
+function renderParagraphRuns(
+  sectionTitle: string,
+  blockKey: string,
+  paragraph: AboutParagraph,
+) {
+  return paragraph.runs.map((run, runIndex) =>
+    "href" in run ? (
+      <Anchor key={`${sectionTitle}-${blockKey}-${runIndex}`} href={run.href}>
+        {run.text}
+      </Anchor>
+    ) : (
+      <Fragment key={`${sectionTitle}-${blockKey}-${runIndex}`}>
+        {run.text}
+      </Fragment>
+    ),
+  );
+}
+
 /**
- * Renders one About section card from i18n-provided rich paragraph data.
+ * Renders one About accordion item from i18n-provided rich paragraph data.
  */
 export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
   const titleIconConfig = getAboutTitleIconConfig(section.iconKey);
+  const contentBlocks = buildAboutContentBlocks(section);
 
   return (
-    <SectionCard
-      title={section.title}
-      titleIcon={
-        <ThemeIcon
-          color={titleIconConfig.color}
-          variant="light"
-          size={UI_TITLE_THEME_ICON_SIZE}
-          radius="xl"
-        >
-          {titleIconConfig.icon}
-        </ThemeIcon>
-      }
-    >
-      <Stack gap="xs">
-        {section.paragraphs.map((paragraph, paragraphIndex) => (
-          <Text
-            key={`${section.title}-${paragraphIndex}`}
-            c="dark.7"
-            fs={paragraph.italic ? "italic" : undefined}
+    <Accordion.Item value={section.iconKey}>
+      <Accordion.Control>
+        <Group gap="sm" wrap="nowrap">
+          <ThemeIcon
+            color={titleIconConfig.color}
+            variant="light"
+            size={UI_TITLE_THEME_ICON_SIZE}
+            radius="xl"
           >
-            {paragraph.runs.map((run, runIndex) =>
-              "href" in run ? (
-                <Anchor
-                  key={`${section.title}-${paragraphIndex}-${runIndex}`}
-                  href={run.href}
-                >
-                  {run.text}
-                </Anchor>
-              ) : (
-                <Fragment
-                  key={`${section.title}-${paragraphIndex}-${runIndex}`}
-                >
-                  {run.text}
-                </Fragment>
-              ),
-            )}
+            {titleIconConfig.icon}
+          </ThemeIcon>
+          <Text fw={700} fz={{ base: "md", sm: "lg" }} lh={1.4}>
+            {section.title}
           </Text>
-        ))}
-      </Stack>
-    </SectionCard>
+        </Group>
+      </Accordion.Control>
+      <Accordion.Panel>
+        <Stack gap="sm">
+          {contentBlocks.map((block, blockIndex) =>
+            block.type === "paragraph" ? (
+              <Text
+                key={`${section.title}-paragraph-${blockIndex}`}
+                c="dark.7"
+                fz="md"
+                lh={1.7}
+                fs={block.paragraph.italic ? "italic" : undefined}
+              >
+                {renderParagraphRuns(
+                  section.title,
+                  `paragraph-${blockIndex}`,
+                  block.paragraph,
+                )}
+              </Text>
+            ) : (
+              <List
+                key={`${section.title}-list-${blockIndex}`}
+                spacing="sm"
+                size="md"
+                withPadding
+              >
+                {block.items.map((item, itemIndex) => (
+                  <List.Item
+                    key={`${section.title}-list-item-${blockIndex}-${itemIndex}`}
+                  >
+                    <Text
+                      component="span"
+                      c="dark.7"
+                      fz="md"
+                      lh={1.7}
+                      fs={item.italic ? "italic" : undefined}
+                    >
+                      {renderParagraphRuns(
+                        section.title,
+                        `list-${blockIndex}-${itemIndex}`,
+                        item,
+                      )}
+                    </Text>
+                  </List.Item>
+                ))}
+              </List>
+            ),
+          )}
+        </Stack>
+      </Accordion.Panel>
+    </Accordion.Item>
   );
 }
