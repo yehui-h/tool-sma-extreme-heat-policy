@@ -117,8 +117,7 @@ def _extract_hourly_series(
         raise WeatherProviderError("Weather provider response was missing hourly.time")
 
     timestamps = [
-        _to_utc_timestamp_or_none(item, provider_time_zone=provider_time_zone)
-        for item in raw_time
+        _to_utc_timestamp_or_none(item, provider_time_zone=provider_time_zone) for item in raw_time
     ]
     if any(item is None for item in timestamps):
         raise WeatherProviderError("Weather provider response contained invalid hourly.time values")
