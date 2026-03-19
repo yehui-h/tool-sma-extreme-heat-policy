@@ -9,6 +9,12 @@ describe("getReadableTextColor", () => {
     expect(getReadableTextColor("#8C2439")).toBe("#ffffff");
   });
 
+  it("uses custom text colors in the contrast comparison", () => {
+    expect(getReadableTextColor("#777777", "#222222", "#f5f5f5")).toBe(
+      "#f5f5f5",
+    );
+  });
+
   it("falls back to the dark text color for unsupported inputs", () => {
     expect(getReadableTextColor("invalid")).toBe("#000000");
   });

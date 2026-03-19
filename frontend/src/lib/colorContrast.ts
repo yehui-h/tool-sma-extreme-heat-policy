@@ -61,6 +61,16 @@ function getContrastRatio(firstLuminance: number, secondLuminance: number) {
   return (lighterLuminance + 0.05) / (darkerLuminance + 0.05);
 }
 
+function getColorLuminance(color: string, fallbackLuminance: number): number {
+  const rgbColor = parseHexColor(color);
+
+  if (!rgbColor) {
+    return fallbackLuminance;
+  }
+
+  return getRelativeLuminance(rgbColor);
+}
+
 /**
  * Returns whichever candidate text color has the stronger contrast ratio.
  */
@@ -76,8 +86,10 @@ export function getReadableTextColor(
   }
 
   const backgroundLuminance = getRelativeLuminance(rgbColor);
-  const darkContrast = getContrastRatio(backgroundLuminance, 0);
-  const lightContrast = getContrastRatio(backgroundLuminance, 1);
+  const darkLuminance = getColorLuminance(darkTextColor, 0);
+  const lightLuminance = getColorLuminance(lightTextColor, 1);
+  const darkContrast = getContrastRatio(backgroundLuminance, darkLuminance);
+  const lightContrast = getContrastRatio(backgroundLuminance, lightLuminance);
 
   return darkContrast >= lightContrast ? darkTextColor : lightTextColor;
 }
