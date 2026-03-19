@@ -76,7 +76,7 @@ Import rules:
 - Location search uses Mapbox Search Box `suggest`; selecting a suggestion triggers Mapbox `retrieve` in frontend to resolve coordinates.
 - Prefilled location labels restored from shared URL (`loc`) or local persistence automatically attempt `suggest + retrieve` once using exact normalized label matching.
 - Risk API request sends `sport + latitude + longitude` (no Mapbox identifiers).
-- Risk API response returns current `heat_risk` plus hourly `forecast` points; frontend groups forecast days in browser local timezone.
+- Risk API response returns current `heat_risk` plus hourly `forecast` points; frontend groups forecast days in the selected location timezone when available, otherwise browser local timezone.
 - Risk is fetched automatically when:
   - a location suggestion is selected (manual or auto-resolved) and coordinates are resolved, and
   - the sport changes.
@@ -84,7 +84,7 @@ Import rules:
 - After a successful fetch:
   - URL query params update (`sport`, `loc`) and
   - the last selection is persisted to localStorage only for direct visits (not shared links).
-- Dates are formatted in browser local timezone for UI display.
+- Dates are formatted in the selected location timezone when available, otherwise browser local timezone.
 - API time contract: if datetime fields are introduced in request/response payloads, they must use ISO-8601 UTC format (`...Z`).
 - No kids/adults segmentation is part of the current frontend scope.
 

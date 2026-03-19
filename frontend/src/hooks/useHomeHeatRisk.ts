@@ -62,12 +62,13 @@ function toCalculatedHeatRisk(data: HeatRiskApiResponse): {
   meta: HeatRiskMeta;
 } {
   const risk = toHeatRisk(data.heat_risk);
+  const meta = toHeatRiskMeta(data.meta_data);
 
   return {
     risk,
     riskLevel: toRiskLevel(risk.riskLevelInterpolated),
-    forecast: toForecastDays(data.forecast),
-    meta: toHeatRiskMeta(data.meta_data),
+    forecast: toForecastDays(data.forecast, meta.timeZone),
+    meta,
   };
 }
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import httpx
 
@@ -41,6 +42,7 @@ class HourlyWeatherPoint:
 class WeatherForecast:
     points: list[HourlyWeatherPoint]
     raw: dict[str, Any]
+    timezone: str
 
 
 def _to_float_or_none(value: Any) -> float | None:
@@ -53,7 +55,24 @@ def _to_float_or_none(value: Any) -> float | None:
         return None
 
 
-def _to_utc_timestamp_or_none(value: Any) -> datetime | None:
+def _resolve_provider_timezone(payload: dict[str, Any]) -> tuple[str, ZoneInfo]:
+    raw_timezone = payload.get("timezone")
+    if not isinstance(raw_timezone, str) or raw_timezone.strip() == "":
+        raise WeatherProviderError("Weather provider response was missing timezone")
+
+    try:
+        return raw_timezone, ZoneInfo(raw_timezone)
+    except ZoneInfoNotFoundError as exc:
+        raise WeatherProviderError(
+            f"Weather provider response contained invalid timezone '{raw_timezone}'"
+        ) from exc
+
+
+def _to_utc_timestamp_or_none(
+    value: Any,
+    *,
+    provider_time_zone: ZoneInfo,
+) -> datetime | None:
     if not isinstance(value, str):
         return None
 
@@ -64,7 +83,7 @@ def _to_utc_timestamp_or_none(value: Any) -> datetime | None:
         return None
 
     if timestamp.tzinfo is None:
-        return timestamp.replace(tzinfo=UTC)
+        return timestamp.replace(tzinfo=provider_time_zone).astimezone(UTC)
     return timestamp.astimezone(UTC)
 
 
@@ -85,7 +104,10 @@ def _validate_hourly_units(payload: dict[str, Any]) -> None:
             )
 
 
-def _extract_hourly_series(payload: dict[str, Any]) -> tuple[list[datetime], dict[str, list[Any]]]:
+def _extract_hourly_series(
+    payload: dict[str, Any],
+) -> tuple[str, list[datetime], dict[str, list[Any]]]:
+    timezone_name, provider_time_zone = _resolve_provider_timezone(payload)
     hourly = payload.get("hourly")
     if not isinstance(hourly, dict):
         raise WeatherProviderError("Weather provider response was missing hourly data")
@@ -94,7 +116,10 @@ def _extract_hourly_series(payload: dict[str, Any]) -> tuple[list[datetime], dic
     if not isinstance(raw_time, list):
         raise WeatherProviderError("Weather provider response was missing hourly.time")
 
-    timestamps = [_to_utc_timestamp_or_none(item) for item in raw_time]
+    timestamps = [
+        _to_utc_timestamp_or_none(item, provider_time_zone=provider_time_zone)
+        for item in raw_time
+    ]
     if any(item is None for item in timestamps):
         raise WeatherProviderError("Weather provider response contained invalid hourly.time values")
 
@@ -109,11 +134,11 @@ def _extract_hourly_series(payload: dict[str, Any]) -> tuple[list[datetime], dic
             )
         series_data[field] = values
 
-    return timestamps, series_data
+    return timezone_name, timestamps, series_data
 
 
-def _select_hourly_points(payload: dict[str, Any]) -> list[HourlyWeatherPoint]:
-    timestamps, series_data = _extract_hourly_series(payload)
+def _select_hourly_points(payload: dict[str, Any]) -> tuple[str, list[HourlyWeatherPoint]]:
+    timezone_name, timestamps, series_data = _extract_hourly_series(payload)
     threshold = datetime.now(tz=UTC) - timedelta(hours=1)
     forecast_window_end = threshold + timedelta(days=7)
     candidate_rows = [
@@ -124,15 +149,18 @@ def _select_hourly_points(payload: dict[str, Any]) -> list[HourlyWeatherPoint]:
     if not candidate_rows:
         raise WeatherProviderError("No hourly record after now-1h")
 
-    return [
-        HourlyWeatherPoint(
-            time_utc=timestamp,
-            tdb=_to_float_or_none(series_data["temperature_2m"][idx]),
-            rh=_to_float_or_none(series_data["relative_humidity_2m"][idx]),
-            vr=_to_float_or_none(series_data["wind_speed_10m"][idx]),
-        )
-        for idx, timestamp in candidate_rows
-    ]
+    return (
+        timezone_name,
+        [
+            HourlyWeatherPoint(
+                time_utc=timestamp,
+                tdb=_to_float_or_none(series_data["temperature_2m"][idx]),
+                rh=_to_float_or_none(series_data["relative_humidity_2m"][idx]),
+                vr=_to_float_or_none(series_data["wind_speed_10m"][idx]),
+            )
+            for idx, timestamp in candidate_rows
+        ],
+    )
 
 
 class OpenMeteoClient:
@@ -155,7 +183,7 @@ class OpenMeteoClient:
             "longitude": longitude,
             "hourly": ",".join(_HOURLY_FIELDS),
             "wind_speed_unit": "ms",
-            "timezone": "GMT",
+            "timezone": "auto",
         }
 
         try:
@@ -166,9 +194,11 @@ class OpenMeteoClient:
             raise WeatherProviderError() from exc
 
         _validate_hourly_units(payload)
+        timezone_name, points = _select_hourly_points(payload)
         return WeatherForecast(
-            points=_select_hourly_points(payload),
+            points=points,
             raw=payload,
+            timezone=timezone_name,
         )
 
     async def fetch_current_weather(self, *, latitude: float, longitude: float) -> CurrentWeather:

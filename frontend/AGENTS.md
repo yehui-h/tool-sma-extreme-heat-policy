@@ -103,7 +103,8 @@ Keep the current layer-first structure:
   - After a successful fetch, update query params (`sport`, `loc`) using replace history.
   - Persist to localStorage only for direct visits (not shared links).
 - Timezone:
-  - UI display always uses browser local timezone.
+  - Forecast display uses the selected location timezone when available.
+  - Browser local timezone is only the fallback when location timezone metadata is unavailable.
   - API datetime contract is UTC (ISO-8601 `...Z`) whenever datetime fields are added in the future.
 
 ## i18n

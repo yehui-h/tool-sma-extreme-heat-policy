@@ -10,6 +10,7 @@ import { toCoordinatesOrNull } from "@/lib/coordinates";
 export interface HeatRiskMeta {
   latitude?: number;
   longitude?: number;
+  timeZone?: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -30,7 +31,7 @@ export function toHeatRisk(api: HeatRiskApiData): HeatRisk {
 }
 
 /**
- * Extracts optional location coordinates from the API metadata payload.
+ * Extracts optional location coordinates and timezone from the API metadata payload.
  */
 export function toHeatRiskMeta(meta: HeatRiskApiMeta): HeatRiskMeta {
   const location = meta.location;
@@ -42,14 +43,19 @@ export function toHeatRiskMeta(meta: HeatRiskApiMeta): HeatRiskMeta {
     latitude: location.latitude,
     longitude: location.longitude,
   });
-
-  if (!coordinates) {
-    return {};
-  }
+  const timeZone =
+    typeof location.timezone === "string" && location.timezone.length > 0
+      ? location.timezone
+      : undefined;
 
   return {
-    latitude: coordinates.latitude,
-    longitude: coordinates.longitude,
+    ...(coordinates
+      ? {
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+        }
+      : {}),
+    ...(timeZone ? { timeZone } : {}),
   };
 }
 
@@ -86,14 +92,17 @@ function formatDateParts(
 }
 
 /**
- * Groups UTC forecast points into browser-local daily chart data for the UI.
+ * Groups UTC forecast points into location-local daily chart data for the UI.
  */
-export function toForecastDays(points: ForecastApiPoint[]): ForecastDay[] {
+export function toForecastDays(
+  points: ForecastApiPoint[],
+  timeZone?: string,
+): ForecastDay[] {
   if (points.length === 0) {
     return [];
   }
 
-  const timeZone = getBrowserTimeZone();
+  const resolvedTimeZone = timeZone ?? getBrowserTimeZone();
   const groupedDays = new Map<
     string,
     {
@@ -110,7 +119,7 @@ export function toForecastDays(points: ForecastApiPoint[]): ForecastDay[] {
       continue;
     }
 
-    const dateParts = formatDateParts(parsedDate, timeZone);
+    const dateParts = formatDateParts(parsedDate, resolvedTimeZone);
     const dateKey = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
     const timeLabel = `${dateParts.hour}:${dateParts.minute}`;
     const existingDay = groupedDays.get(dateKey);

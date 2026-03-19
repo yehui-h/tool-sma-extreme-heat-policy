@@ -25,7 +25,7 @@ const MOBILE_FORECAST_CHART_HEIGHT = 280;
 export function ForecastSection() {
   const { t } = useTranslation();
   const isMobile = useIsMobileViewport();
-  const { hasCalculatedRisk, forecast } = useHomeHeatRisk();
+  const { hasCalculatedRisk, forecast, meta } = useHomeHeatRisk();
 
   if (!hasCalculatedRisk) {
     return (
@@ -77,9 +77,15 @@ export function ForecastSection() {
                 <Group justify="space-between" wrap="nowrap">
                   {/* Reduced nesting: simple column for weekday + date */}
                   <Flex direction={"column"}>
-                    <Text fw={600}>{formatWeekdayLabel(day.date)}</Text>
+                    <Text fw={600}>
+                      {formatWeekdayLabel(day.date, {
+                        timeZone: meta.timeZone,
+                      })}
+                    </Text>
                     <Text c="dimmed" fz="sm">
-                      {formatDateLabel(day.date)}
+                      {formatDateLabel(day.date, {
+                        timeZone: meta.timeZone,
+                      })}
                     </Text>
                   </Flex>
                   <Group gap={CONTENT_GAP} mr={CONTENT_GAP} wrap="nowrap">

@@ -103,6 +103,7 @@ class RiskService:
                 "location": {
                     "latitude": payload.latitude,
                     "longitude": payload.longitude,
+                    "timezone": weather.timezone,
                 },
                 "open_meteo": weather.raw,
             },

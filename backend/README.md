@@ -55,7 +55,7 @@ Strict flow:
 
 Response body:
 - `heat_risk: object` (pythermalcomfort output keys and content, no business renaming)
-- `meta_data: object` (debug context such as model/open-meteo/location; no mapbox data)
+- `meta_data: object` (debug context such as model/open-meteo/location including the resolved IANA timezone; no mapbox data)
 - `forecast: array` (`[{ time_utc, risk_level_interpolated }]`, UTC ISO-8601 timestamps)
 
 Contract mode:

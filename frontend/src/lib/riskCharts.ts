@@ -432,8 +432,7 @@ function createForecastXAxis(
       hideOverlap: true,
       rotate: 90,
       formatter(value: string | number) {
-        const numericValue =
-          typeof value === "number" ? value : Number(value);
+        const numericValue = typeof value === "number" ? value : Number(value);
 
         if (
           !Number.isFinite(numericValue) ||
@@ -646,11 +645,7 @@ export function buildForecastOption(
     },
     xAxis: createForecastXAxis(chartPoints, labels, typography),
     yAxis: createForecastYAxis(labels, typography),
-    series: createForecastSeries(
-      chartPoints,
-      forecastPoints,
-      labels,
-    ),
+    series: createForecastSeries(chartPoints, forecastPoints, labels),
     tooltip: {
       trigger: "axis",
       axisPointer: {
@@ -666,11 +661,7 @@ export function buildForecastOption(
         },
       },
       formatter: (params: TooltipComponentFormatterCallbackParams) =>
-        formatForecastTooltip(
-          params,
-          labels.tooltipRiskLabel,
-          forecastPoints,
-        ),
+        formatForecastTooltip(params, labels.tooltipRiskLabel, forecastPoints),
     },
   };
 }
