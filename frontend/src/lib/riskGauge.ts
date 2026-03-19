@@ -12,7 +12,6 @@ export const RISK_GAUGE_MIN_SCORE = 0;
 export const RISK_GAUGE_MAX_SCORE = MAX_RISK_SCORE;
 export const RISK_GAUGE_MIN_WIDTH = 200;
 export const RISK_GAUGE_MAX_WIDTH = 400;
-export const RISK_GAUGE_HEIGHT_RATIO = 0.58;
 const RISK_GAUGE_TOTAL_ANGLE = 180;
 const RISK_GAUGE_SEGMENT_COUNT = 4;
 const RISK_GAUGE_START_ANGLE = 180;
@@ -23,19 +22,27 @@ const GAUGE_TRANSPARENT = "rgba(0, 0, 0, 0)";
 
 type RiskGaugeLayout = {
   arcWidth: number;
-  centerY: string;
+  bottomInset: number;
   labelDistance: number;
   labelFontSize: number;
   pointerBorderWidth: number;
   pointerWidth: number;
-  radius: string;
+  sideInset: number;
+  topInset: number;
   unavailableFontSize: number;
+  valueBottomOffset: number;
   valueFontSize: number;
 };
 
 export type RiskGaugeLabels = Record<RiskLevel, string>;
-type RiskGaugeDimensions = {
+export type RiskGaugeGeometry = {
+  bottomInset: number;
+  centerY: number;
   height: number;
+  radius: number;
+  sideInset: number;
+  topInset: number;
+  valueBottomOffset: number;
   width: number;
 };
 type RiskGaugeGraphic = {
@@ -48,24 +55,28 @@ const RISK_GAUGE_LAYOUTS: {
 } = {
   min: {
     arcWidth: 56,
-    centerY: "94%",
+    bottomInset: 4,
     labelDistance: 28,
     labelFontSize: 12,
     pointerBorderWidth: 1.5,
     pointerWidth: 5,
-    radius: "148%",
+    sideInset: 10,
+    topInset: 8,
     unavailableFontSize: 20,
+    valueBottomOffset: 4,
     valueFontSize: 32,
   },
   max: {
     arcWidth: 108,
-    centerY: "94%",
+    bottomInset: 8,
     labelDistance: 54,
     labelFontSize: 16,
     pointerBorderWidth: 2,
     pointerWidth: 7,
-    radius: "168%",
+    sideInset: 10,
+    topInset: 12,
     unavailableFontSize: 24,
+    valueBottomOffset: 6,
     valueFontSize: 48,
   },
 };
@@ -74,27 +85,26 @@ function clampRiskGaugeWidth(width: number): number {
   return Math.min(Math.max(width, RISK_GAUGE_MIN_WIDTH), RISK_GAUGE_MAX_WIDTH);
 }
 
+export function getRiskGaugeWidth(
+  isMobile = false,
+  containerWidth?: number,
+): number {
+  if (!containerWidth || !Number.isFinite(containerWidth)) {
+    return isMobile ? RISK_GAUGE_MIN_WIDTH : RISK_GAUGE_MAX_WIDTH;
+  }
+
+  return clampRiskGaugeWidth(containerWidth);
+}
+
 function interpolateNumber(min: number, max: number, t: number): number {
   return min + (max - min) * t;
-}
-
-function interpolatePercent(min: string, max: string, t: number): string {
-  return `${interpolateNumber(parseFloat(min), parseFloat(max), t)}%`;
-}
-
-function parsePercentValue(value: string): number {
-  return parseFloat(value) / 100;
 }
 
 function getRiskGaugeLayout(
   isMobile: boolean,
   containerWidth?: number,
 ): RiskGaugeLayout {
-  if (!containerWidth || !Number.isFinite(containerWidth)) {
-    return isMobile ? RISK_GAUGE_LAYOUTS.min : RISK_GAUGE_LAYOUTS.max;
-  }
-
-  const clampedWidth = clampRiskGaugeWidth(containerWidth);
+  const clampedWidth = getRiskGaugeWidth(isMobile, containerWidth);
   const t =
     (clampedWidth - RISK_GAUGE_MIN_WIDTH) /
     (RISK_GAUGE_MAX_WIDTH - RISK_GAUGE_MIN_WIDTH);
@@ -107,10 +117,12 @@ function getRiskGaugeLayout(
         t,
       ),
     ),
-    centerY: interpolatePercent(
-      RISK_GAUGE_LAYOUTS.min.centerY,
-      RISK_GAUGE_LAYOUTS.max.centerY,
-      t,
+    bottomInset: Math.round(
+      interpolateNumber(
+        RISK_GAUGE_LAYOUTS.min.bottomInset,
+        RISK_GAUGE_LAYOUTS.max.bottomInset,
+        t,
+      ),
     ),
     labelDistance: Math.round(
       interpolateNumber(
@@ -138,15 +150,31 @@ function getRiskGaugeLayout(
         t,
       ),
     ),
-    radius: interpolatePercent(
-      RISK_GAUGE_LAYOUTS.min.radius,
-      RISK_GAUGE_LAYOUTS.max.radius,
-      t,
+    sideInset: Math.round(
+      interpolateNumber(
+        RISK_GAUGE_LAYOUTS.min.sideInset,
+        RISK_GAUGE_LAYOUTS.max.sideInset,
+        t,
+      ),
+    ),
+    topInset: Math.round(
+      interpolateNumber(
+        RISK_GAUGE_LAYOUTS.min.topInset,
+        RISK_GAUGE_LAYOUTS.max.topInset,
+        t,
+      ),
     ),
     unavailableFontSize: Math.round(
       interpolateNumber(
         RISK_GAUGE_LAYOUTS.min.unavailableFontSize,
         RISK_GAUGE_LAYOUTS.max.unavailableFontSize,
+        t,
+      ),
+    ),
+    valueBottomOffset: Math.round(
+      interpolateNumber(
+        RISK_GAUGE_LAYOUTS.min.valueBottomOffset,
+        RISK_GAUGE_LAYOUTS.max.valueBottomOffset,
         t,
       ),
     ),
@@ -223,36 +251,35 @@ function getRiskGaugeRichLabelStyles(layout: RiskGaugeLayout): Record<
   );
 }
 
-function getRiskGaugeDimensions(
-  isMobile: boolean,
+export function getRiskGaugeGeometry(
+  isMobile = false,
   containerWidth?: number,
-  containerHeight?: number,
-): RiskGaugeDimensions {
-  const width =
-    containerWidth && Number.isFinite(containerWidth)
-      ? clampRiskGaugeWidth(containerWidth)
-      : isMobile
-        ? RISK_GAUGE_MIN_WIDTH
-        : RISK_GAUGE_MAX_WIDTH;
-  const height =
-    containerHeight && Number.isFinite(containerHeight)
-      ? containerHeight
-      : Math.round(width * RISK_GAUGE_HEIGHT_RATIO);
+): RiskGaugeGeometry {
+  const width = getRiskGaugeWidth(isMobile, containerWidth);
+  const layout = getRiskGaugeLayout(isMobile, width);
+  const radius = Math.max(width / 2 - layout.sideInset, layout.arcWidth);
+  const centerY = layout.topInset + radius;
 
-  return { width, height };
+  return {
+    bottomInset: layout.bottomInset,
+    centerY,
+    height: Math.ceil(centerY + layout.bottomInset),
+    radius,
+    sideInset: layout.sideInset,
+    topInset: layout.topInset,
+    valueBottomOffset: layout.valueBottomOffset,
+    width,
+  };
 }
 
 function buildRiskGaugeGraphic(
   score: number,
   activeLevel: RiskLevel | null,
   layout: RiskGaugeLayout,
-  dimensions: RiskGaugeDimensions,
+  geometry: RiskGaugeGeometry,
 ) {
-  const { width, height } = dimensions;
+  const { width, centerY, radius } = geometry;
   const centerX = width / 2;
-  const centerY = height * parsePercentValue(layout.centerY);
-  const radius =
-    (Math.min(width, height) / 2) * parsePercentValue(layout.radius);
   const innerRadius = Math.max(radius - layout.arcWidth, 0);
   const elements: RiskGaugeGraphic = { elements: [] };
 
@@ -379,13 +406,14 @@ export function getRiskGaugeValueLayout(
 } {
   const normalizedScore = normalizeRiskGaugeScore(score);
   const layout = getRiskGaugeLayout(isMobile, containerWidth);
+  const geometry = getRiskGaugeGeometry(isMobile, containerWidth);
   const fontSize =
     normalizedScore === null
       ? layout.unavailableFontSize
       : layout.valueFontSize;
 
   return {
-    bottomOffset: 5,
+    bottomOffset: geometry.valueBottomOffset,
     fontSize,
     fontWeight: 800,
     lineHeight: 0.82,
@@ -402,31 +430,27 @@ export function buildRiskGaugeOption(
   _unavailableLabel: string,
   isMobile = false,
   containerWidth?: number,
-  containerHeight?: number,
 ): EChartsOption {
   const normalizedScore = normalizeRiskGaugeScore(score);
   const activeLevel = getRiskGaugeActiveLevel(score);
   const layout = getRiskGaugeLayout(isMobile, containerWidth);
-  const dimensions = getRiskGaugeDimensions(
-    isMobile,
-    containerWidth,
-    containerHeight,
-  );
+  const geometry = getRiskGaugeGeometry(isMobile, containerWidth);
+  const center = [geometry.width / 2, geometry.centerY];
 
   return {
     animation: false,
     tooltip: {
       show: false,
     },
-    graphic: buildRiskGaugeGraphic(score, activeLevel, layout, dimensions),
+    graphic: buildRiskGaugeGraphic(score, activeLevel, layout, geometry),
     series: [
       {
         type: "gauge",
         silent: true,
         startAngle: RISK_GAUGE_START_ANGLE,
         endAngle: RISK_GAUGE_END_ANGLE,
-        center: ["50%", layout.centerY],
-        radius: layout.radius,
+        center,
+        radius: geometry.radius,
         min: RISK_GAUGE_MIN_SCORE,
         max: RISK_GAUGE_MAX_SCORE,
         splitNumber: RISK_GAUGE_SEGMENT_COUNT,
@@ -468,8 +492,8 @@ export function buildRiskGaugeOption(
         silent: true,
         startAngle: RISK_GAUGE_START_ANGLE,
         endAngle: RISK_GAUGE_END_ANGLE,
-        center: ["50%", layout.centerY],
-        radius: layout.radius,
+        center,
+        radius: geometry.radius,
         min: RISK_GAUGE_MIN_SCORE,
         max: RISK_GAUGE_MAX_SCORE,
         splitNumber: RISK_GAUGE_SPLIT_NUMBER,

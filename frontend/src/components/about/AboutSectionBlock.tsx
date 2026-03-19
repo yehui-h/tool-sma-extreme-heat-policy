@@ -25,6 +25,12 @@ import type {
   AboutSection,
   AboutSectionIconKey,
 } from "@/domain/about";
+import { CONTENT_GAP } from "@/config/uiLayout";
+import {
+  PARAGRAPH_GAP,
+  RESPONSIVE_STANDARD_TEXT_LINE_HEIGHT,
+  STANDARD_TEXT_LINE_HEIGHT,
+} from "@/config/uiTypography";
 import {
   UI_TITLE_ICON_SIZE,
   UI_TITLE_ICON_STROKE,
@@ -146,7 +152,7 @@ export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
   return (
     <Accordion.Item value={section.iconKey}>
       <Accordion.Control>
-        <Group gap="sm" wrap="nowrap">
+        <Group gap={CONTENT_GAP} wrap="nowrap">
           <ThemeIcon
             color={titleIconConfig.color}
             variant="light"
@@ -155,20 +161,24 @@ export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
           >
             {titleIconConfig.icon}
           </ThemeIcon>
-          <Text fw={700} fz={{ base: "md", sm: "lg" }} lh={1.4}>
+          <Text
+            fw={700}
+            fz={{ base: "md", sm: "lg" }}
+            lh={RESPONSIVE_STANDARD_TEXT_LINE_HEIGHT}
+          >
             {section.title}
           </Text>
         </Group>
       </Accordion.Control>
       <Accordion.Panel>
-        <Stack gap="sm">
+        <Stack gap={PARAGRAPH_GAP}>
           {contentBlocks.map((block, blockIndex) =>
             block.type === "paragraph" ? (
               <Text
                 key={`${section.title}-paragraph-${blockIndex}`}
                 c="dark.7"
                 fz="md"
-                lh={1.7}
+                lh={STANDARD_TEXT_LINE_HEIGHT}
                 fs={block.paragraph.italic ? "italic" : undefined}
               >
                 {renderParagraphRuns(
@@ -180,7 +190,7 @@ export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
             ) : (
               <List
                 key={`${section.title}-list-${blockIndex}`}
-                spacing="sm"
+                spacing={PARAGRAPH_GAP}
                 size="md"
                 withPadding
               >
@@ -192,7 +202,7 @@ export function AboutSectionBlock({ section }: AboutSectionBlockProps) {
                       component="span"
                       c="dark.7"
                       fz="md"
-                      lh={1.7}
+                      lh={STANDARD_TEXT_LINE_HEIGHT}
                       fs={item.italic ? "italic" : undefined}
                     >
                       {renderParagraphRuns(

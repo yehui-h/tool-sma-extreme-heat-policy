@@ -1,5 +1,7 @@
-import { Box, Paper, Text, Title } from "@mantine/core";
+import { Box, Flex, Paper, Stack, Text, Title } from "@mantine/core";
 import type { ReactNode } from "react";
+import { CONTENT_GAP, CONTENT_PADDING } from "@/config/uiLayout";
+import { RESPONSIVE_STANDARD_TEXT_LINE_HEIGHT } from "@/config/uiTypography";
 
 interface SectionCardProps {
   title?: string;
@@ -21,17 +23,18 @@ export function SectionCard({
   const hasHeading = hasTitle || Boolean(subtitle);
 
   return (
-    <Paper radius="md" p={{ base: "sm", sm: "md" }}>
+    <Paper radius="md" p={CONTENT_PADDING}>
       {hasHeading ? (
-        <Box mb="sm">
+        <Stack gap={CONTENT_GAP} mb={CONTENT_PADDING}>
           {hasTitle ? (
             <Title order={2} fz={{ base: "h3", sm: "h2" }}>
-              <Box
+              <Flex
                 component="span"
+                align="center"
+                gap={CONTENT_GAP}
+                wrap="nowrap"
                 style={{
                   display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
                 }}
               >
                 {titleIcon ? (
@@ -47,19 +50,19 @@ export function SectionCard({
                   </Box>
                 ) : null}
                 <span>{title}</span>
-              </Box>
+              </Flex>
             </Title>
           ) : null}
           {subtitle ? (
             <Text
               c="dimmed"
               fz={{ base: "md", sm: "lg" }}
-              mt={hasTitle ? 4 : 0}
+              lh={RESPONSIVE_STANDARD_TEXT_LINE_HEIGHT}
             >
               {subtitle}
             </Text>
           ) : null}
-        </Box>
+        </Stack>
       ) : null}
       {children}
     </Paper>

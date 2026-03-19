@@ -1,14 +1,10 @@
 import type { SportType } from "@/domain/sport";
 import type { PersistedHomeFilters } from "@/pages/home/browserState";
-import type { HomeChannel, LocationPrefillSource } from "@/store/homeStore";
-
-export interface HomeBootstrapState {
-  channel: HomeChannel;
-  sport: SportType;
-  locationSearchInput: string;
-  locationPrefillSource: LocationPrefillSource;
-  shouldAutoResolvePrefilledLocation: boolean;
-}
+import type {
+  HomeChannel,
+  HomeStoreBootstrapPayload,
+  LocationPrefillSource,
+} from "@/store/homeStore";
 
 interface ResolveHomeBootstrapStateParams {
   hasUrlState: boolean;
@@ -38,7 +34,7 @@ export function resolveHomeBootstrapState({
   urlSport,
   urlLocation,
   persistedFilters,
-}: ResolveHomeBootstrapStateParams): HomeBootstrapState {
+}: ResolveHomeBootstrapStateParams): HomeStoreBootstrapPayload {
   const channel: HomeChannel = hasUrlState ? "shared" : "direct";
 
   let sport = defaultSport;

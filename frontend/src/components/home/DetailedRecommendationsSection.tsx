@@ -1,14 +1,4 @@
-import {
-  Accordion,
-  Badge,
-  Box,
-  Image,
-  List,
-  SimpleGrid,
-  Stack,
-  Text,
-} from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { Accordion, Badge, List, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import {
   RISK_LEVELS,
@@ -16,18 +6,12 @@ import {
   getRiskBadgeForegroundColor,
   getRiskColor,
 } from "@/domain/riskRegistry";
+import { RecommendationIconGrid } from "@/components/home/RecommendationIconGrid";
 import { SectionCard } from "@/components/ui/SectionCard";
 import {
-  COMPACT_RECOMMENDATION_LAYOUT_QUERY,
-  getActionImageIconSize,
-} from "@/config/uiScale";
-
-const MOBILE_RECOMMENDATION_GRID_SPACING = "xs";
-const DESKTOP_RECOMMENDATION_GRID_SPACING = "sm";
-const MOBILE_RECOMMENDATION_CARD_PADDING = "xs";
-const DESKTOP_RECOMMENDATION_CARD_PADDING = "sm";
-const MOBILE_RECOMMENDATION_CARD_GAP = 4;
-const DESKTOP_RECOMMENDATION_CARD_GAP = "xs";
+  PARAGRAPH_GAP,
+  STANDARD_TEXT_LINE_HEIGHT,
+} from "@/config/uiTypography";
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
@@ -42,9 +26,6 @@ function toStringArray(value: unknown): string[] {
  */
 export function DetailedRecommendationsSection() {
   const { t } = useTranslation();
-  const isCompactRecommendationLayout = useMediaQuery(
-    COMPACT_RECOMMENDATION_LAYOUT_QUERY,
-  );
 
   return (
     <SectionCard title={t("recommendations.manual.title")}>
@@ -63,26 +44,10 @@ export function DetailedRecommendationsSection() {
           );
           const keyRecommendations = details.keyIconPaths
             .map((iconPath, index) => ({
-              iconPath,
+              src: iconPath,
               label: keyLabels[index] ?? "",
             }))
             .filter((item) => item.label);
-          const keyRecommendationColumnCount = Math.max(
-            keyRecommendations.length,
-            1,
-          );
-          const mobileKeyRecommendationColumnCount = Math.min(
-            keyRecommendationColumnCount,
-            2,
-          );
-          const shouldCenterLastRecommendation =
-            isCompactRecommendationLayout &&
-            mobileKeyRecommendationColumnCount === 2 &&
-            keyRecommendations.length > 1 &&
-            keyRecommendations.length % 2 === 1;
-          const recommendationIconSize = getActionImageIconSize(
-            isCompactRecommendationLayout,
-          );
           const description = t(details.detailedDescriptionKey);
           const suggestions = toStringArray(
             t(details.detailedSuggestionsKey, {
@@ -112,74 +77,18 @@ export function DetailedRecommendationsSection() {
                 </Badge>
               </Accordion.Control>
               <Accordion.Panel>
-                <Stack gap="xs">
-                  <SimpleGrid
-                    cols={{
-                      base: mobileKeyRecommendationColumnCount,
-                      xs: keyRecommendationColumnCount,
-                    }}
-                    spacing={
-                      isCompactRecommendationLayout
-                        ? MOBILE_RECOMMENDATION_GRID_SPACING
-                        : DESKTOP_RECOMMENDATION_GRID_SPACING
-                    }
-                  >
-                    {keyRecommendations.map((item, index) => (
-                      <Box
-                        key={item.label}
-                        style={
-                          shouldCenterLastRecommendation &&
-                          index === keyRecommendations.length - 1
-                            ? {
-                                gridColumn: "1 / -1",
-                                display: "flex",
-                                justifyContent: "center",
-                              }
-                            : undefined
-                        }
-                      >
-                        <Stack
-                          align="center"
-                          gap={
-                            isCompactRecommendationLayout
-                              ? MOBILE_RECOMMENDATION_CARD_GAP
-                              : DESKTOP_RECOMMENDATION_CARD_GAP
-                          }
-                          p={
-                            isCompactRecommendationLayout
-                              ? MOBILE_RECOMMENDATION_CARD_PADDING
-                              : DESKTOP_RECOMMENDATION_CARD_PADDING
-                          }
-                        >
-                          <Image
-                            src={item.iconPath}
-                            alt={item.label}
-                            w={recommendationIconSize}
-                            h={recommendationIconSize}
-                            fit="contain"
-                          />
-                          <Text
-                            fw={600}
-                            ta="center"
-                            title={item.label}
-                            style={{
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {item.label}
-                          </Text>
-                        </Stack>
-                      </Box>
-                    ))}
-                  </SimpleGrid>
-                  <Text>{description}</Text>
-                  <Text>{t("recommendations.detailed.youShouldLabel")}</Text>
-                  <List spacing="xs" size="md">
+                <Stack gap={PARAGRAPH_GAP}>
+                  <RecommendationIconGrid items={keyRecommendations} />
+                  <Text lh={STANDARD_TEXT_LINE_HEIGHT}>{description}</Text>
+                  <Text lh={STANDARD_TEXT_LINE_HEIGHT}>
+                    {t("recommendations.detailed.youShouldLabel")}
+                  </Text>
+                  <List spacing={PARAGRAPH_GAP} size="md">
                     {suggestions.map((text, index) => (
                       <List.Item key={`${level}-suggestion-${index}`}>
-                        {text}
+                        <Text component="span" lh={STANDARD_TEXT_LINE_HEIGHT}>
+                          {text}
+                        </Text>
                       </List.Item>
                     ))}
                   </List>

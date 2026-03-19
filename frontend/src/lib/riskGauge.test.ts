@@ -4,9 +4,13 @@ import {
   buildRiskGaugeOption,
   formatRiskGaugeValue,
   getRiskGaugeActiveLevel,
+  getRiskGaugeGeometry,
   getRiskGaugePointerAngle,
   getRiskGaugeValueLayout,
+  getRiskGaugeWidth,
   normalizeRiskGaugeScore,
+  RISK_GAUGE_MAX_WIDTH,
+  RISK_GAUGE_MIN_WIDTH,
 } from "@/lib/riskGauge";
 
 const riskGaugeLabels = {
@@ -46,6 +50,15 @@ describe("riskGauge helpers", () => {
     expect(formatRiskGaugeValue(Number.NaN, "N/A")).toBe("N/A");
   });
 
+  it("resolves default and clamped gauge widths from a single helper", () => {
+    expect(getRiskGaugeWidth()).toBe(RISK_GAUGE_MAX_WIDTH);
+    expect(getRiskGaugeWidth(true)).toBe(RISK_GAUGE_MIN_WIDTH);
+    expect(getRiskGaugeWidth(false, 120)).toBe(RISK_GAUGE_MIN_WIDTH);
+    expect(getRiskGaugeWidth(false, 280)).toBe(280);
+    expect(getRiskGaugeWidth(false, 480)).toBe(RISK_GAUGE_MAX_WIDTH);
+    expect(getRiskGaugeWidth(true, Number.NaN)).toBe(RISK_GAUGE_MIN_WIDTH);
+  });
+
   it("builds a semicircle echarts gauge with legacy-style band labels", () => {
     const option = buildRiskGaugeOption(
       2.4,
@@ -54,17 +67,19 @@ describe("riskGauge helpers", () => {
       "N/A",
       false,
       400,
-      232,
     );
     const [bandSeries, overlaySeries] = Array.isArray(option.series)
       ? option.series
       : [];
     const graphicElements = getGraphicElements(option);
+    const geometry = getRiskGaugeGeometry(false, 400);
 
     expect(bandSeries).toMatchObject({
       type: "gauge",
       startAngle: 180,
       endAngle: 0,
+      center: [200, geometry.centerY],
+      radius: geometry.radius,
       splitNumber: 4,
       pointer: {
         show: false,
@@ -78,6 +93,8 @@ describe("riskGauge helpers", () => {
       type: "gauge",
       startAngle: 180,
       endAngle: 0,
+      center: [200, geometry.centerY],
+      radius: geometry.radius,
       splitNumber: 8,
       axisLabel: {
         show: true,
@@ -106,21 +123,46 @@ describe("riskGauge helpers", () => {
     );
   });
 
+  it("derives tighter chart geometry from the clamped gauge width", () => {
+    expect(getRiskGaugeGeometry(false, 200)).toEqual({
+      bottomInset: 4,
+      centerY: 98,
+      height: 102,
+      radius: 90,
+      sideInset: 10,
+      topInset: 8,
+      valueBottomOffset: 4,
+      width: 200,
+    });
+    expect(getRiskGaugeGeometry(false, 400)).toEqual({
+      bottomInset: 8,
+      centerY: 202,
+      height: 210,
+      radius: 190,
+      sideInset: 10,
+      topInset: 12,
+      valueBottomOffset: 6,
+      width: 400,
+    });
+    expect(getRiskGaugeGeometry(false, 200).height).toBeLessThan(116);
+    expect(getRiskGaugeGeometry(false, 400).height).toBeLessThan(232);
+  });
+
   it("returns responsive overlay font sizing for the center value", () => {
     expect(getRiskGaugeValueLayout(2.4, false, 200)).toEqual({
-      bottomOffset: 5,
+      bottomOffset: 4,
       fontSize: 32,
       fontWeight: 800,
       lineHeight: 0.82,
     });
     expect(getRiskGaugeValueLayout(2.4, false, 400)).toEqual({
-      bottomOffset: 5,
+      bottomOffset: 6,
       fontSize: 48,
       fontWeight: 800,
       lineHeight: 0.82,
     });
     expect(getRiskGaugeValueLayout(Number.NaN, false, 400)).toEqual({
-      bottomOffset: 5,
+      bottomOffset: 6,
       fontSize: 24,
       fontWeight: 800,
       lineHeight: 0.82,
@@ -135,7 +177,6 @@ describe("riskGauge helpers", () => {
       "N/A",
       false,
       400,
-      232,
     );
 
     expect(getGraphicElements(option)).not.toEqual(
@@ -155,7 +196,6 @@ describe("riskGauge helpers", () => {
       "N/A",
       false,
       400,
-      232,
     );
     const [, overlaySeries] = Array.isArray(option.series) ? option.series : [];
     const graphicElements = getGraphicElements(option);

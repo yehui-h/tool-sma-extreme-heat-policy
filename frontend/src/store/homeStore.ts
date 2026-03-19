@@ -5,6 +5,14 @@ import { DEFAULT_SPORT_TYPE, type SportType } from "@/domain/sport";
 export type HomeChannel = "shared" | "direct";
 export type LocationPrefillSource = "url" | "persisted" | "default" | "none";
 
+export interface HomeStoreBootstrapPayload {
+  channel: HomeChannel;
+  sport: SportType;
+  locationSearchInput: string;
+  locationPrefillSource: LocationPrefillSource;
+  shouldAutoResolvePrefilledLocation: boolean;
+}
+
 interface HomeStoreState {
   isBootstrapped: boolean;
   channel: HomeChannel;
@@ -16,13 +24,7 @@ interface HomeStoreState {
   hasPrefilledLocationNotMatched: boolean;
   locationSessionToken: string;
 
-  bootstrap: (payload: {
-    channel: HomeChannel;
-    sport: SportType;
-    locationSearchInput: string;
-    locationPrefillSource: LocationPrefillSource;
-    shouldAutoResolvePrefilledLocation: boolean;
-  }) => void;
+  bootstrap: (payload: HomeStoreBootstrapPayload) => void;
   setSport: (sport: SportType) => void;
   setLocationSearchInput: (value: string) => void;
   selectLocation: (suggestion: LocationSuggestion) => void;
@@ -78,6 +80,8 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
     set((state) => {
       const selectedLocationValue =
         state.selectedLocation?.formattedLocation ?? "";
+      const shouldClearSelectedLocation =
+        Boolean(state.selectedLocation) && value !== selectedLocationValue;
       const isStartingNewSearch =
         Boolean(state.selectedLocation) &&
         state.locationSearchInput === selectedLocationValue &&
@@ -86,6 +90,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
       return {
         locationSearchInput: value,
         locationPrefillSource: "none",
+        ...(shouldClearSelectedLocation ? { selectedLocation: null } : {}),
         shouldAutoResolvePrefilledLocation: false,
         hasPrefilledLocationNotMatched: false,
         ...(isStartingNewSearch

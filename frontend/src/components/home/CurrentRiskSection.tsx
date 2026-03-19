@@ -1,9 +1,10 @@
 import { IconInfoCircle } from "@tabler/icons-react";
 import { Badge, Stack } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { CONTENT_GAP } from "@/config/uiLayout";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
 import {
   getRiskBadgeForegroundColor,
@@ -21,14 +22,14 @@ const RISK_BADGE_SHADOW = "0 10px 24px rgba(15, 23, 42, 0.08)";
  */
 export function CurrentRiskSection() {
   const { t } = useTranslation();
-  const isMobile = useMediaQuery("(max-width: 48em)");
+  const isMobile = useIsMobileViewport();
   const heatRisk = useHomeHeatRisk();
   const longRiskLabels = createRiskLevelLabels((key) => t(key), "long");
 
   if (!heatRisk.hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.currentRisk.title")}>
-        <CurrentRiskSkeleton showLoader={heatRisk.isFetching} />
+        <CurrentRiskSkeleton />
       </SectionCard>
     );
   }
@@ -41,7 +42,7 @@ export function CurrentRiskSection() {
 
   return (
     <SectionCard title={t("home.sections.currentRisk.title")}>
-      <Stack gap={isMobile ? "xs" : "sm"} align="center">
+      <Stack gap={CONTENT_GAP} align="center">
         <RiskGauge
           score={heatRisk.risk.riskLevelInterpolated}
           title={t("charts.gauge.seriesName")}
@@ -68,8 +69,8 @@ export function CurrentRiskSection() {
             root: {
               color: riskBadgeForegroundColor,
               boxShadow: RISK_BADGE_SHADOW,
-              paddingInlineStart: isMobile ? 16 : 20,
-              paddingInlineEnd: isMobile ? 10 : 14,
+              paddingInlineStart: 16,
+              paddingInlineEnd: 12,
             },
             label: {
               fontSize: isMobile
@@ -80,7 +81,7 @@ export function CurrentRiskSection() {
               textAlign: "left",
             },
             section: {
-              marginInlineStart: isMobile ? 4 : 6,
+              marginInlineStart: 4,
             },
           }}
         >

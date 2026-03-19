@@ -1,8 +1,9 @@
 // Reduce nesting and improve spacing: use a clearer Stack gap, responsive chart height, and fewer small wrapper components
 import { Accordion, Badge, Flex, Group, Stack, Text } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
+import { CONTENT_GAP } from "@/config/uiLayout";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
 import {
   getRiskBadgeForegroundColor,
@@ -23,13 +24,13 @@ const MOBILE_FORECAST_CHART_HEIGHT = 280;
  */
 export function ForecastSection() {
   const { t } = useTranslation();
-  const isMobile = useMediaQuery("(max-width: 48em)");
-  const { hasCalculatedRisk, isFetching, forecast } = useHomeHeatRisk();
+  const isMobile = useIsMobileViewport();
+  const { hasCalculatedRisk, forecast } = useHomeHeatRisk();
 
   if (!hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.forecast.title")}>
-        <ForecastSkeleton showLoader={isFetching} />
+        <ForecastSkeleton />
       </SectionCard>
     );
   }
@@ -55,7 +56,7 @@ export function ForecastSection() {
   return (
     <SectionCard title={t("home.sections.forecast.title")}>
       {/* Use a single Stack with an explicit gap to control spacing between chart and accordion */}
-      <Stack gap="md">
+      <Stack gap={CONTENT_GAP}>
         <EChart
           option={buildForecastOption(
             today.points,
@@ -81,7 +82,7 @@ export function ForecastSection() {
                       {formatDateLabel(day.date)}
                     </Text>
                   </Flex>
-                  <Group gap="xs" mr="sm" wrap="nowrap">
+                  <Group gap={CONTENT_GAP} mr={CONTENT_GAP} wrap="nowrap">
                     <Text fz="sm">
                       {t("home.sections.forecast.maxRiskLabel")}
                     </Text>

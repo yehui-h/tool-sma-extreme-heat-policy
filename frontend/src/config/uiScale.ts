@@ -6,13 +6,4 @@ export const UI_TITLE_ICON_STROKE = 1.8;
 export const UI_TITLE_THEME_ICON_SIZE = "xl";
 
 export const COMPACT_RECOMMENDATION_LAYOUT_QUERY = "(max-width: 36em)";
-export const ACTION_IMAGE_ICON_SIZE = {
-  compact: 56,
-  default: 64,
-} as const;
-
-export function getActionImageIconSize(isCompact: boolean): number {
-  return isCompact
-    ? ACTION_IMAGE_ICON_SIZE.compact
-    : ACTION_IMAGE_ICON_SIZE.default;
-}
+export const ACTION_IMAGE_ICON_SIZE = "calc(var(--mantine-font-size-md) * 2.5)";

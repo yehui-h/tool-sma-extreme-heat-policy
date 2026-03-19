@@ -6,9 +6,9 @@ import { ForecastSection } from "@/components/home/ForecastSection";
 import { KeyRecommendationsSection } from "@/components/home/KeyRecommendationsSection";
 import { LocationMapSection } from "@/components/home/LocationMapSection";
 import { BottomToast } from "@/components/ui/BottomToast";
+import { SECTION_STACK_GAP } from "@/config/uiLayout";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { useHomeUrlSync } from "@/hooks/useHomeUrlSync";
-import { PAGE_SECTION_GAP } from "@/app/layout/layoutSpacing";
 import { useHomeBootstrap } from "@/pages/home/useHomeBootstrap";
 import { useHomeStore } from "@/store/homeStore";
 import { useTranslation } from "react-i18next";
@@ -70,7 +70,7 @@ export function HomePage() {
 
   return (
     <>
-      <Stack gap={PAGE_SECTION_GAP}>
+      <Stack gap={SECTION_STACK_GAP}>
         <FiltersSection />
         <CurrentRiskSection />
         <KeyRecommendationsSection />

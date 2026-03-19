@@ -1,11 +1,13 @@
 import { Box } from "@mantine/core";
-import { useElementSize, useMediaQuery } from "@mantine/hooks";
+import { useElementSize } from "@mantine/hooks";
 import type { RiskLevel } from "@/domain/risk";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import {
   buildRiskGaugeOption,
   formatRiskGaugeValue,
+  getRiskGaugeGeometry,
+  getRiskGaugeWidth,
   getRiskGaugeValueLayout,
-  RISK_GAUGE_HEIGHT_RATIO,
   RISK_GAUGE_MAX_WIDTH,
   RISK_GAUGE_MIN_WIDTH,
 } from "@/lib/riskGauge";
@@ -27,15 +29,10 @@ export function RiskGauge({
   unavailableLabel,
   riskLevelLabels,
 }: RiskGaugeProps) {
-  const isMobile = useMediaQuery("(max-width: 48em)");
+  const isMobile = useIsMobileViewport();
   const { ref, width } = useElementSize();
-  const gaugeWidth =
-    width > 0
-      ? Math.min(Math.max(width, RISK_GAUGE_MIN_WIDTH), RISK_GAUGE_MAX_WIDTH)
-      : isMobile
-        ? RISK_GAUGE_MIN_WIDTH
-        : RISK_GAUGE_MAX_WIDTH;
-  const gaugeHeight = Math.round(gaugeWidth * RISK_GAUGE_HEIGHT_RATIO);
+  const gaugeWidth = getRiskGaugeWidth(isMobile, width);
+  const gaugeGeometry = getRiskGaugeGeometry(isMobile, gaugeWidth);
   const option = buildRiskGaugeOption(
     score,
     riskLevelLabels,
@@ -43,7 +40,6 @@ export function RiskGauge({
     unavailableLabel,
     isMobile,
     gaugeWidth,
-    gaugeHeight,
   );
   const displayValue = formatRiskGaugeValue(score, unavailableLabel);
   const valueLayout = getRiskGaugeValueLayout(score, isMobile, gaugeWidth);
@@ -61,7 +57,7 @@ export function RiskGauge({
         marginInline: "auto",
       }}
     >
-      <EChart option={option} height={gaugeHeight} />
+      <EChart option={option} height={gaugeGeometry.height} />
       <Box
         aria-hidden={true}
         style={{

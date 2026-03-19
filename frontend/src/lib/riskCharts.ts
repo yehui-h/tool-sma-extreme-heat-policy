@@ -5,21 +5,23 @@ import type {
   TooltipComponentFormatterCallbackParams,
 } from "echarts";
 import { toRiskLevel, type ForecastPoint, type RiskLevel } from "@/domain/risk";
+import { USYD_ORANGE_HEX } from "@/config/uiColors";
 import {
   getRiskBands,
   getRiskColor,
   MAX_RISK_SCORE,
 } from "@/domain/riskRegistry";
 
-const FORECAST_LINE_COLOR = "#e64626";
-const FORECAST_ZERO_RISK_COLOR = "#9ca3af";
+const FORECAST_LINE_COLOR = USYD_ORANGE_HEX;
 const FORECAST_BAND_WHITE_MIX = 0.15;
 const FORECAST_VISUAL_SERIES_ID = "forecast-visual-line";
+const FORECAST_POINT_SERIES_ID = "forecast-data-points";
 const FORECAST_TOOLTIP_SERIES_ID = "forecast-tooltip-line";
 const FORECAST_HIGHLIGHT_SERIES_ID = "forecast-highlight-point";
 const FORECAST_HOUR_MINUTE_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const FORECAST_DISPLAY_PRECISION = 1;
-const FORECAST_ZERO_RISK_SYMBOL_SIZE = 6;
+const FORECAST_AXIS_ALIGNMENT_EPSILON = 0.001;
+const FORECAST_POINT_SYMBOL_SIZE = 6;
 
 type ChartTypography = {
   forecastTitle: number;
@@ -53,12 +55,12 @@ const CHART_TYPOGRAPHY: Record<"mobile" | "desktop", ChartTypography> = {
 };
 
 const FORECAST_LAYOUT: ForecastLayout = {
-  gridLeft: 15,
-  gridRight: 10,
-  gridBottom: 20,
-  xAxisNameGap: 45,
-  yAxisNameGap: 20,
-  axisLabelMargin: 10,
+  gridLeft: 10,
+  gridRight: 16,
+  gridBottom: 16,
+  xAxisNameGap: 46,
+  yAxisNameGap: 16,
+  axisLabelMargin: 8,
 };
 
 interface ForecastLabels {
@@ -227,19 +229,17 @@ function toForecastPointDatum(point: ForecastChartPoint): [number, number] {
   return [point.minuteOffset, point.value];
 }
 
-function roundForecastDisplayValue(value: number): number {
-  return Number(value.toFixed(FORECAST_DISPLAY_PRECISION));
-}
+function isForecastAxisTickAligned(
+  value: number,
+  anchor: number,
+  interval: number,
+): boolean {
+  const remainder = (value - anchor) % interval;
 
-function isZeroRiskDisplayForecast(points: ForecastChartPoint[]): boolean {
   return (
-    points.length > 0 &&
-    points.every((point) => roundForecastDisplayValue(point.value) === 0)
+    Math.abs(remainder) < FORECAST_AXIS_ALIGNMENT_EPSILON ||
+    Math.abs(remainder - interval) < FORECAST_AXIS_ALIGNMENT_EPSILON
   );
-}
-
-function getForecastLineColor(isZeroRiskDisplay: boolean): string {
-  return isZeroRiskDisplay ? FORECAST_ZERO_RISK_COLOR : FORECAST_LINE_COLOR;
 }
 
 function updateForecastHighlightPoint(
@@ -361,7 +361,6 @@ function formatForecastTooltip(
   params: TooltipComponentFormatterCallbackParams,
   tooltipRiskLabel: string,
   forecastPoints: ForecastChartPoint[],
-  isZeroRiskDisplay: boolean,
 ): string {
   const items = Array.isArray(params) ? params : [params];
   const firstItem = items[0];
@@ -386,15 +385,13 @@ function formatForecastTooltip(
       : firstItem.value;
   const numericValue =
     typeof rawValue === "number" ? rawValue : Number(rawValue);
-  const lineColor = getForecastLineColor(isZeroRiskDisplay);
-  const markerColor = isZeroRiskDisplay
-    ? lineColor
-    : Number.isFinite(numericValue)
-      ? getRiskColor(toRiskLevel(numericValue))
-      : lineColor;
+  const lineColor = FORECAST_LINE_COLOR;
+  const markerColor = Number.isFinite(numericValue)
+    ? getRiskColor(toRiskLevel(numericValue))
+    : lineColor;
   const marker = `<span style="display:inline-block;margin-right:8px;border-radius:50%;width:10px;height:10px;background-color:${markerColor};"></span>`;
   const valueText = Number.isFinite(numericValue)
-    ? numericValue.toFixed(1)
+    ? numericValue.toFixed(FORECAST_DISPLAY_PRECISION)
     : String(rawValue ?? "");
 
   return `${formattedTime}<br/>${marker} ${tooltipRiskLabel}&nbsp;&nbsp;${valueText}`;
@@ -412,6 +409,7 @@ function createForecastXAxis(
     lastPoint && lastPoint.minuteOffset > min
       ? lastPoint.minuteOffset
       : min + typography.xAxisIntervalMinutes;
+  const labelAnchor = min;
 
   return {
     type: "value" as const,
@@ -434,7 +432,21 @@ function createForecastXAxis(
       hideOverlap: true,
       rotate: 90,
       formatter(value: string | number) {
-        return formatForecastMinutesLabel(Number(value));
+        const numericValue =
+          typeof value === "number" ? value : Number(value);
+
+        if (
+          !Number.isFinite(numericValue) ||
+          !isForecastAxisTickAligned(
+            numericValue,
+            labelAnchor,
+            typography.xAxisIntervalMinutes,
+          )
+        ) {
+          return "";
+        }
+
+        return formatForecastMinutesLabel(numericValue);
       },
     },
   };
@@ -524,9 +536,8 @@ function createForecastSeries(
   chartPoints: ForecastChartPoint[],
   forecastPoints: ForecastChartPoint[],
   labels: ForecastLabels,
-  isZeroRiskDisplay: boolean,
 ): EChartsOption["series"] {
-  const lineColor = getForecastLineColor(isZeroRiskDisplay);
+  const lineColor = FORECAST_LINE_COLOR;
 
   return [
     ...toRiskBandSeries(chartPoints),
@@ -539,8 +550,8 @@ function createForecastSeries(
       silent: true,
       smooth: false,
       symbol: "circle",
-      showSymbol: isZeroRiskDisplay,
-      symbolSize: isZeroRiskDisplay ? FORECAST_ZERO_RISK_SYMBOL_SIZE : 0,
+      showSymbol: false,
+      symbolSize: 0,
       emphasis: { disabled: true },
       tooltip: { show: false },
       lineStyle: { width: 3, color: lineColor },
@@ -548,11 +559,26 @@ function createForecastSeries(
       data: chartPoints.map(toForecastPointDatum),
     },
     {
+      id: FORECAST_POINT_SERIES_ID,
+      name: `${labels.tooltipRiskLabel}-points`,
+      type: "scatter",
+      yAxisIndex: 0,
+      z: 11,
+      silent: true,
+      animation: false,
+      symbol: "circle",
+      symbolSize: FORECAST_POINT_SYMBOL_SIZE,
+      emphasis: { disabled: true },
+      tooltip: { show: false },
+      itemStyle: { color: lineColor },
+      data: forecastPoints.map(toForecastPointDatum),
+    },
+    {
       id: FORECAST_TOOLTIP_SERIES_ID,
       name: labels.tooltipRiskLabel,
       type: "line",
       yAxisIndex: 0,
-      z: 11,
+      z: 12,
       smooth: false,
       symbol: "none",
       showSymbol: false,
@@ -572,7 +598,7 @@ function createForecastSeries(
       name: `${labels.tooltipRiskLabel}-highlight`,
       type: "scatter",
       yAxisIndex: 0,
-      z: 12,
+      z: 13,
       silent: true,
       animation: false,
       symbol: "circle",
@@ -601,7 +627,6 @@ export function buildForecastOption(
   const typography = getTypography(isMobile);
   const forecastPoints = toForecastCoordinatePoints(points);
   const chartPoints = toForecastChartPoints(forecastPoints);
-  const isZeroRiskDisplay = isZeroRiskDisplayForecast(forecastPoints);
 
   return {
     animation: false,
@@ -615,7 +640,7 @@ export function buildForecastOption(
     grid: {
       left: FORECAST_LAYOUT.gridLeft,
       right: FORECAST_LAYOUT.gridRight,
-      top: title ? 38 : 18,
+      top: title ? 2 : 2,
       bottom: FORECAST_LAYOUT.gridBottom,
       containLabel: true,
     },
@@ -625,7 +650,6 @@ export function buildForecastOption(
       chartPoints,
       forecastPoints,
       labels,
-      isZeroRiskDisplay,
     ),
     tooltip: {
       trigger: "axis",
@@ -646,7 +670,6 @@ export function buildForecastOption(
           params,
           labels.tooltipRiskLabel,
           forecastPoints,
-          isZeroRiskDisplay,
         ),
     },
   };

@@ -16,6 +16,7 @@ import {
   toSportAssetName,
   type SportType,
 } from "@/domain/sport";
+import { CONTENT_GAP } from "@/config/uiLayout";
 import { useHomeLocationSuggest } from "@/hooks/useHomeLocationSuggest";
 import { useHomeStore } from "@/store/homeStore";
 import { SectionCard } from "@/components/ui/SectionCard";
@@ -35,6 +36,7 @@ const SPORT_IMAGE_HEIGHT = 104;
 export function FiltersSection() {
   const { t } = useTranslation();
   const sport = useHomeStore((state) => state.sport);
+  const selectedLocation = useHomeStore((state) => state.selectedLocation);
   const setSport = useHomeStore((state) => state.setSport);
   const [hasSportImageError, setHasSportImageError] = useState(false);
 
@@ -69,6 +71,9 @@ export function FiltersSection() {
     onLocationSearchInputChange,
     onLocationOptionSubmit,
   } = useHomeLocationSuggest();
+  const isShowingCommittedLocation =
+    selectedLocation !== null &&
+    locationSearchInput === selectedLocation.formattedLocation;
 
   const handleSportChange = (value: string | null) => {
     setHasSportImageError(false);
@@ -84,8 +89,8 @@ export function FiltersSection() {
 
   return (
     <SectionCard>
-      <Stack gap="sm">
-        <Group wrap="nowrap" align="center" gap="sm">
+      <Stack gap={CONTENT_GAP}>
+        <Group wrap="nowrap" align="center" gap={CONTENT_GAP}>
           <Text fw={600} w={FIELD_LABEL_WIDTH} ta="right">
             {t("home.sections.filters.locationLabel")}:
           </Text>
@@ -97,16 +102,21 @@ export function FiltersSection() {
               value={locationSearchInput}
               onChange={onLocationSearchInputChange}
               onOptionSubmit={onLocationOptionSubmit}
+              onClick={(event) => {
+                if (isShowingCommittedLocation) {
+                  event.currentTarget.select();
+                }
+              }}
               data={suggestionLabels}
               filter={({ options }) => options}
-              clearable={!isSuggestLoading}
+              clearable={false}
               rightSection={isSuggestLoading ? <Loader size={16} /> : undefined}
               autoComplete="off"
             />
           </Box>
         </Group>
 
-        <Group wrap="nowrap" align="center" gap="sm">
+        <Group wrap="nowrap" align="center" gap={CONTENT_GAP}>
           <Text fw={600} w={FIELD_LABEL_WIDTH} ta="right">
             {t("home.sections.filters.sportLabel")}:
           </Text>
@@ -136,7 +146,13 @@ export function FiltersSection() {
               onError={() => setHasSportImageError(true)}
             />
           ) : (
-            <Stack align="center" justify="center" gap={4} h="100%" px="md">
+            <Stack
+              align="center"
+              justify="center"
+              gap={CONTENT_GAP}
+              h="100%"
+              px={CONTENT_GAP}
+            >
               <Text fw={500} fz="sm">
                 {t("home.sections.filters.sportImageUnavailable")}
               </Text>

@@ -1,5 +1,5 @@
-import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
 import { getReadableTextColor } from "@/lib/colorContrast";
+import { RECOMMENDATION_ACTION_ASSETS } from "@/domain/recommendationActionAssets";
 
 export type RiskLevel = "low" | "moderate" | "high" | "extreme";
 
@@ -36,8 +36,8 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreUpperExclusive: 1,
     color: "#FFE478",
     keyIconPaths: [
-      toPublicAssetUrl("actions/hydration.png"),
-      toPublicAssetUrl("actions/clothing.png"),
+      RECOMMENDATION_ACTION_ASSETS.hydration,
+      RECOMMENDATION_ACTION_ASSETS.clothing,
     ],
     levelKey: "risk.level.low",
     levelShortKey: "risk.levelShort.low",
@@ -50,9 +50,9 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreUpperExclusive: 2,
     color: "#F5810C",
     keyIconPaths: [
-      toPublicAssetUrl("actions/hydration.png"),
-      toPublicAssetUrl("actions/clothing.png"),
-      toPublicAssetUrl("actions/pause.png"),
+      RECOMMENDATION_ACTION_ASSETS.hydration,
+      RECOMMENDATION_ACTION_ASSETS.clothing,
+      RECOMMENDATION_ACTION_ASSETS.pause,
     ],
     levelKey: "risk.level.moderate",
     levelShortKey: "risk.levelShort.moderate",
@@ -65,10 +65,10 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreUpperExclusive: 3,
     color: "#CF3838",
     keyIconPaths: [
-      toPublicAssetUrl("actions/hydration.png"),
-      toPublicAssetUrl("actions/clothing.png"),
-      toPublicAssetUrl("actions/pause.png"),
-      toPublicAssetUrl("actions/cooling.png"),
+      RECOMMENDATION_ACTION_ASSETS.hydration,
+      RECOMMENDATION_ACTION_ASSETS.clothing,
+      RECOMMENDATION_ACTION_ASSETS.pause,
+      RECOMMENDATION_ACTION_ASSETS.cooling,
     ],
     levelKey: "risk.level.high",
     levelShortKey: "risk.levelShort.high",
@@ -80,7 +80,7 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreLowerInclusive: 3,
     scoreUpperExclusive: Number.POSITIVE_INFINITY,
     color: "#8C2439",
-    keyIconPaths: [toPublicAssetUrl("actions/stop.png")],
+    keyIconPaths: [RECOMMENDATION_ACTION_ASSETS.stop],
     levelKey: "risk.level.extreme",
     levelShortKey: "risk.levelShort.extreme",
     keyRecommendationsKey: "recommendations.key.extreme",
