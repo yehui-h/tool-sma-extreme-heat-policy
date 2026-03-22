@@ -2,6 +2,8 @@
 
 ## Purpose and Scope
 - This guide applies only to `backend/`.
+- It extends the global rules in the repository root `AGENTS.md`.
+- If a local and global rule conflict, follow the stricter rule and note it in handoff.
 - Goal: preserve strict pythermalcomfort integration rules.
 
 ## Project Snapshot
@@ -25,6 +27,13 @@
 - If required weather or MRT inputs are missing/uncertain (`tdb`, `rh`, `wind`, `radiation`, `tr`), return `422` with `unknown_inputs`.
 - Return pythermalcomfort output in `response.heat_risk` with original field names.
 
+## Engineering and Design Rules
+- Keep routing thin: routes only parse/validate and delegate.
+- Keep service orchestration deterministic and easy to test.
+- Keep calculators focused on model invocation and minimal transformation.
+- Use explicit error types and actionable error responses.
+- Preserve backward-compatible API behavior unless a breaking change is explicitly requested.
+
 ## Architecture and Layer Rules
 - `api/routes`: request/response wiring only.
 - `schemas`: request/response validation.
@@ -42,6 +51,18 @@
   - `meta_data` -> context and source payload references, including `location.timezone` when resolved (no mapbox payload)
   - `forecast` -> UTC hourly points with `time_utc` and `risk_level_interpolated`
 - API contract style is snake_case only; do not default to camelCase request keys or legacy `data/meta` response keys.
+- Validate request/response schemas at boundaries; do not rely on implicit dict shapes in route handlers.
+
+## Data and Error Handling Rules
+- Treat upstream weather data as untrusted input and validate before model invocation.
+- For upstream failures/timeouts, return explicit, stable error shapes with enough context for frontend handling.
+- Do not leak secrets or environment-specific internals in error payloads.
+- Keep logging structured and operationally useful; avoid noisy debug prints in committed code.
+
+## Testing Expectations
+- Add or update tests for any behavior or contract change.
+- Prefer unit tests for calculators/services and API-level tests for route contracts.
+- Keep tests deterministic; avoid network dependence in tests when mocks or fixtures are feasible.
 
 ## Validation Checklist Before Handoff
 - `UV_CACHE_DIR=/tmp/uv-cache uv run ruff check .`

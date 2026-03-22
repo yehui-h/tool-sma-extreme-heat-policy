@@ -1,48 +1,12 @@
 # AI Working Guide for SMA Frontend
 
-## Purpose and scope
+## Purpose and Scope
 
 - This guide applies only to `frontend/`.
-- Primary target is Codex; wording is intentionally reusable for Copilot.
-- Goal: reduce inconsistent edits, preserve architecture, and improve delivery quality.
+- It extends the global rules in the repository root `AGENTS.md`.
+- If a local and global rule conflict, follow the stricter rule and note it in handoff.
 
-## Non-negotiable Code Generation Rules (Must Follow)
-
-The following rules are mandatory for every generated code change in `frontend/`:
-
-1. README `env.local` contract:
-   If environment variables are added or changed, update `frontend/README.md` with:
-   - clear `cp .env.example .env.local` creation steps,
-   - `.env.local` structure examples with placeholders only (never real keys/tokens), and
-   - a clear description of purpose and required/optional status for each variable.
-2. Prettier is mandatory:
-   - all code changes must be formatted with Prettier,
-   - run `pnpm format` before handoff,
-   - keep `pnpm format:check` / `pnpm lint:ci` in the validation path.
-3. Mantine-first layout:
-   - build page layout and standard styling with Mantine documentation patterns (`AppShell`, `Container`, `Grid`, `Stack`, `Flex`, `SimpleGrid`, theme/style props),
-   - do not implement page layout in CSS/CSS Modules,
-   - CSS is allowed only for small exceptions such as global baseline styles or third-party override hooks.
-4. Function documentation:
-   - every exported function must include a short TSDoc/JSDoc block (1-2 lines) describing purpose and key input/output behavior,
-   - very small internal helper functions may be documented only when the behavior is not obvious.
-5. Keep code DRY:
-   avoid duplicated business logic; extract repeated logic into reusable functions, hooks, or shared components.
-6. Keep functions atomic:
-   each function must have one clear responsibility and a precise, intention-revealing name.
-7. No embedded user-facing text:
-   - never hard-code visible copy in components/hooks/libs,
-   - use i18n keys and store translations in `src/i18n/locales/*/translation.json` (keep current `src/i18n` path; do not move translations to `public`).
-8. Zustand store-first state:
-   - shared business state must live in centralized Zustand stores,
-   - components should read shared business state from store selectors,
-   - avoid multi-layer prop drilling for shared business state; keep props minimal for presentation-only values and callbacks.
-9. Risk registry centralization:
-   - keep all risk-level metadata in `src/domain/riskRegistry.ts`,
-   - define thresholds, colors, icons, and recommendation i18n keys in the registry,
-   - avoid duplicate risk constants or parallel risk definitions in separate files.
-
-## Project snapshot
+## Project Snapshot
 
 - Stack: React 19, TypeScript, Vite, Mantine, React Router v7, nuqs, Zustand, TanStack React Query, i18next.
 - Alias: `@/* -> src/*`.
@@ -50,92 +14,110 @@ The following rules are mandatory for every generated code change in `frontend/`
 - Core scripts:
   - `pnpm dev`
   - `pnpm lint`
+  - `pnpm test:ci`
   - `pnpm build`
-  - `pnpm preview`
 
-## Architecture (Layer-first)
+## Non-Negotiable Rules
 
-Keep the current layer-first structure:
+1. README `.env.local` contract:
+   - If env vars are added or changed, update `frontend/README.md`.
+   - Include `cp .env.example .env.local` setup steps.
+   - Include placeholders only (never real keys/tokens).
+   - Document required/optional status and purpose for each variable.
+2. Formatting and linting are mandatory:
+   - Format with Prettier before handoff.
+   - Keep `pnpm format:check` and `pnpm lint:ci` green.
+3. Keep code DRY and focused:
+   - Extract repeated logic into shared hooks, domain utilities, or reusable components.
+   - Keep each function/component focused on one responsibility.
+4. No hard-coded visible copy:
+   - Keep user-facing text in `src/i18n/locales/*/translation.json`.
+   - Do not embed visible strings in components/hooks/stores/libs.
+5. Shared state architecture:
+   - Shared business state belongs in Zustand stores.
+   - Read store state through selectors.
+   - Avoid prop drilling for shared business state.
+6. Risk registry centralization:
+   - Keep risk thresholds, colors, icon mapping, and recommendation i18n keys in `src/domain/riskRegistry.ts`.
+   - Do not duplicate risk definitions in other files.
 
-- `src/app` — app shell + site layout
-- `src/pages` — route-level pages (`HomePage`, `AboutPage`)
-- `src/components` — UI components (page-specific + shared)
-- `src/api` — IO layer (backend + Mapbox)
-- `src/domain` — pure domain types + rules
-- `src/hooks` — reusable hooks (no UI copy)
-- `src/lib` — pure helpers (no UI copy)
-- `src/config` — app-wide config (Mantine theme)
-- `src/i18n` — i18n init + bundled locale JSON
-- `src/store` — app-wide stores (Zustand)
-- `src/App.tsx` — providers + route definitions
+## React and UI Rules
 
-## Import boundary rules (enforced by ESLint)
+- Use modern React patterns: functional components, hooks, and explicit effect dependencies.
+- Avoid deriving state in `useEffect` when it can be computed from props/store selectors.
+- Keep presentational components lean; move business logic to hooks/domain/store.
+- Prefer Mantine primitives for layout (`AppShell`, `Container`, `Grid`, `Stack`, `Flex`, `SimpleGrid`).
+- Do not build page layout in CSS/CSS Modules; CSS is limited to focused exceptions (global baseline styles or third-party overrides).
+- Document only non-obvious public contracts (for example: complex data transforms, side effects, or domain assumptions). Avoid redundant comments.
+
+## Architecture (Layer-First)
+
+- Keep the current structure:
+  - `src/app` - app shell and top-level layout
+  - `src/pages` - route-level page composition
+  - `src/components` - reusable and page-level UI pieces
+  - `src/api` - external IO (backend and Mapbox)
+  - `src/domain` - pure domain types and rules
+  - `src/hooks` - reusable UI/business hooks
+  - `src/lib` - pure utilities
+  - `src/config` - app config (theme, constants)
+  - `src/i18n` - i18n setup and locale bundles
+  - `src/store` - Zustand stores
+
+## Import Boundary Rules
 
 - `src/api/**`, `src/config/**`, `src/domain/**`, `src/i18n/**`, `src/lib/**` must not import from `src/components/**` or `src/pages/**`.
 - `src/components/**` must not import from `src/pages/**`.
-- Use `@/` imports consistently for `src` paths.
-- Any boundary exception requires explicit user approval before implementation.
+- Use `@/` imports for `src` paths consistently.
+- Any boundary exception requires explicit user approval.
 
-## State + data fetching
+## Data Fetching and State Contracts
 
-- Use Zustand as the default source of truth for client/UI business state shared across components.
-- Shared business state must be read via store selectors in components; avoid prop drilling for shared business state.
-- Keep component props minimal and presentation-focused (display-only values, local callbacks, `children`).
-- Use the official `zustand` npm package (installed via `pnpm`).
-- Prefer React Query for server state (fetching, caching, cancellation).
-- Query fns should accept and forward `AbortSignal` where possible.
-- Avoid hard-coded visible UI copy in hooks/stores/libs (use i18n).
+- Prefer React Query for server state (caching, retries, cancellation).
+- Query functions should accept/forward `AbortSignal` when feasible.
+- Keep component props presentation-focused (display data, callbacks, `children`).
+- Keep hooks/stores free of embedded visible copy.
 
-## Home contracts (Mapbox + risk flow)
+## Home Domain Contracts (Mapbox + Risk)
 
-- `VITE_MAPBOX_ACCESS_TOKEN` is required for location `suggest + retrieve`.
-- Frontend must resolve coordinates via retrieve before risk can be fetched.
-- When a valid prefilled location (`loc`) is restored from shared URL or local persistence, frontend should automatically try `suggest + retrieve` and trigger risk without manual selector interaction.
-- Risk request payload to backend must be `sport + latitude + longitude` (no Mapbox identifiers).
-- Risk is fetched automatically when:
-  - a location suggestion is selected and coordinates are resolved, and
-  - the sport changes.
-- Missing Mapbox token must show a configuration error; no silent fallbacks.
-- Suggest API failures must show a retryable error message; no local fallback flow.
-- Retrieve API failures must show a retryable error message and must not trigger risk fetch.
-- Risk API failures must be shown in UI and must keep the last valid result (no silent fallback to fixtures).
-- URL + persistence:
-  - After a successful fetch, update query params (`sport`, `loc`) using replace history.
-  - Persist to localStorage only for direct visits (not shared links).
-- Timezone:
-  - Forecast display uses the selected location timezone when available.
-  - Browser local timezone is only the fallback when location timezone metadata is unavailable.
-  - API datetime contract is UTC (ISO-8601 `...Z`) whenever datetime fields are added in the future.
+- `VITE_MAPBOX_ACCESS_TOKEN` is required for location suggest/retrieve.
+- Frontend must resolve coordinates via retrieve before risk requests.
+- Valid prefilled `loc` from URL or local persistence should auto-trigger suggest/retrieve and then risk fetch.
+- Backend risk payload must be `sport + latitude + longitude` only.
+- Risk must refetch when selected location coordinates resolve and when sport changes.
+- Missing token must show a configuration error (no silent fallback).
+- Suggest failures must show a retryable error (no local fallback path).
+- Retrieve failures must show a retryable error and must block risk fetch.
+- Risk API failures must be surfaced and keep the last valid result.
+- On successful fetch, update `sport` and `loc` query params with replace history.
+- Persist to localStorage only for direct visits (not shared links).
+- Forecast time display uses selected location timezone first; browser timezone is fallback only.
 
-## i18n
+## Testing Expectations
 
-- All user-facing text must be defined in translation files under `src/i18n/locales/*/translation.json`.
-- Baseline locale file is `src/i18n/locales/en/translation.json`.
-- Components/pages/hooks/libs must consume visible copy through translation keys (`useTranslation()` + `t(...)` or equivalent i18next key lookup).
-- Do not embed visible copy directly in components/hooks/libs.
+- Add or update tests for changed behavior in domain logic, stores, hooks, and API adapters.
+- Prefer deterministic tests that assert behavior contracts rather than implementation details.
 
-## Editing workflow for AI agents
+## AI Editing Workflow
 
-- Read relevant files first; avoid speculative edits.
-- Change the minimum necessary surface area.
-- Keep each change scoped to the requested task.
-- Do not manually edit `dist/` output.
-- Do not silently alter env contracts, route shapes, or cross-layer dependencies.
+- Read relevant files before editing; follow existing local patterns.
+- Make the smallest safe change set for the task.
+- Do not edit generated output such as `dist/`.
+- Do not silently alter route shapes, env contracts, or architecture boundaries.
 
-## Validation checklist before handoff
+## Validation Checklist Before Handoff
 
 - Run `pnpm format`.
-- Run `pnpm format:check` (or `pnpm lint:ci`).
-- Run `pnpm lint`.
+- Run `pnpm lint:ci` (or both `pnpm lint` and `pnpm format:check`).
+- Run `pnpm test:ci` for behavior validation.
 - Run `pnpm build`.
-- Confirm no architectural boundary violations.
-- Confirm Home flow behavior contracts still hold.
-- Provide a concise summary of changed files and outcomes.
+- Confirm no architecture boundary violations.
+- Confirm Home flow contracts still hold.
 
-## Out of scope / do not change
+## Out of Scope / Do Not Change
 
-- No backend or legacy changes from this guide unless explicitly requested.
+- No backend changes unless explicitly requested.
 - No dependency upgrades unless explicitly requested.
-- No large visual redesign unless the task explicitly asks for it.
+- No broad redesign unless explicitly requested.
 - No kids/adults segmentation work unless explicitly requested.
-- This ruleset update does not require immediate full retrofit of all existing pages; enforce it for all new changes and touched files.
+- Apply these rules to new work and touched files; do not force a full historical retrofit.
