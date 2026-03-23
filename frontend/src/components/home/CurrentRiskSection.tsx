@@ -1,78 +1,92 @@
-import { Badge, Box, Center, Stack } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { IconInfoCircle } from "@tabler/icons-react";
+import { Badge, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { CONTENT_GAP } from "@/config/uiLayout";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
-import { getRiskColor } from "@/domain/riskRegistry";
-import { buildGaugeOption } from "@/lib/riskCharts";
+import {
+  getRiskBadgeForegroundColor,
+  getRiskColor,
+} from "@/domain/riskRegistry";
 import { CurrentRiskSkeleton } from "@/components/home/HomeSectionSkeletons";
+import { RiskGauge } from "@/components/home/RiskGauge";
 import { SectionCard } from "@/components/ui/SectionCard";
-import { EChart } from "@/components/ui/EChart";
+import { UI_INLINE_ICON_SIZE, UI_INLINE_ICON_STROKE } from "@/config/uiScale";
 
-const CURRENT_RISK_CHART_HEIGHT = 228;
-const BADGE_SLOT_HEIGHT = 44;
+const RISK_BADGE_SHADOW = "0 10px 24px rgba(15, 23, 42, 0.08)";
 
 /**
  * Renders the current risk gauge for the selected sport/location.
  */
 export function CurrentRiskSection() {
   const { t } = useTranslation();
-  const isMobile = useMediaQuery("(max-width: 48em)");
+  const isMobile = useIsMobileViewport();
   const heatRisk = useHomeHeatRisk();
-  const shortRiskLabels = createRiskLevelLabels((key) => t(key), "short");
   const longRiskLabels = createRiskLevelLabels((key) => t(key), "long");
 
   if (!heatRisk.hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.currentRisk.title")}>
-        <CurrentRiskSkeleton showLoader={heatRisk.isFetching} />
+        <CurrentRiskSkeleton />
       </SectionCard>
     );
   }
 
-  const gaugeLabels = {
-    title: t("charts.gauge.seriesName"),
-    riskLevelShort: shortRiskLabels,
-  };
-  const gaugeOption = buildGaugeOption(
-    heatRisk.risk.riskLevelInterpolated,
-    gaugeLabels,
-    isMobile,
-  );
   const riskBadgeColor = getRiskColor(heatRisk.riskLevel);
+  const riskBadgeForegroundColor = getRiskBadgeForegroundColor(
+    heatRisk.riskLevel,
+  );
   const riskBadgeValue = longRiskLabels[heatRisk.riskLevel].toUpperCase();
 
   return (
     <SectionCard title={t("home.sections.currentRisk.title")}>
-      <Stack gap={0}>
-        <EChart option={gaugeOption} height={CURRENT_RISK_CHART_HEIGHT} />
-        <Box h={BADGE_SLOT_HEIGHT} mt={isMobile ? -16 : -20}>
-          <Center h="100%">
-            <Badge
-              component={Link}
-              to="/detailed-recommendations"
-              color={riskBadgeColor}
-              size={isMobile ? "lg" : "xl"}
-              radius="xl"
-              style={{
-                textDecoration: "none",
-              }}
-              styles={{
-                root: {
-                  paddingInline: isMobile ? 16 : 20,
-                },
-                label: {
-                  fontSize: isMobile ? "1rem" : "1.125rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                },
-              }}
-            >
-              {riskBadgeValue}
-            </Badge>
-          </Center>
-        </Box>
+      <Stack gap={CONTENT_GAP} align="center">
+        <RiskGauge
+          score={heatRisk.risk.riskLevelInterpolated}
+          title={t("charts.gauge.seriesName")}
+          unavailableLabel={t("charts.gauge.riskUnavailable")}
+          riskLevelLabels={longRiskLabels}
+        />
+        <Badge
+          component={Link}
+          to="/detailed-recommendations"
+          color={riskBadgeColor}
+          size={isMobile ? "lg" : "xl"}
+          radius="xl"
+          rightSection={
+            <IconInfoCircle
+              size={UI_INLINE_ICON_SIZE}
+              stroke={UI_INLINE_ICON_STROKE}
+              aria-hidden={true}
+            />
+          }
+          style={{
+            textDecoration: "none",
+          }}
+          styles={{
+            root: {
+              color: riskBadgeForegroundColor,
+              boxShadow: RISK_BADGE_SHADOW,
+              paddingInlineStart: 16,
+              paddingInlineEnd: 12,
+            },
+            label: {
+              fontSize: isMobile
+                ? "var(--mantine-font-size-md)"
+                : "var(--mantine-font-size-lg)",
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textAlign: "left",
+            },
+            section: {
+              marginInlineStart: 4,
+            },
+          }}
+        >
+          {riskBadgeValue}
+        </Badge>
       </Stack>
     </SectionCard>
   );

@@ -17,6 +17,7 @@ class FakeWeatherClient:
         *,
         expected_latitude: float | None = -33.847,
         expected_longitude: float | None = 151.067,
+        timezone: str = "Australia/Sydney",
         tdb: float | None = 31.0,
         rh: float | None = 62.0,
         vr: float | None = 1.5,
@@ -24,6 +25,7 @@ class FakeWeatherClient:
         self.calls = 0
         self.expected_latitude = expected_latitude
         self.expected_longitude = expected_longitude
+        self.timezone = timezone
         self.tdb = tdb
         self.rh = rh
         self.vr = vr
@@ -47,6 +49,7 @@ class FakeWeatherClient:
         return WeatherForecast(
             points=self.points,
             raw={"provider": "open-meteo"},
+            timezone=self.timezone,
         )
 
     async def aclose(self) -> None:
@@ -110,7 +113,11 @@ async def test_risk_service_uses_ttl_cache_for_same_input() -> None:
     assert calculator.payloads[0].vr == 1.02
     assert calculator.payloads[0].tr == 31.0
     assert first.heat_risk["risk_level_interpolated"] == 1.94
-    assert first.meta_data["location"] == {"latitude": -33.847, "longitude": 151.067}
+    assert first.meta_data["location"] == {
+        "latitude": -33.847,
+        "longitude": 151.067,
+        "timezone": "Australia/Sydney",
+    }
     assert first.meta_data["inputs"]["vr"] == 1.02
     assert "mapbox" not in first.meta_data
     assert first.model_dump()["forecast"] == [

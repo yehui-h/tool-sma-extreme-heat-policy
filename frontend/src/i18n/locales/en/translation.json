@@ -5,6 +5,7 @@
   "nav": {
     "home": "Home",
     "about": "About",
+    "detailedRecommendations": "Recommendations",
     "drawerTitle": "Navigation",
     "toggleAriaLabel": "Toggle navigation",
     "logoAlt": "University of Sydney"
@@ -252,11 +253,6 @@
       "currentRisk": {
         "title": "Current Sport Heat Score"
       },
-      "riskPending": {
-        "setFiltersHint": "Select sport and location to calculate risk.",
-        "scoreHint": "Current heat score will appear after calculation.",
-        "keyRecommendationsHint": "Key recommendations will appear after calculation."
-      },
       "keyRecommendations": {
         "title": "Key recommendations:"
       },
@@ -264,7 +260,8 @@
         "title": "Detailed suggestions:"
       },
       "forecast": {
-        "title": "Forecasted risk"
+        "title": "Forecasted risk",
+        "maxRiskLabel": "Max risk:"
       },
       "map": {
         "title": "Location Map",

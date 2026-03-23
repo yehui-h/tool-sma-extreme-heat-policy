@@ -21,6 +21,7 @@ Based on:
 1. Install deps: `pnpm install`
 2. Create local env file: `cp .env.example .env.local`
 3. Run dev server: `pnpm dev`
+4. Run tests: `pnpm test`
 
 ## Environment (`.env.local`)
 
@@ -75,7 +76,7 @@ Import rules:
 - Location search uses Mapbox Search Box `suggest`; selecting a suggestion triggers Mapbox `retrieve` in frontend to resolve coordinates.
 - Prefilled location labels restored from shared URL (`loc`) or local persistence automatically attempt `suggest + retrieve` once using exact normalized label matching.
 - Risk API request sends `sport + latitude + longitude` (no Mapbox identifiers).
-- Risk API response returns current `heat_risk` plus hourly `forecast` points; frontend groups forecast days in browser local timezone.
+- Risk API response returns current `heat_risk` plus hourly `forecast` points; frontend groups forecast days in the selected location timezone when available, otherwise browser local timezone.
 - Risk is fetched automatically when:
   - a location suggestion is selected (manual or auto-resolved) and coordinates are resolved, and
   - the sport changes.
@@ -83,7 +84,7 @@ Import rules:
 - After a successful fetch:
   - URL query params update (`sport`, `loc`) and
   - the last selection is persisted to localStorage only for direct visits (not shared links).
-- Dates are formatted in browser local timezone for UI display.
+- Dates are formatted in the selected location timezone when available, otherwise browser local timezone.
 - API time contract: if datetime fields are introduced in request/response payloads, they must use ISO-8601 UTC format (`...Z`).
 - No kids/adults segmentation is part of the current frontend scope.
 
@@ -99,7 +100,31 @@ Import rules:
 - `pnpm format:check` (CI-safe)
 - `pnpm lint` (ESLint)
 - `pnpm lint:ci` (ESLint + Prettier check)
+- `pnpm test` (Vitest watch mode)
+- `pnpm test:ci` (Vitest single run)
 - `pnpm build`
+
+## GitHub Pages deployment
+
+Frontend deploys to GitHub Pages from pushes to `dev/front-back-end` via
+the workflow at `.github/workflows/frontend-pages.yml`.
+
+Repository settings:
+
+- Settings -> Pages -> Source: `GitHub Actions`
+
+Repository Variables required for deploy builds:
+
+- `VITE_API_BASE_URL`
+- `VITE_MAPBOX_ACCESS_TOKEN`
+
+Notes:
+
+- GitHub Pages builds inject the repo subpath automatically so Vite assets and
+  React Router routes resolve correctly under
+  `https://yehui-h.github.io/tool-sma-extreme-heat-policy/`.
+- The app includes a `404.html` SPA fallback so direct visits and refreshes on
+  routes like `/about` keep working on GitHub Pages.
 
 ## Frontend Conventions Compliance
 

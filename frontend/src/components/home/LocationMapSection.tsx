@@ -1,6 +1,7 @@
 import { Paper, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
+import { CONTENT_GAP, CONTENT_PADDING } from "@/config/uiLayout";
 import { MapSkeleton } from "@/components/home/HomeSectionSkeletons";
 import { LocationMap } from "@/components/home/LocationMap";
 import { SectionCard } from "@/components/ui/SectionCard";
@@ -12,12 +13,12 @@ import { useHomeStore } from "@/store/homeStore";
 export function LocationMapSection() {
   const { t } = useTranslation();
   const selectedLocation = useHomeStore((state) => state.selectedLocation);
-  const { meta, hasCalculatedRisk, isFetching } = useHomeHeatRisk();
+  const { meta, hasCalculatedRisk } = useHomeHeatRisk();
 
   if (!hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.map.title")}>
-        <MapSkeleton showLoader={isFetching} />
+        <MapSkeleton />
       </SectionCard>
     );
   }
@@ -33,8 +34,8 @@ export function LocationMapSection() {
   if (!hasCoordinates) {
     return (
       <SectionCard title={t("home.sections.map.title")}>
-        <Paper withBorder radius="md" p="xl" bg="gray.0">
-          <Stack align="center" gap="xs">
+        <Paper withBorder radius="md" p={CONTENT_PADDING} bg="gray.0">
+          <Stack align="center" gap={CONTENT_GAP}>
             <Text fw={600}>
               {t("home.sections.map.missingCoordinatesTitle")}
             </Text>

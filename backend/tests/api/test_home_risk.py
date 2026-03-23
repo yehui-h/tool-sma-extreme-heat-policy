@@ -21,7 +21,14 @@ class SuccessfulRiskService:
                 "t_extreme": 39.2,
                 "recommendation": "Increase hydration & modify clothing",
             },
-            meta_data={"source": "test"},
+            meta_data={
+                "source": "test",
+                "location": {
+                    "latitude": -33.847,
+                    "longitude": 151.067,
+                    "timezone": "Australia/Sydney",
+                },
+            },
             forecast=[
                 {
                     "time_utc": "2026-03-09T00:00:00Z",
@@ -64,6 +71,7 @@ def test_post_home_risk_success_returns_pythermalcomfort_data() -> None:
     assert response.status_code == 200
     assert response.json()["heat_risk"]["risk_level_interpolated"] == 1.2
     assert "recommendation" in response.json()["heat_risk"]
+    assert response.json()["meta_data"]["location"]["timezone"] == "Australia/Sydney"
     assert response.json()["forecast"] == [
         {
             "time_utc": "2026-03-09T00:00:00Z",

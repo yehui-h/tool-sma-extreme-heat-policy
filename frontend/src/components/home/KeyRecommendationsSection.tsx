@@ -1,8 +1,8 @@
-import { Image, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { RISK_REGISTRY } from "@/domain/riskRegistry";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { KeyRecommendationsSkeleton } from "@/components/home/HomeSectionSkeletons";
+import { RecommendationIconGrid } from "@/components/home/RecommendationIconGrid";
 import { SectionCard } from "@/components/ui/SectionCard";
 
 /**
@@ -15,7 +15,7 @@ export function KeyRecommendationsSection() {
   if (!heatRisk.hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.keyRecommendations.title")}>
-        <KeyRecommendationsSkeleton showLoader={heatRisk.isFetching} />
+        <KeyRecommendationsSkeleton />
       </SectionCard>
     );
   }
@@ -26,47 +26,12 @@ export function KeyRecommendationsSection() {
   const icons = RISK_REGISTRY[heatRisk.riskLevel].keyIconPaths;
 
   const recommendations = icons
-    .map((icon, index) => ({ icon, label: labels[index] ?? "" }))
+    .map((icon, index) => ({ src: icon, label: labels[index] ?? "" }))
     .filter((item) => item.label);
-  const recommendationColumnCount = Math.max(recommendations.length, 1);
-  const mobileRecommendationColumnCount = Math.min(
-    recommendationColumnCount,
-    2,
-  );
 
   return (
     <SectionCard title={t("home.sections.keyRecommendations.title")}>
-      <SimpleGrid
-        cols={{
-          base: mobileRecommendationColumnCount,
-          sm: recommendationColumnCount,
-        }}
-        spacing="sm"
-      >
-        {recommendations.map((item) => (
-          <Stack key={item.label} align="center" gap="xs" p="md">
-            <Image
-              src={item.icon}
-              alt={item.label}
-              w={52}
-              h={52}
-              fit="contain"
-            />
-            <Text
-              fw={600}
-              ta="center"
-              title={item.label}
-              style={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {item.label}
-            </Text>
-          </Stack>
-        ))}
-      </SimpleGrid>
+      <RecommendationIconGrid items={recommendations} />
     </SectionCard>
   );
 }

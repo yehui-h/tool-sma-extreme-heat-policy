@@ -14,11 +14,11 @@ const EMPTY_SUGGESTIONS: LocationSuggestion[] = [];
 export type LocationSuggestErrorReason = HomeSuggestErrorReason;
 
 interface UseHomeLocationSuggestResult {
-  locationInput: string;
+  locationSearchInput: string;
   suggestionLabels: string[];
   isSuggestLoading: boolean;
   suggestErrorReason: LocationSuggestErrorReason | null;
-  onLocationInputChange: (value: string) => void;
+  onLocationSearchInputChange: (value: string) => void;
   onLocationOptionSubmit: (value: string) => void;
 }
 
@@ -200,7 +200,9 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
     import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ?? ""
   ).trim();
   const hasMapboxToken = mapboxAccessToken.length > 0;
-  const locationInput = useHomeStore((state) => state.locationInput);
+  const locationSearchInput = useHomeStore(
+    (state) => state.locationSearchInput,
+  );
   const selectedLocation = useHomeStore((state) => state.selectedLocation);
   const shouldAutoResolvePrefilledLocation = useHomeStore(
     (state) => state.shouldAutoResolvePrefilledLocation,
@@ -212,7 +214,9 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
     (state) => state.hasPrefilledLocationNotMatched,
   );
   const sessionToken = useHomeStore((state) => state.locationSessionToken);
-  const setLocationInput = useHomeStore((state) => state.setLocationInput);
+  const setLocationSearchInput = useHomeStore(
+    (state) => state.setLocationSearchInput,
+  );
   const selectLocation = useHomeStore((state) => state.selectLocation);
   const consumeAutoResolvePrefilledLocation = useHomeStore(
     (state) => state.consumeAutoResolvePrefilledLocation,
@@ -222,7 +226,7 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
   );
   const [hasRetrieveError, setHasRetrieveError] = useState(false);
 
-  const query = locationInput.trim();
+  const query = locationSearchInput.trim();
   const selectedLocationValue =
     selectedLocation?.formattedLocation.trim() ?? "";
   const language = useMemo(() => getLanguagePreference(), []);
@@ -327,14 +331,14 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
     suggestionCount: suggestions.length,
   });
 
-  const onLocationInputChange = (value: string) => {
+  const onLocationSearchInputChange = (value: string) => {
     if (hasRetrieveError) {
       setHasRetrieveError(false);
     }
     if (hasPrefilledNotMatched) {
       setHasPrefilledLocationNotMatched(false);
     }
-    setLocationInput(value);
+    setLocationSearchInput(value);
   };
 
   const onLocationOptionSubmit = (value: string) => {
@@ -357,11 +361,11 @@ export function useHomeLocationSuggest(): UseHomeLocationSuggestResult {
   };
 
   return {
-    locationInput,
+    locationSearchInput,
     suggestionLabels,
     isSuggestLoading: shouldSuggest && suggestQuery.isFetching,
     suggestErrorReason,
-    onLocationInputChange,
+    onLocationSearchInputChange,
     onLocationOptionSubmit,
   };
 }

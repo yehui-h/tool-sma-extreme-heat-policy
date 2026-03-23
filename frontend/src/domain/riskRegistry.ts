@@ -1,3 +1,6 @@
+import { getReadableTextColor } from "@/lib/colorContrast";
+import { RECOMMENDATION_ACTION_ASSETS } from "@/domain/recommendationActionAssets";
+
 export type RiskLevel = "low" | "moderate" | "high" | "extreme";
 
 export interface RiskRegistryEntry {
@@ -25,13 +28,17 @@ export const RISK_LEVELS: readonly RiskLevel[] = [
   "high",
   "extreme",
 ];
+export const MAX_RISK_SCORE = 4;
 
 export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
   low: {
     scoreLowerInclusive: 0,
     scoreUpperExclusive: 1,
     color: "#FFE478",
-    keyIconPaths: ["/actions/hydration.png", "/actions/clothing.png"],
+    keyIconPaths: [
+      RECOMMENDATION_ACTION_ASSETS.hydration,
+      RECOMMENDATION_ACTION_ASSETS.clothing,
+    ],
     levelKey: "risk.level.low",
     levelShortKey: "risk.levelShort.low",
     keyRecommendationsKey: "recommendations.key.low",
@@ -43,9 +50,9 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreUpperExclusive: 2,
     color: "#F5810C",
     keyIconPaths: [
-      "/actions/hydration.png",
-      "/actions/clothing.png",
-      "/actions/pause.png",
+      RECOMMENDATION_ACTION_ASSETS.hydration,
+      RECOMMENDATION_ACTION_ASSETS.clothing,
+      RECOMMENDATION_ACTION_ASSETS.pause,
     ],
     levelKey: "risk.level.moderate",
     levelShortKey: "risk.levelShort.moderate",
@@ -58,10 +65,10 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreUpperExclusive: 3,
     color: "#CF3838",
     keyIconPaths: [
-      "/actions/hydration.png",
-      "/actions/clothing.png",
-      "/actions/pause.png",
-      "/actions/cooling.png",
+      RECOMMENDATION_ACTION_ASSETS.hydration,
+      RECOMMENDATION_ACTION_ASSETS.clothing,
+      RECOMMENDATION_ACTION_ASSETS.pause,
+      RECOMMENDATION_ACTION_ASSETS.cooling,
     ],
     levelKey: "risk.level.high",
     levelShortKey: "risk.levelShort.high",
@@ -73,7 +80,7 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     scoreLowerInclusive: 3,
     scoreUpperExclusive: Number.POSITIVE_INFINITY,
     color: "#8C2439",
-    keyIconPaths: ["/actions/stop.png"],
+    keyIconPaths: [RECOMMENDATION_ACTION_ASSETS.stop],
     levelKey: "risk.level.extreme",
     levelShortKey: "risk.levelShort.extreme",
     keyRecommendationsKey: "recommendations.key.extreme",
@@ -105,6 +112,13 @@ export function getRiskColor(level: RiskLevel): string {
 }
 
 /**
+ * Returns the foreground color to use for risk badges.
+ */
+export function getRiskBadgeForegroundColor(level: RiskLevel): string {
+  return getReadableTextColor(getRiskColor(level));
+}
+
+/**
  * Returns long and short i18n keys for a risk level.
  */
 export function getRiskLevelI18nKeys(level: RiskLevel): {
@@ -124,7 +138,10 @@ export function getRiskBands(): RiskBand[] {
   return RISK_LEVELS.map((level) => ({
     level,
     lower: RISK_REGISTRY[level].scoreLowerInclusive,
-    upper: level === "extreme" ? 4 : RISK_REGISTRY[level].scoreUpperExclusive,
+    upper:
+      level === "extreme"
+        ? MAX_RISK_SCORE
+        : RISK_REGISTRY[level].scoreUpperExclusive,
     color: RISK_REGISTRY[level].color,
   }));
 }

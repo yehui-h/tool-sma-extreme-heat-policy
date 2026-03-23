@@ -18,30 +18,40 @@ import { AboutPage } from "@/pages/AboutPage";
 import { DetailedRecommendationsPage } from "@/pages/DetailedRecommendationsPage";
 import { HomePage } from "@/pages/HomePage";
 
-const router = createBrowserRouter([
+const routerBasename =
+  import.meta.env.BASE_URL === "/"
+    ? "/"
+    : import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <SiteShell />,
+      children: [
+        {
+          index: true,
+          element: <HomePage />,
+        },
+        {
+          path: "about",
+          element: <AboutPage />,
+        },
+        {
+          path: "detailed-recommendations",
+          element: <DetailedRecommendationsPage />,
+        },
+        {
+          path: "*",
+          element: <Navigate to="/" replace />,
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    element: <SiteShell />,
-    children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: "about",
-        element: <AboutPage />,
-      },
-      {
-        path: "detailed-recommendations",
-        element: <DetailedRecommendationsPage />,
-      },
-      {
-        path: "*",
-        element: <Navigate to="/" replace />,
-      },
-    ],
+    basename: routerBasename,
   },
-]);
+);
 
 const queryClient = new QueryClient();
 

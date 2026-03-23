@@ -1,10 +1,15 @@
 // Reduce nesting and improve spacing: use a clearer Stack gap, responsive chart height, and fewer small wrapper components
 import { Accordion, Badge, Flex, Group, Stack, Text } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
+import { CONTENT_GAP } from "@/config/uiLayout";
 import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import { createRiskLevelLabels } from "@/domain/riskLabels";
-import { getRiskColor, getRiskLevelI18nKeys } from "@/domain/riskRegistry";
+import {
+  getRiskBadgeForegroundColor,
+  getRiskColor,
+  getRiskLevelI18nKeys,
+} from "@/domain/riskRegistry";
 import { bindForecastHoverPoint, buildForecastOption } from "@/lib/riskCharts";
 import { formatDateLabel, formatWeekdayLabel } from "@/lib/formatDate";
 import { ForecastSkeleton } from "@/components/home/HomeSectionSkeletons";
@@ -19,13 +24,13 @@ const MOBILE_FORECAST_CHART_HEIGHT = 280;
  */
 export function ForecastSection() {
   const { t } = useTranslation();
-  const isMobile = useMediaQuery("(max-width: 48em)");
-  const { hasCalculatedRisk, isFetching, forecast } = useHomeHeatRisk();
+  const isMobile = useIsMobileViewport();
+  const { hasCalculatedRisk, forecast, meta } = useHomeHeatRisk();
 
   if (!hasCalculatedRisk) {
     return (
       <SectionCard title={t("home.sections.forecast.title")}>
-        <ForecastSkeleton showLoader={isFetching} />
+        <ForecastSkeleton />
       </SectionCard>
     );
   }
@@ -51,7 +56,7 @@ export function ForecastSection() {
   return (
     <SectionCard title={t("home.sections.forecast.title")}>
       {/* Use a single Stack with an explicit gap to control spacing between chart and accordion */}
-      <Stack gap="md">
+      <Stack gap={CONTENT_GAP}>
         <EChart
           option={buildForecastOption(
             today.points,
@@ -72,17 +77,32 @@ export function ForecastSection() {
                 <Group justify="space-between" wrap="nowrap">
                   {/* Reduced nesting: simple column for weekday + date */}
                   <Flex direction={"column"}>
-                    <Text fw={600}>{formatWeekdayLabel(day.date)}</Text>
+                    <Text fw={600}>
+                      {formatWeekdayLabel(day.date, {
+                        timeZone: meta.timeZone,
+                      })}
+                    </Text>
                     <Text c="dimmed" fz="sm">
-                      {formatDateLabel(day.date)}
+                      {formatDateLabel(day.date, {
+                        timeZone: meta.timeZone,
+                      })}
                     </Text>
                   </Flex>
-                  <Badge
-                    color={getRiskColor(day.risk)}
-                    mr="sm"
-                  >
-                    {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
-                  </Badge>
+                  <Group gap={CONTENT_GAP} mr={CONTENT_GAP} wrap="nowrap">
+                    <Text fz="sm">
+                      {t("home.sections.forecast.maxRiskLabel")}
+                    </Text>
+                    <Badge
+                      color={getRiskColor(day.risk)}
+                      styles={{
+                        root: {
+                          color: getRiskBadgeForegroundColor(day.risk),
+                        },
+                      }}
+                    >
+                      {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
+                    </Badge>
+                  </Group>
                 </Group>
               </Accordion.Control>
 

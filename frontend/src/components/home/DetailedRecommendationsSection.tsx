@@ -1,11 +1,17 @@
-import { Accordion, Image, List, SimpleGrid, Stack, Text } from "@mantine/core";
+import { Accordion, Badge, List, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import {
   RISK_LEVELS,
   RISK_REGISTRY,
+  getRiskBadgeForegroundColor,
   getRiskColor,
 } from "@/domain/riskRegistry";
+import { RecommendationIconGrid } from "@/components/home/RecommendationIconGrid";
 import { SectionCard } from "@/components/ui/SectionCard";
+import {
+  PARAGRAPH_GAP,
+  STANDARD_TEXT_LINE_HEIGHT,
+} from "@/config/uiTypography";
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
@@ -38,18 +44,10 @@ export function DetailedRecommendationsSection() {
           );
           const keyRecommendations = details.keyIconPaths
             .map((iconPath, index) => ({
-              iconPath,
+              src: iconPath,
               label: keyLabels[index] ?? "",
             }))
             .filter((item) => item.label);
-          const keyRecommendationColumnCount = Math.max(
-            keyRecommendations.length,
-            1,
-          );
-          const mobileKeyRecommendationColumnCount = Math.min(
-            keyRecommendationColumnCount,
-            2,
-          );
           const description = t(details.detailedDescriptionKey);
           const suggestions = toStringArray(
             t(details.detailedSuggestionsKey, {
@@ -60,49 +58,37 @@ export function DetailedRecommendationsSection() {
           return (
             <Accordion.Item key={level} value={level}>
               <Accordion.Control>
-                <Text fw={700} tt="uppercase" c={getRiskColor(level)}>
+                <Badge
+                  color={getRiskColor(level)}
+                  size="lg"
+                  styles={{
+                    root: {
+                      color: getRiskBadgeForegroundColor(level),
+                      paddingInline: 16,
+                    },
+                    label: {
+                      fontSize: "var(--mantine-font-size-md)",
+                      fontWeight: 700,
+                      letterSpacing: "0.06em",
+                    },
+                  }}
+                >
                   {t(details.levelKey).toUpperCase()}
-                </Text>
+                </Badge>
               </Accordion.Control>
               <Accordion.Panel>
-                <Stack gap="xs">
-                  <SimpleGrid
-                    cols={{
-                      base: mobileKeyRecommendationColumnCount,
-                      sm: keyRecommendationColumnCount,
-                    }}
-                    spacing="sm"
-                  >
-                    {keyRecommendations.map((item) => (
-                      <Stack key={item.label} align="center" gap="xs" p="sm">
-                        <Image
-                          src={item.iconPath}
-                          alt={item.label}
-                          w={52}
-                          h={52}
-                          fit="contain"
-                        />
-                        <Text
-                          fw={600}
-                          ta="center"
-                          title={item.label}
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {item.label}
-                        </Text>
-                      </Stack>
-                    ))}
-                  </SimpleGrid>
-                  <Text>{description}</Text>
-                  <Text>{t("recommendations.detailed.youShouldLabel")}</Text>
-                  <List spacing="xs" size="md">
+                <Stack gap={PARAGRAPH_GAP}>
+                  <RecommendationIconGrid items={keyRecommendations} />
+                  <Text lh={STANDARD_TEXT_LINE_HEIGHT}>{description}</Text>
+                  <Text lh={STANDARD_TEXT_LINE_HEIGHT}>
+                    {t("recommendations.detailed.youShouldLabel")}
+                  </Text>
+                  <List spacing={PARAGRAPH_GAP} size="md">
                     {suggestions.map((text, index) => (
                       <List.Item key={`${level}-suggestion-${index}`}>
-                        {text}
+                        <Text component="span" lh={STANDARD_TEXT_LINE_HEIGHT}>
+                          {text}
+                        </Text>
                       </List.Item>
                     ))}
                   </List>

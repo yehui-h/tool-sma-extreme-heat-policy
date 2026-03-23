@@ -5,26 +5,28 @@ import { DEFAULT_SPORT_TYPE, type SportType } from "@/domain/sport";
 export type HomeChannel = "shared" | "direct";
 export type LocationPrefillSource = "url" | "persisted" | "default" | "none";
 
+export interface HomeStoreBootstrapPayload {
+  channel: HomeChannel;
+  sport: SportType;
+  locationSearchInput: string;
+  locationPrefillSource: LocationPrefillSource;
+  shouldAutoResolvePrefilledLocation: boolean;
+}
+
 interface HomeStoreState {
   isBootstrapped: boolean;
   channel: HomeChannel;
   sport: SportType;
-  locationInput: string;
+  locationSearchInput: string;
   locationPrefillSource: LocationPrefillSource;
   selectedLocation: LocationSuggestion | null;
   shouldAutoResolvePrefilledLocation: boolean;
   hasPrefilledLocationNotMatched: boolean;
   locationSessionToken: string;
 
-  bootstrap: (payload: {
-    channel: HomeChannel;
-    sport: SportType;
-    locationInput: string;
-    locationPrefillSource: LocationPrefillSource;
-    shouldAutoResolvePrefilledLocation: boolean;
-  }) => void;
+  bootstrap: (payload: HomeStoreBootstrapPayload) => void;
   setSport: (sport: SportType) => void;
-  setLocationInput: (value: string) => void;
+  setLocationSearchInput: (value: string) => void;
   selectLocation: (suggestion: LocationSuggestion) => void;
   consumeAutoResolvePrefilledLocation: () => void;
   setHasPrefilledLocationNotMatched: (value: boolean) => void;
@@ -48,7 +50,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
   isBootstrapped: false,
   channel: "direct",
   sport: DEFAULT_SPORT_TYPE,
-  locationInput: "",
+  locationSearchInput: "",
   locationPrefillSource: "none",
   selectedLocation: null,
   shouldAutoResolvePrefilledLocation: false,
@@ -58,7 +60,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
   bootstrap: ({
     channel,
     sport,
-    locationInput,
+    locationSearchInput,
     locationPrefillSource,
     shouldAutoResolvePrefilledLocation,
   }) =>
@@ -66,7 +68,7 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
       isBootstrapped: true,
       channel,
       sport,
-      locationInput,
+      locationSearchInput,
       locationPrefillSource,
       selectedLocation: null,
       shouldAutoResolvePrefilledLocation,
@@ -74,32 +76,32 @@ export const useHomeStore = create<HomeStoreState>((set) => ({
       locationSessionToken: createSessionToken(),
     }),
   setSport: (sport) => set({ sport }),
-  setLocationInput: (value) =>
+  setLocationSearchInput: (value) =>
     set((state) => {
       const selectedLocationValue =
         state.selectedLocation?.formattedLocation ?? "";
-      if (state.selectedLocation && value !== selectedLocationValue) {
-        return {
-          locationInput: value,
-          locationPrefillSource: "none",
-          selectedLocation: null,
-          shouldAutoResolvePrefilledLocation: false,
-          hasPrefilledLocationNotMatched: false,
-          locationSessionToken: createSessionToken(),
-        };
-      }
+      const shouldClearSelectedLocation =
+        Boolean(state.selectedLocation) && value !== selectedLocationValue;
+      const isStartingNewSearch =
+        Boolean(state.selectedLocation) &&
+        state.locationSearchInput === selectedLocationValue &&
+        value !== selectedLocationValue;
 
       return {
-        locationInput: value,
+        locationSearchInput: value,
         locationPrefillSource: "none",
+        ...(shouldClearSelectedLocation ? { selectedLocation: null } : {}),
         shouldAutoResolvePrefilledLocation: false,
         hasPrefilledLocationNotMatched: false,
+        ...(isStartingNewSearch
+          ? { locationSessionToken: createSessionToken() }
+          : {}),
       };
     }),
   selectLocation: (suggestion) =>
     set({
       selectedLocation: suggestion,
-      locationInput: suggestion.formattedLocation,
+      locationSearchInput: suggestion.formattedLocation,
       locationPrefillSource: "none",
       shouldAutoResolvePrefilledLocation: false,
       hasPrefilledLocationNotMatched: false,

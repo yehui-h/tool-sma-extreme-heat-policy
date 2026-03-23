@@ -5,21 +5,25 @@ import type {
   TooltipComponentFormatterCallbackParams,
 } from "echarts";
 import { toRiskLevel, type ForecastPoint, type RiskLevel } from "@/domain/risk";
-import { getRiskBands, getRiskColor } from "@/domain/riskRegistry";
+import { USYD_ORANGE_HEX } from "@/config/uiColors";
+import {
+  getRiskBands,
+  getRiskColor,
+  MAX_RISK_SCORE,
+} from "@/domain/riskRegistry";
 
-const FORECAST_LINE_COLOR = "#e64626";
+const FORECAST_LINE_COLOR = USYD_ORANGE_HEX;
 const FORECAST_BAND_WHITE_MIX = 0.15;
-const GAUGE_SERIES_ID = "current-risk-gauge";
 const FORECAST_VISUAL_SERIES_ID = "forecast-visual-line";
+const FORECAST_POINT_SERIES_ID = "forecast-data-points";
 const FORECAST_TOOLTIP_SERIES_ID = "forecast-tooltip-line";
 const FORECAST_HIGHLIGHT_SERIES_ID = "forecast-highlight-point";
-const GAUGE_MAX_SCORE = 4;
 const FORECAST_HOUR_MINUTE_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const FORECAST_DISPLAY_PRECISION = 1;
+const FORECAST_AXIS_ALIGNMENT_EPSILON = 0.001;
+const FORECAST_POINT_SYMBOL_SIZE = 6;
 
 type ChartTypography = {
-  gaugeAxis: number;
-  gaugeValue: number;
-  gaugeTitle: number;
   forecastTitle: number;
   axis: number;
   riskBandAxis: number;
@@ -37,47 +41,27 @@ type ForecastLayout = {
 
 const CHART_TYPOGRAPHY: Record<"mobile" | "desktop", ChartTypography> = {
   mobile: {
-    gaugeAxis: 12,
-    gaugeValue: 28,
-    gaugeTitle: 14,
-    forecastTitle: 15,
+    forecastTitle: 14,
     axis: 12,
     riskBandAxis: 12,
     xAxisIntervalMinutes: 120,
   },
   desktop: {
-    gaugeAxis: 11,
-    gaugeValue: 26,
-    gaugeTitle: 13,
     forecastTitle: 14,
-    axis: 11,
-    riskBandAxis: 11,
+    axis: 12,
+    riskBandAxis: 12,
     xAxisIntervalMinutes: 60,
   },
 };
 
 const FORECAST_LAYOUT: ForecastLayout = {
-  gridLeft: 15,
-  gridRight: 10,
-  gridBottom: 20,
-  xAxisNameGap: 45,
-  yAxisNameGap: 20,
-  axisLabelMargin: 10,
+  gridLeft: 10,
+  gridRight: 16,
+  gridBottom: 16,
+  xAxisNameGap: 46,
+  yAxisNameGap: 16,
+  axisLabelMargin: 8,
 };
-
-interface GaugeLabels {
-  title: string;
-  riskLevelShort: Record<RiskLevel, string>;
-}
-
-interface GaugeSeriesOptions {
-  showPointer?: boolean;
-  pointerColor?: string;
-  showProgress?: boolean;
-  showAxisLabel?: boolean;
-  detailFormatter?: string;
-  detailValueAnimation?: boolean;
-}
 
 interface ForecastLabels {
   xAxisName: string;
@@ -99,117 +83,8 @@ interface ForecastAxisPointerEvent {
   axesInfo?: ForecastAxisPointerInfo[];
 }
 
-const GAUGE_LABEL_ORDER: RiskLevel[] = [
-  "low",
-  "moderate",
-  "high",
-  "extreme",
-  "extreme",
-];
-
 function getTypography(isMobile: boolean): ChartTypography {
   return isMobile ? CHART_TYPOGRAPHY.mobile : CHART_TYPOGRAPHY.desktop;
-}
-
-function toGaugeColorStops(): [number, string][] {
-  return getRiskBands().map((band) => [
-    band.upper / GAUGE_MAX_SCORE,
-    getRiskColor(band.level),
-  ]);
-}
-
-function getGaugeRiskLabel(
-  value: number,
-  labels: GaugeLabels["riskLevelShort"],
-): string {
-  const roundedValue = Math.round(value);
-  const riskLevel = GAUGE_LABEL_ORDER[roundedValue];
-
-  if (!riskLevel) {
-    return "";
-  }
-
-  return labels[riskLevel];
-}
-
-function createGaugeSeries(
-  score: number,
-  labels: GaugeLabels,
-  typography: ChartTypography,
-  options: GaugeSeriesOptions = {},
-) {
-  const {
-    showPointer = true,
-    pointerColor,
-    showProgress = true,
-    showAxisLabel = true,
-    detailFormatter = "{value}",
-    detailValueAnimation = false,
-  } = options;
-
-  return {
-    id: GAUGE_SERIES_ID,
-    type: "gauge" as const,
-    radius: "88%",
-    min: 0,
-    max: GAUGE_MAX_SCORE,
-    splitNumber: GAUGE_MAX_SCORE,
-    axisLine: {
-      lineStyle: {
-        width: 18,
-        color: toGaugeColorStops(),
-      },
-    },
-    pointer: {
-      show: showPointer,
-      length: "58%",
-      width: 6,
-      ...(pointerColor ? { itemStyle: { color: pointerColor } } : {}),
-    },
-    progress: {
-      show: showProgress,
-      width: 18,
-    },
-    axisTick: {
-      distance: -24,
-      splitNumber: 4,
-      lineStyle: {
-        width: 1,
-        color: "#fff",
-      },
-    },
-    splitLine: {
-      distance: -26,
-      length: 12,
-      lineStyle: {
-        width: 2,
-        color: "#fff",
-      },
-    },
-    axisLabel: {
-      show: showAxisLabel,
-      distance: -42,
-      color: "#fff",
-      fontSize: typography.gaugeAxis,
-      formatter(value: number) {
-        return getGaugeRiskLabel(value, labels.riskLevelShort);
-      },
-    },
-    detail: {
-      valueAnimation: detailValueAnimation,
-      formatter: detailFormatter,
-      offsetCenter: [0, "70%"],
-      color: "#1f2937",
-      fontSize: typography.gaugeValue,
-      fontWeight: 700,
-    },
-    title: {
-      offsetCenter: [0, "40%"],
-      color: "#4b5563",
-      fontSize: typography.gaugeTitle,
-    },
-    data: [{ value: Number(score.toFixed(1)), name: labels.title }],
-  };
 }
 
 function getBandUpperValue(value: number, upper: number): number {
@@ -257,7 +132,7 @@ function toForecastCoordinatePoints(
       parsedMinuteOffset !== null && parsedMinuteOffset > previousMinuteOffset
         ? parsedMinuteOffset
         : previousMinuteOffset < 0
-          ? parsedMinuteOffset ?? 0
+          ? (parsedMinuteOffset ?? 0)
           : previousMinuteOffset + 60;
 
     previousMinuteOffset = minuteOffset;
@@ -269,14 +144,16 @@ function toForecastCoordinatePoints(
   });
 }
 
-function toForecastChartPoints(points: ForecastChartPoint[]): ForecastChartPoint[] {
+function toForecastChartPoints(
+  points: ForecastChartPoint[],
+): ForecastChartPoint[] {
   if (points.length === 0) {
     return [];
   }
 
   const thresholds = getRiskBands()
     .map((band) => band.upper)
-    .filter((threshold) => threshold > 0 && threshold < GAUGE_MAX_SCORE);
+    .filter((threshold) => threshold > 0 && threshold < MAX_RISK_SCORE);
   const expandedPoints: ForecastChartPoint[] = [points[0]];
 
   for (let index = 1; index < points.length; index += 1) {
@@ -352,6 +229,19 @@ function toForecastPointDatum(point: ForecastChartPoint): [number, number] {
   return [point.minuteOffset, point.value];
 }
 
+function isForecastAxisTickAligned(
+  value: number,
+  anchor: number,
+  interval: number,
+): boolean {
+  const remainder = (value - anchor) % interval;
+
+  return (
+    Math.abs(remainder) < FORECAST_AXIS_ALIGNMENT_EPSILON ||
+    Math.abs(remainder - interval) < FORECAST_AXIS_ALIGNMENT_EPSILON
+  );
+}
+
 function updateForecastHighlightPoint(
   chart: EChartsType,
   point: ForecastChartPoint | null,
@@ -397,7 +287,10 @@ export function bindForecastHoverPoint(
       numericAxisValue,
     );
 
-    if (!nearestPoint || nearestPoint.minuteOffset === highlightedMinuteOffset) {
+    if (
+      !nearestPoint ||
+      nearestPoint.minuteOffset === highlightedMinuteOffset
+    ) {
       return;
     }
 
@@ -475,9 +368,8 @@ function formatForecastTooltip(
     return "";
   }
 
-  const axisValue = (
-    firstItem as typeof firstItem & { axisValue?: unknown }
-  ).axisValue;
+  const axisValue = (firstItem as typeof firstItem & { axisValue?: unknown })
+    .axisValue;
   const numericAxisValue =
     typeof axisValue === "number" ? axisValue : Number(axisValue);
   const nearestPoint = Number.isFinite(numericAxisValue)
@@ -493,12 +385,13 @@ function formatForecastTooltip(
       : firstItem.value;
   const numericValue =
     typeof rawValue === "number" ? rawValue : Number(rawValue);
+  const lineColor = FORECAST_LINE_COLOR;
   const markerColor = Number.isFinite(numericValue)
     ? getRiskColor(toRiskLevel(numericValue))
-    : FORECAST_LINE_COLOR;
+    : lineColor;
   const marker = `<span style="display:inline-block;margin-right:8px;border-radius:50%;width:10px;height:10px;background-color:${markerColor};"></span>`;
   const valueText = Number.isFinite(numericValue)
-    ? numericValue.toFixed(1)
+    ? numericValue.toFixed(FORECAST_DISPLAY_PRECISION)
     : String(rawValue ?? "");
 
   return `${formattedTime}<br/>${marker} ${tooltipRiskLabel}&nbsp;&nbsp;${valueText}`;
@@ -516,6 +409,7 @@ function createForecastXAxis(
     lastPoint && lastPoint.minuteOffset > min
       ? lastPoint.minuteOffset
       : min + typography.xAxisIntervalMinutes;
+  const labelAnchor = min;
 
   return {
     type: "value" as const,
@@ -538,7 +432,20 @@ function createForecastXAxis(
       hideOverlap: true,
       rotate: 90,
       formatter(value: string | number) {
-        return formatForecastMinutesLabel(Number(value));
+        const numericValue = typeof value === "number" ? value : Number(value);
+
+        if (
+          !Number.isFinite(numericValue) ||
+          !isForecastAxisTickAligned(
+            numericValue,
+            labelAnchor,
+            typography.xAxisIntervalMinutes,
+          )
+        ) {
+          return "";
+        }
+
+        return formatForecastMinutesLabel(numericValue);
       },
     },
   };
@@ -552,7 +459,7 @@ function createForecastYAxis(
     {
       type: "value" as const,
       min: 0,
-      max: GAUGE_MAX_SCORE,
+      max: MAX_RISK_SCORE,
       interval: 1,
       axisPointer: {
         show: false,
@@ -629,6 +536,8 @@ function createForecastSeries(
   forecastPoints: ForecastChartPoint[],
   labels: ForecastLabels,
 ): EChartsOption["series"] {
+  const lineColor = FORECAST_LINE_COLOR;
+
   return [
     ...toRiskBandSeries(chartPoints),
     {
@@ -639,19 +548,36 @@ function createForecastSeries(
       z: 10,
       silent: true,
       smooth: false,
+      symbol: "circle",
       showSymbol: false,
+      symbolSize: 0,
       emphasis: { disabled: true },
       tooltip: { show: false },
-      lineStyle: { width: 3, color: FORECAST_LINE_COLOR },
-      itemStyle: { color: FORECAST_LINE_COLOR },
+      lineStyle: { width: 3, color: lineColor },
+      itemStyle: { color: lineColor },
       data: chartPoints.map(toForecastPointDatum),
+    },
+    {
+      id: FORECAST_POINT_SERIES_ID,
+      name: `${labels.tooltipRiskLabel}-points`,
+      type: "scatter",
+      yAxisIndex: 0,
+      z: 11,
+      silent: true,
+      animation: false,
+      symbol: "circle",
+      symbolSize: FORECAST_POINT_SYMBOL_SIZE,
+      emphasis: { disabled: true },
+      tooltip: { show: false },
+      itemStyle: { color: lineColor },
+      data: forecastPoints.map(toForecastPointDatum),
     },
     {
       id: FORECAST_TOOLTIP_SERIES_ID,
       name: labels.tooltipRiskLabel,
       type: "line",
       yAxisIndex: 0,
-      z: 11,
+      z: 12,
       smooth: false,
       symbol: "none",
       showSymbol: false,
@@ -661,7 +587,7 @@ function createForecastSeries(
         opacity: 0,
       },
       itemStyle: {
-        color: FORECAST_LINE_COLOR,
+        color: lineColor,
         opacity: 0,
       },
       data: forecastPoints.map(toForecastPointDatum),
@@ -671,7 +597,7 @@ function createForecastSeries(
       name: `${labels.tooltipRiskLabel}-highlight`,
       type: "scatter",
       yAxisIndex: 0,
-      z: 12,
+      z: 13,
       silent: true,
       animation: false,
       symbol: "circle",
@@ -680,64 +606,12 @@ function createForecastSeries(
       tooltip: { show: false },
       itemStyle: {
         color: "#ffffff",
-        borderColor: FORECAST_LINE_COLOR,
+        borderColor: lineColor,
         borderWidth: 2,
       },
       data: [],
     },
   ];
-}
-
-/**
- * Builds ECharts option for the current risk gauge chart.
- */
-export function buildGaugeOption(
-  score: number,
-  labels: GaugeLabels,
-  isMobile = false,
-): EChartsOption {
-  const typography = getTypography(isMobile);
-  const safeScore = Number.isFinite(score) ? score : 0;
-  const pointerColor = getRiskColor(toRiskLevel(safeScore));
-
-  return {
-    animation: false,
-    tooltip: {
-      formatter: "{b}: {c}",
-    },
-    series: [
-      createGaugeSeries(safeScore, labels, typography, {
-        pointerColor,
-        showProgress: false,
-      }),
-    ],
-  };
-}
-
-/**
- * Builds ECharts option for pending state of current risk gauge chart.
- */
-export function buildPendingGaugeOption(
-  labels: GaugeLabels,
-  isMobile = false,
-): EChartsOption {
-  const typography = getTypography(isMobile);
-
-  return {
-    animation: false,
-    tooltip: {
-      show: false,
-    },
-    series: [
-      createGaugeSeries(0, labels, typography, {
-        showPointer: false,
-        showProgress: false,
-        showAxisLabel: false,
-        detailFormatter: "N/A",
-        detailValueAnimation: false,
-      }),
-    ],
-  };
 }
 
 /**
@@ -765,7 +639,7 @@ export function buildForecastOption(
     grid: {
       left: FORECAST_LAYOUT.gridLeft,
       right: FORECAST_LAYOUT.gridRight,
-      top: title ? 38 : 18,
+      top: title ? 2 : 2,
       bottom: FORECAST_LAYOUT.gridBottom,
       containLabel: true,
     },

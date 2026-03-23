@@ -10,13 +10,13 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { useDisclosure } from "@mantine/hooks";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
-import { PAGE_CONTAINER_PADDING } from "@/app/layout/layoutSpacing";
-
-const HEADER_HEIGHT = 50;
+import { CONTENT_PADDING } from "@/config/uiLayout";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
+import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
 
 function isRouteActive(currentPath: string, target: string): boolean {
   return target === "/" ? currentPath === "/" : currentPath.startsWith(target);
@@ -27,19 +27,26 @@ function isRouteActive(currentPath: string, target: string): boolean {
  */
 export function SiteHeader() {
   const [opened, { open, close }] = useDisclosure(false);
-  const isDesktop = useMediaQuery("(min-width: 769px)");
+  const isMobile = useIsMobileViewport();
   const location = useLocation();
   const { t } = useTranslation();
   const navItems = [
     { label: t("nav.home"), to: "/" },
     { label: t("nav.about"), to: "/about" },
   ];
+  const mobileNavItems = [
+    ...navItems,
+    {
+      label: t("nav.detailedRecommendations"),
+      to: "/detailed-recommendations",
+    },
+  ];
 
   useEffect(() => {
-    if (opened && isDesktop) {
+    if (opened && !isMobile) {
       close();
     }
-  }, [close, isDesktop, opened]);
+  }, [close, isMobile, opened]);
 
   const renderNavButton = (
     item: (typeof navItems)[number],
@@ -69,10 +76,16 @@ export function SiteHeader() {
   };
 
   return (
-    <Box component="header" bg="gray.1" h={HEADER_HEIGHT}>
-      <Container size="sm" px={PAGE_CONTAINER_PADDING} h="100%">
+    <Box px={{ base: CONTENT_PADDING.base, sm: 0 }}>
+      <Container
+        component="header"
+        size="sm"
+        px={{ base: 0, sm: CONTENT_PADDING.sm }}
+        bg="gray.1"
+        mt={CONTENT_PADDING}
+        mb={CONTENT_PADDING}
+      >
         <Box
-          h="100%"
           style={{
             display: "grid",
             gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
@@ -91,7 +104,7 @@ export function SiteHeader() {
             }}
           >
             <Image
-              src="/branding/logo-usyd-black.png"
+              src={toPublicAssetUrl("branding/logo-usyd-black.png")}
               alt={t("nav.logoAlt")}
               height={35}
               width="auto"
@@ -110,7 +123,7 @@ export function SiteHeader() {
           </Text>
 
           <Box style={{ justifySelf: "end" }}>
-            {isDesktop ? (
+            {!isMobile ? (
               <Group gap="xs" wrap="nowrap">
                 {navItems.map((item) =>
                   renderNavButton(item, {
@@ -139,7 +152,7 @@ export function SiteHeader() {
         size="66.67vw"
       >
         <Stack gap="xs">
-          {navItems.map((item) =>
+          {mobileNavItems.map((item) =>
             renderNavButton(item, {
               inactiveVariant: "light",
               size: "md",

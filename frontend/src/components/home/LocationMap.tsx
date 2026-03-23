@@ -1,6 +1,7 @@
 import { Box } from "@mantine/core";
 import maplibregl from "maplibre-gl";
 import { useEffect, useRef } from "react";
+import { USYD_ORANGE_HEX } from "@/config/uiColors";
 
 const MAP_HEIGHT = 160;
 const DEFAULT_MAP_ZOOM = 11;
@@ -57,7 +58,7 @@ export function LocationMap({ latitude, longitude, label }: LocationMapProps) {
       },
     });
 
-    const marker = new maplibregl.Marker({ color: "#d9480f" })
+    const marker = new maplibregl.Marker({ color: USYD_ORANGE_HEX })
       .setLngLat([longitude, latitude])
       .addTo(map);
 

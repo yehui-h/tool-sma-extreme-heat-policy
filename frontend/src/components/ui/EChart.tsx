@@ -7,10 +7,7 @@ interface EChartProps {
   option: EChartsOption;
   height: number;
   bindChart?:
-    | ((
-        chart: EChartsType,
-        container: HTMLDivElement,
-      ) => void | (() => void))
+    | ((chart: EChartsType, container: HTMLDivElement) => void | (() => void))
     | undefined;
 }
 

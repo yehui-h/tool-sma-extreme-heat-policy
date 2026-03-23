@@ -1,11 +1,31 @@
 import { createTheme, rem } from "@mantine/core";
+import { SITE_MOBILE_BREAKPOINT } from "@/config/uiBreakpoints";
+import { BRAND_COLOR_SCALE } from "@/config/uiColors";
 
 export const appTheme = createTheme({
-  primaryColor: "orange",
+  primaryColor: "brand",
+  primaryShade: 6,
   fontFamily: "Open Sans, Arial, sans-serif",
+  fontSizes: {
+    xs: rem(12),
+    sm: rem(14),
+    md: rem(16),
+    lg: rem(18),
+    xl: rem(20),
+  },
   headings: {
     fontFamily: "Open Sans, Arial, sans-serif",
     fontWeight: "700",
+    sizes: {
+      h2: {
+        fontSize: rem(24),
+        lineHeight: "1.3",
+      },
+      h3: {
+        fontSize: rem(20),
+        lineHeight: "1.35",
+      },
+    },
   },
   defaultRadius: "md",
   spacing: {
@@ -17,24 +37,13 @@ export const appTheme = createTheme({
   },
   breakpoints: {
     xs: "36em",
-    sm: "48em",
+    sm: SITE_MOBILE_BREAKPOINT,
     md: "62em",
     lg: "75em",
     xl: "88em",
   },
   colors: {
-    brand: [
-      "#fff1eb",
-      "#ffe0d4",
-      "#ffc3a7",
-      "#ffa273",
-      "#ff8045",
-      "#f2652f",
-      "#e15220",
-      "#c73e12",
-      "#a7320d",
-      "#7f2309",
-    ],
+    brand: [...BRAND_COLOR_SCALE],
   },
   components: {
     Stack: {

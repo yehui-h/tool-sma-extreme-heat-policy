@@ -1,0 +1,5 @@
+# OS artifacts
+.DS_Store
+
+# IDE/editor metadata
+.idea/

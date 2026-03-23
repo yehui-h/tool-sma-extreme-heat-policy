@@ -1,7 +1,7 @@
-import { Stack } from "@mantine/core";
+import { Accordion } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { AboutSectionBlock } from "@/components/about/AboutSectionBlock";
-import { PAGE_SECTION_GAP } from "@/app/layout/layoutSpacing";
+import { SectionCard } from "@/components/ui/SectionCard";
 import type { AboutSection } from "@/domain/about";
 
 /**
@@ -12,12 +12,20 @@ export function AboutPage() {
   const sections = t("about.sections", {
     returnObjects: true,
   }) as AboutSection[];
+  const defaultSectionValue = sections[0]?.iconKey;
 
   return (
-    <Stack gap={PAGE_SECTION_GAP}>
-      {sections.map((section) => (
-        <AboutSectionBlock key={section.title} section={section} />
-      ))}
-    </Stack>
+    <SectionCard>
+      <Accordion
+        chevronPosition="right"
+        variant="separated"
+        radius="md"
+        defaultValue={defaultSectionValue}
+      >
+        {sections.map((section) => (
+          <AboutSectionBlock key={section.iconKey} section={section} />
+        ))}
+      </Accordion>
+    </SectionCard>
   );
 }
