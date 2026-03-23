@@ -20,26 +20,31 @@ Where to make changes:
 - Python 3.12
 - `uv`
 
-## Setup
+## How to get started locally
+
+### Setup
+To complete the following action you need to have UV installed on your computer.
 ```bash
 cd backend
-UV_CACHE_DIR=/tmp/uv-cache uv sync
+uv sync
 ```
 
-## Environment
-Copy `backend/.env.example` to `backend/.env`.
+### Environment
+Copy `backend/.env.example` to `backend/.env` using the command `cp .env.example .env`.
 
-## Run locally
+### Run locally
 ```bash
-cd backend
-UV_CACHE_DIR=/tmp/uv-cache uv run uvicorn sma_extreme_heat_backend.main:app --reload --port 8000
+uv run uvicorn sma_extreme_heat_backend.main:app --reload --port 8000
 ```
 
+## Test the API
+
+To tst the API, you can use the command below, please make sure you are in the `backend` directory and the local server is running.
+
+```bash
 ## Lint and tests
-```bash
-cd backend
-UV_CACHE_DIR=/tmp/uv-cache uv run ruff check .
-UV_CACHE_DIR=/tmp/uv-cache uv run pytest
+uv run ruff check .
+uv run pytest
 ```
 
 ## API
