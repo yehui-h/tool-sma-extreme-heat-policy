@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy
-import seaborn as sns
 
 from pythermalcomfort.models import phs
 from pythermalcomfort.utilities import mean_radiant_tmp
@@ -460,6 +459,7 @@ class Sport:
 @lru_cache(maxsize=10000)
 def get_sports_heat_stress_curves(
     tdb,
+    tg,
     rh,
     v,
     sweat_loss_g,
@@ -467,8 +467,6 @@ def get_sports_heat_stress_curves(
     weight,
     t_cr_extreme,
     clo=None,
-    tr=None,
-    tg=None,
     met=None,
     sport_id="soccer",
 ):
@@ -496,9 +494,7 @@ def get_sports_heat_stress_curves(
     elif v > sport_dict["wind_high"]:
         v = sport_dict["wind_high"]
 
-    if tg is not None:
-        tr = mean_radiant_tmp(tdb=tdb, tg=tg, v=v)
-    # tr = mean_radiant_tmp(tdb=tdb, tg=tg, v=v)
+    tr = mean_radiant_tmp(tdb=tdb, tg=tg, v=v)
 
     def calculate_threshold_water_loss(x):
         return (
@@ -641,26 +637,6 @@ def plot_risk_boundaries(ax, df, label_prefix="", linestyle="-"):
 
 if __name__ == "__main__":
     # for person in ["less_10y", "10_13y", "14_17y", "adult"]:
-    # this is a simple test to check the function runs and to show how to calculate the mean radiant temperature
-    t = 40
-    tg = t + 10
-    rh = 60
-    v = 1
-    tr = float(mean_radiant_tmp(tdb=t, tg=tg, v=v))
-    get_sports_heat_stress_curves(
-        tdb=t,
-        # tg=tg,
-        tr=tr,
-        rh=rh,
-        v=1.0,
-        sport_id="soccer",
-        sweat_loss_g=850,
-        height=180,
-        weight=75,
-        t_cr_extreme=40,
-    )
-
-    # main function to generate the heatmaps and risk boundaries for soccer - adult - as pythermalcomfort
     sport = "soccer"
     tg_delta = 5  # tg - tdb
 
@@ -713,55 +689,53 @@ if __name__ == "__main__":
     )
     plt.show()
     #
-    # plot the heatmaps for the new pythermalcomofort equation and the old SMA equation side by side.
-    f, axs = plt.subplots(3, 1, figsize=(7, 7), sharex=True, sharey=True)
-
-    df_pivot = df_new.pivot(index="rh", columns="tdb", values="risk")
-    df_pivot.sort_index(ascending=False, inplace=True)
-    sns.heatmap(df_pivot, annot=False, cmap="magma", ax=axs[0], vmin=0, vmax=3)
-
-    df_pivot_sma = df_sma.pivot(index="rh", columns="tdb", values="risk")
-    df_pivot_sma.sort_index(ascending=False, inplace=True)
-    sns.heatmap(df_pivot_sma, annot=False, cmap="magma", ax=axs[1], vmin=0, vmax=3)
-
-    df_new["diff"] = df_sma["risk"] - df_new["risk"]
-    df_diff_pivot = df_new.pivot(index="rh", columns="tdb", values="diff")
-    df_diff_pivot.sort_index(ascending=False, inplace=True)
-    sns.heatmap(
-        df_diff_pivot,
-        annot=False,
-        center=0,
-        cmap="coolwarm",
-        ax=axs[2],
-        vmin=-3,
-        vmax=3,
-    )
-
-    axs[0].set_title(
-        f"{sports_dict[sport]['sport']} - adult - Heat stress risk (PHS model)",
-        fontsize=14,
-    )
-    axs[1].set_title(
-        f"{sports_dict[sport]['sport']} - Heat stress risk (SMA model)", fontsize=14
-    )
-    axs[2].set_title(
-        f"{sports_dict[sport]['sport']} - Difference in risk levels (SMA -PHS)",
-        fontsize=14,
-    )
-    axs[0].set_ylabel("Relative Humidity (%)", fontsize=12)
-    axs[1].set_ylabel("Relative Humidity (%)", fontsize=12)
-    axs[2].set_ylabel("Relative Humidity (%)", fontsize=12)
-    axs[0].set_xlabel("Air Temperature (°C)", fontsize=12)
-    axs[1].set_xlabel("Air Temperature (°C)", fontsize=12)
-    axs[2].set_xlabel("Air Temperature (°C)", fontsize=12)
-    plt.tight_layout()
-    plt.savefig(
-        f"sma_kids/figures/{sport}_v={v}_tg_delta={tg_delta}_adult.png",
-        dpi=300,
-    )
-    plt.show()
-
-    # below is the code for the kids.
+    # # plot side by side heatmaps
+    # f, axs = plt.subplots(3, 1, figsize=(7, 7), sharex=True, sharey=True)
+    #
+    # df_pivot = df_new.pivot(index="rh", columns="tdb", values="risk")
+    # df_pivot.sort_index(ascending=False, inplace=True)
+    # sns.heatmap(df_pivot, annot=False, cmap="magma", ax=axs[0], vmin=0, vmax=3)
+    #
+    # df_pivot_sma = df_sma.pivot(index="rh", columns="tdb", values="risk_value")
+    # df_pivot_sma.sort_index(ascending=False, inplace=True)
+    # sns.heatmap(df_pivot_sma, annot=False, cmap="magma", ax=axs[1], vmin=0, vmax=3)
+    #
+    # df_new["diff"] = df_sma["risk_value"] - df_new["risk"]
+    # df_diff_pivot = df_new.pivot(index="rh", columns="tdb", values="diff")
+    # df_diff_pivot.sort_index(ascending=False, inplace=True)
+    # sns.heatmap(
+    #     df_diff_pivot,
+    #     annot=False,
+    #     center=0,
+    #     cmap="coolwarm",
+    #     ax=axs[2],
+    #     vmin=-3,
+    #     vmax=3,
+    # )
+    #
+    # axs[0].set_title(
+    #     f"{sports_dict[sport]['sport']} - adult - Heat stress risk (PHS model)",
+    #     fontsize=14,
+    # )
+    # axs[1].set_title(
+    #     f"{sports_dict[sport]['sport']} - Heat stress risk (SMA model)", fontsize=14
+    # )
+    # axs[2].set_title(
+    #     f"{sports_dict[sport]['sport']} - Difference in risk levels (SMA -PHS)",
+    #     fontsize=14,
+    # )
+    # axs[0].set_ylabel("Relative Humidity (%)", fontsize=12)
+    # axs[1].set_ylabel("Relative Humidity (%)", fontsize=12)
+    # axs[2].set_ylabel("Relative Humidity (%)", fontsize=12)
+    # axs[0].set_xlabel("Air Temperature (°C)", fontsize=12)
+    # axs[1].set_xlabel("Air Temperature (°C)", fontsize=12)
+    # axs[2].set_xlabel("Air Temperature (°C)", fontsize=12)
+    # plt.tight_layout()
+    # plt.savefig(
+    #     f"sma_kids/figures/{sport}_v={v}_tg_delta={tg_delta}_adult.png",
+    #     dpi=300,
+    # )
+    # plt.show()
 
     # for person in ["less_10y", "10_13y", "14_17y"]:
     for person in ["less_10y", "10_13y", "14_17y"]:
