@@ -28,6 +28,17 @@ class SuccessfulRiskService:
                     "longitude": 151.067,
                     "timezone": "Australia/Sydney",
                 },
+                "mrt": {
+                    "timezone": "Australia/Sydney",
+                    "radiation": 700.0,
+                    "elevation": 50.0,
+                    "dni": 525.0,
+                    "delta_mrt": 6.25,
+                    "tr": 37.25,
+                    "constants": {
+                        "sharp": 45,
+                    },
+                },
             },
             forecast=[
                 {
@@ -72,6 +83,7 @@ def test_post_home_risk_success_returns_pythermalcomfort_data() -> None:
     assert response.json()["heat_risk"]["risk_level_interpolated"] == 1.2
     assert "recommendation" in response.json()["heat_risk"]
     assert response.json()["meta_data"]["location"]["timezone"] == "Australia/Sydney"
+    assert response.json()["meta_data"]["mrt"]["tr"] == 37.25
     assert response.json()["forecast"] == [
         {
             "time_utc": "2026-03-09T00:00:00Z",

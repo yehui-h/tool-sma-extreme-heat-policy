@@ -12,13 +12,17 @@ from sma_extreme_heat_backend.core.errors import WeatherProviderError
 _HOURLY_FIELDS: tuple[str, ...] = (
     "temperature_2m",
     "relative_humidity_2m",
+    "cloud_cover",
     "wind_speed_10m",
+    "direct_normal_irradiance",
 )
 
 _EXPECTED_HOURLY_UNITS: dict[str, set[str]] = {
     "temperature_2m": {"\N{DEGREE SIGN}C"},
     "relative_humidity_2m": {"%"},
+    "cloud_cover": {"%"},
     "wind_speed_10m": {"m/s"},
+    "direct_normal_irradiance": {"W/m²", "W/m^2"},
 }
 
 
@@ -26,23 +30,28 @@ _EXPECTED_HOURLY_UNITS: dict[str, set[str]] = {
 class CurrentWeather:
     tdb: float | None
     rh: float | None
-    vr: float | None
+    cloud: float | None
+    wind: float | None
+    radiation: float | None
     raw: dict[str, Any]
 
 
 @dataclass(frozen=True)
 class HourlyWeatherPoint:
+    raw_time: str
     time_utc: datetime
     tdb: float | None
     rh: float | None
-    vr: float | None
+    cloud: float | None
+    wind: float | None
+    radiation: float | None
 
 
 @dataclass(frozen=True)
 class WeatherForecast:
     points: list[HourlyWeatherPoint]
     raw: dict[str, Any]
-    timezone: str
+    provider_timezone: str
 
 
 def _to_float_or_none(value: Any) -> float | None:
@@ -120,7 +129,9 @@ def _extract_hourly_series(
         _to_utc_timestamp_or_none(item, provider_time_zone=provider_time_zone) for item in raw_time
     ]
     if any(item is None for item in timestamps):
-        raise WeatherProviderError("Weather provider response contained invalid hourly.time values")
+        raise WeatherProviderError(
+            "Weather provider response contained invalid hourly.time values"
+        )
 
     series_data: dict[str, list[Any]] = {"time": raw_time}
     for field in _HOURLY_FIELDS:
@@ -152,10 +163,15 @@ def _select_hourly_points(payload: dict[str, Any]) -> tuple[str, list[HourlyWeat
         timezone_name,
         [
             HourlyWeatherPoint(
+                raw_time=str(series_data["time"][idx]),
                 time_utc=timestamp,
                 tdb=_to_float_or_none(series_data["temperature_2m"][idx]),
                 rh=_to_float_or_none(series_data["relative_humidity_2m"][idx]),
-                vr=_to_float_or_none(series_data["wind_speed_10m"][idx]),
+                cloud=_to_float_or_none(series_data["cloud_cover"][idx]),
+                wind=_to_float_or_none(series_data["wind_speed_10m"][idx]),
+                radiation=_to_float_or_none(
+                    series_data["direct_normal_irradiance"][idx]
+                ),
             )
             for idx, timestamp in candidate_rows
         ],
@@ -176,13 +192,18 @@ class OpenMeteoClient:
             timeout=timeout_seconds,
         )
 
-    async def fetch_weather_forecast(self, *, latitude: float, longitude: float) -> WeatherForecast:
+    async def fetch_weather_forecast(
+        self,
+        *,
+        latitude: float,
+        longitude: float,
+    ) -> WeatherForecast:
         params = {
             "latitude": latitude,
             "longitude": longitude,
             "hourly": ",".join(_HOURLY_FIELDS),
             "wind_speed_unit": "ms",
-            "timezone": "auto",
+            "timezone": "GMT",
         }
 
         try:
@@ -197,10 +218,15 @@ class OpenMeteoClient:
         return WeatherForecast(
             points=points,
             raw=payload,
-            timezone=timezone_name,
+            provider_timezone=timezone_name,
         )
 
-    async def fetch_current_weather(self, *, latitude: float, longitude: float) -> CurrentWeather:
+    async def fetch_current_weather(
+        self,
+        *,
+        latitude: float,
+        longitude: float,
+    ) -> CurrentWeather:
         forecast = await self.fetch_weather_forecast(
             latitude=latitude,
             longitude=longitude,
@@ -209,7 +235,9 @@ class OpenMeteoClient:
         return CurrentWeather(
             tdb=current.tdb,
             rh=current.rh,
-            vr=current.vr,
+            cloud=current.cloud,
+            wind=current.wind,
+            radiation=current.radiation,
             raw=forecast.raw,
         )
 
