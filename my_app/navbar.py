@@ -13,19 +13,26 @@ def my_navbar():
             dmc.Grid(
                 [
                     dmc.GridCol(
-                        dmc.Image(
-                            src="../assets/icons/logo-usyd-black.png",
-                            h=35,
-                            flex=0,
-                            fit="contain",
+                        dmc.Anchor(
+                            dmc.Image(
+                                src="../assets/icons/logo-usyd-black.png",
+                                h=35,
+                                flex=0,
+                                fit="contain",
+                            ),
+                            href="/",
                         ),
                         span={"base": 4, "xs": 3},
                         style={"textAlign": "left"},
                     ),
                     dmc.GridCol(
-                        dmc.Text(
-                            "Sports Heat Tool",
-                            fw=700,
+                        dmc.Anchor(
+                            dmc.Text(
+                                "Sports Heat Tool",
+                                fw=700,
+                            ),
+                            href="/",
+                            style={"textDecoration": "none", "color": "black"},
                         ),
                         span={"base": 5, "xs": 3},
                         px=0,

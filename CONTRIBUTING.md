@@ -1,8 +1,8 @@
 # Contributing
 
-Thank you for your interest in improving the Sports Medicine Australia Extreme Heat Policy Tool!
+Thank you for contributing to the Sports Medicine Australia Extreme Heat Policy Tool.
 
-## How to Contribute
+This document explains the minimal steps to get started developing, testing, and deploying. Longer or sensitive procedures (CI secrets, long scripts) belong in the repo CI or scripts and are not repeated here.
 
 1. **Fork the repository**
 2. **Create a feature branch**
@@ -26,7 +26,8 @@ Thank you for your interest in improving the Sports Medicine Australia Extreme H
     git commit -m "Describe your change"
     git push origin feature/your-feature-name
     ```
-7. **Open a Pull Request** on GitHub
+7. Bump the version `bump-my-version bump patch`
+8**Open a Pull Request** on GitHub
 
 ## Deployment
 
@@ -35,11 +36,24 @@ However, you can also deploy manually using the following commands.
 
 ### Build and Push Test Version
 
+You can build it locally and push using `deploy.sh`, or use Cloud Build to build and push.
+
 ```bash
 gcloud components update --quiet
-python -m pytest --numprocesses 3 --base-url http://0.0.0.0:8080
+python -m pytest --numprocesses auto --base-url http://0.0.0.0:8080
 gcloud builds submit --project=sma-extreme-heat-policy --substitutions=_REPO_NAME="extreme-heat-tool-test",_PROJ_NAME="sma-extreme-heat-policy",_IMG_NAME="test"
-python -m pytest --numprocesses 3 --base-url https://extreme-heat-tool-test-987661761927.asia-southeast1.run.app
+python -m pytest --numprocesses auto --base-url https://extreme-heat-tool-test-987661761927.asia-southeast1.run.app
+```
+
+Alternatively, build locally and push:
+```bash
+gcloud components update --quiet
+# gcloud auth configure-docker australia-southeast1-docker.pkg.dev
+gcloud auth login
+gcloud config set project sma-extreme-heat-policy
+docker buildx build --platform=linux/amd64 -t australia-southeast1-docker.pkg.dev/sma-extreme-heat-policy/extreme-heat-tool-test/image:test .
+docker push australia-southeast1-docker.pkg.dev/sma-extreme-heat-policy/extreme-heat-tool-test/image:test
+gcloud run deploy extreme-heat-tool-test --project sma-extreme-heat-policy --image australia-southeast1-docker.pkg.dev/sma-extreme-heat-policy/extreme-heat-tool-test/image --region australia-southeast1 --platform managed --allow-unauthenticated
 ```
 
 ### Publish Main Version
@@ -99,8 +113,13 @@ for revision in revisions_to_delete:
 
 ## Issues
 
-If you find a bug or have a feature request, please open an issue on GitHub and use the appropriate label.
+Open issues on GitHub with:
+- short description
+- steps to reproduce
+- expected vs actual behaviour
+- logs or screenshots if applicable
 
+## Code of conduct and licence
 
-
-
+- See `LICENSE` and `LEGAL.md` (or project root) for licence and legal notices.
+- Follow repository code style and tests.

@@ -2,19 +2,26 @@ import time
 import warnings
 from dataclasses import dataclass
 from enum import Enum
+from threading import Lock
 
 import dash_bootstrap_components as dbc
 import numpy as np
+import openmeteo_requests
+import pandas as pd
+import pytz
+import requests
+import requests_cache
 import scipy
-from cachetools import cached, TTLCache
+from cachetools import TTLCache
 from dash import html
 from icecream import ic
 from matplotlib import pyplot as plt
+from pvlib import location
+from pythermalcomfort.models import solar_gain, phs
 from pythermalcomfort.utilities import mean_radiant_tmp
+from retry_requests import retry
+from timezonefinder import TimezoneFinder
 
-import pandas as pd
-import requests
-import pytz
 from config import (
     sma_risk_messages,
     mrt_calculation,
@@ -22,22 +29,26 @@ from config import (
     default_location,
     get_postcodes,
 )
-from pvlib import location
-from pythermalcomfort.models import solar_gain, phs
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
-from timezonefinder import TimezoneFinder
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-app_version = "1.1.2"
+app_version = "1.2.2"
 app_version = app_version.replace(".", "")
 store_settings_dict = f"local-storage-settings-{app_version}"
 store_weather_risk_df = f"session-storage-weather-{app_version}"
 storage_user_id = "user-id"
 
 tf = TimezoneFinder()  # reuse
+
+df_risk_parquet = pd.read_parquet("assets/risk_reference_table.parquet")
+
+# Server-side cache for weather data (shared across all users on same instance)
+# TTL of 3600 seconds (1 hour) - weather data doesn't change that frequently
+# maxsize of 100 - cache up to 100 location/sport combinations
+weather_cache = TTLCache(maxsize=100, ttl=3600)
+weather_cache_lock = Lock()
+
+print("[CACHE] Weather cache initialized: maxsize=100, ttl=3600s (1 hour)")
 
 
 @dataclass()
@@ -84,9 +95,6 @@ class Cols:
 sports_category = sports_info[["sport", "sport_cat"]].copy().set_index("sport")
 sports_category = sports_category.sort_index().to_dict()["sport_cat"]
 
-# this file is generated running the functino generate_reference_table_risk()
-df_risk_parquet = pd.read_parquet("assets/risk_reference_table.parquet")
-
 headers = {
     "User-Agent": (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) "
@@ -117,7 +125,7 @@ def yr_weather(lat=-33.8862, lon=151.1791, tz="Australia/Sydney"):
 
 
 def open_weather(lat, lon):
-    cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
+    cache_session = requests_cache.CachedSession(".cache", expire_after=600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
 
@@ -169,7 +177,6 @@ def open_weather(lat, lon):
     return df_for
 
 
-@cached(cache=TTLCache(maxsize=10, ttl=600))
 def get_weather(
     lat: float = -33.8862,
     lon: float = 151.1791,
@@ -181,6 +188,7 @@ def get_weather(
     provider: str
         open-meteo or yr
     """
+    start = time.time()
     try:
         if provider == "open-meteo":
             df_weather = open_weather(lat, lon)
@@ -208,6 +216,8 @@ def get_weather(
     df_weather[Cols.lat] = lat
     df_weather[Cols.lon] = lon
     df_weather[Cols.tz] = tz
+
+    ic("Weather fetch duration:", time.time() - start)
 
     return calculate_mean_radiant_tmp(df_weather)
 
@@ -347,8 +357,8 @@ def calculate_mean_radiant_tmp(df_for):
 
         try:
             tg = scipy.optimize.brentq(calculate_globe_temperature, 0, 200)
-        except ValueError as e:
-            ic(f"Brentq failed for globe temperature: {e}")
+        except ValueError:
+            # ic(f"Brentq failed for globe temperature: {e}")
             tg = 0
         erf_mrt_dict[Cols.tg] = tg
         # print(erf_mrt_dict, row[Cols.tdb], row[Cols.wind])
@@ -443,10 +453,12 @@ class GlobeTemperatures(Enum):
     high: str = 12
 
 
-# cache weather data for no longer than ten minutes
-@cached(cache=TTLCache(maxsize=10, ttl=600))
 def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
-    """Get weather data and calculate risk using user settings.
+    """Get weather data and calculate risk using user settings with server-side caching.
+
+    This function implements server-side caching to prevent multiple concurrent users
+    from triggering redundant API calls for the same location/sport combination.
+    Cache is shared across all users on the same Cloud Run instance.
 
     Parameters
     ----------
@@ -464,7 +476,26 @@ def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
     ------
     ValueError
         If required settings fields are missing.
+
+    Notes
+    -----
+    Cache behavior:
+    - TTL: 1 hour (weather data doesn't change frequently)
+    - Max size: 100 location/sport combinations
+    - Thread-safe: Uses lock to prevent race conditions
+    - Returns a copy to prevent cache pollution
     """
+    cache_key = f"{location}_{sport}"
+
+    # Check cache first (with thread safety)
+    with weather_cache_lock:
+        if cache_key in weather_cache:
+            print(f"[CACHE HIT] {cache_key} - Returning cached weather data")
+            # Return a copy to prevent accidental modifications affecting the cache
+            return weather_cache[cache_key].copy()
+
+    # Cache miss - fetch data from API
+    print(f"[CACHE MISS] {cache_key} - Fetching from weather API...")
     start = time.time()
 
     loc_selected = get_info_location_selected(location=location)
@@ -472,15 +503,23 @@ def get_weather_and_calculate_risk(location: str, sport: str) -> pd.DataFrame:
     df_for = get_weather(
         lat=loc_selected[Cols.lat], lon=loc_selected[Cols.lon], tz=loc_selected[Cols.tz]
     )
+    ic("Weather fetched", time.time() - start)
+    start = time.time()
 
     df = calculate_comfort_indices_v2(df_for, sport)
 
-    ic("get_weather_and_calculate_risk", time.time() - start)
+    ic("Calculate risk", time.time() - start)
+
+    # Store in cache (with thread safety)
+    with weather_cache_lock:
+        weather_cache[cache_key] = df.copy()
+        print(
+            f"[CACHE STORE] {cache_key} - Cached for 1 hour (cache size: {len(weather_cache)}/100)"
+        )
 
     return df
 
 
-@cached(cache=TTLCache(maxsize=10, ttl=600))
 def get_info_location_selected(location: str) -> dict:
     """Get information about the selected location."""
     try:
@@ -760,7 +799,7 @@ def generate_reference_table_risk():
         )
         sport = Sport(**sport_dict[0])
         v_array = np.arange(max(sport.wind_low - 0.5, 0), sport.wind_high + 0.5, 0.1)
-        v_array = set([round(round(x / 0.5) * 0.5, 2) for x in v_array])
+        v_array = {round(round(x / 0.5) * 0.5, 2) for x in v_array}
         print(sport.sport_id, sport.wind_low, sport.wind_high, v_array)
         start_time = time.time()
         for v in v_array:

@@ -122,6 +122,51 @@ app.layout = dmc.MantineProvider(
 )
 
 
+# Cache monitoring endpoint
+@app.server.route("/cache-stats")
+def cache_stats():
+    """Endpoint to monitor cache performance and memory usage."""
+    from my_app.utils import weather_cache, weather_cache_lock
+    from config import _get_postcodes_cached
+    import sys
+
+    with weather_cache_lock:
+        weather_cache_data = {
+            "size": len(weather_cache),
+            "max_size": weather_cache.maxsize,
+            "ttl_seconds": weather_cache.ttl,
+            "keys": list(weather_cache.keys()),
+        }
+
+    # Get postcodes cache info
+    postcodes_cache_info = _get_postcodes_cached.cache_info()
+
+    # Get memory info
+    import psutil
+
+    process = psutil.Process()
+    memory_info = process.memory_info()
+
+    stats = {
+        "weather_cache": weather_cache_data,
+        "postcodes_cache": {
+            "hits": postcodes_cache_info.hits,
+            "misses": postcodes_cache_info.misses,
+            "maxsize": postcodes_cache_info.maxsize,
+            "currsize": postcodes_cache_info.currsize,
+            "hit_ratio": f"{postcodes_cache_info.hits / max(postcodes_cache_info.hits + postcodes_cache_info.misses, 1) * 100:.1f}%",
+        },
+        "memory": {
+            "rss_mb": f"{memory_info.rss / 1024 / 1024:.1f}",
+            "vms_mb": f"{memory_info.vms / 1024 / 1024:.1f}",
+            "percent": f"{process.memory_percent():.1f}%",
+        },
+        "system": {"python_version": sys.version, "cpu_count": psutil.cpu_count()},
+    }
+
+    return stats
+
+
 if __name__ == "__main__":
     app.run(
         debug=os.environ.get("DEBUG_DASH", True),

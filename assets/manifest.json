@@ -1,5 +1,5 @@
 {
-  "name": "USYD Sports Heat Tool",
+  "name": "The University of Sydney Sports Heat Tool",
   "short_name": "Sports Heat Tool",
   "icons": [
     {
@@ -451,23 +451,25 @@
       "sizes": "1024x1024"
     }
   ],
-  "theme_color": "#dc0b00",
+  "theme_color": "#e64626",
   "orientation": "portrait",
-  "background_color": "#dc0b00",
+  "background_color": "#e64626",
   "id": "1.1.2",
-  "description": "The USYD Sports Heat Tool is a web application designed to help users determine the suitability of outdoor sports activities based on current weather conditions, particularly focusing on heat and humidity levels.",
+  "description": "The University of Sydney Sports Heat Tool is a web application designed to help users determine the suitability of outdoor sports activities based on current weather conditions, particularly focusing on heat and humidity levels.",
   "start_url": "/",
   "scope": "/",
   "screenshots": [],
-  "shortcuts": [{
-    "name": "About",
-    "url": "/about"
-  }],
+  "shortcuts": [
+    {
+      "name": "About",
+      "url": "/about"
+    }
+  ],
   "url_handlers": [
-        {
-            "origin": "https://sma-heat-policy.sydney.edu.au/"
-        }
-    ],
+    {
+      "origin": "https://sma-heat-policy.sydney.edu.au/"
+    }
+  ],
   "lang": "en",
   "categories": [
     "education",
@@ -478,8 +480,8 @@
   "prefer_related_applications": false,
   "display": "standalone",
   "display_override": [
-  "window-controls-overlay",
-  "standalone",
-  "browser"
-]
+    "window-controls-overlay",
+    "standalone",
+    "browser"
+  ]
 }

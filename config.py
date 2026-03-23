@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import ClassVar
-from cachetools import cached, TTLCache
 
 import pandas as pd
 from pydantic import BaseModel
@@ -24,31 +24,17 @@ default_location = {
 variable_calc_risk = "ratio_w"
 
 
-@cached(cache=TTLCache(maxsize=10, ttl=600))
-def get_postcodes(country: str = Defaults.country.value) -> pd.DataFrame:
-    """Retrieve postcodes for the specified country, preferring filtered assets.
+@lru_cache(maxsize=5)  # Cache last 5 countries to reduce memory usage (was 10)
+def _get_postcodes_cached(country: str) -> pd.DataFrame:
+    """Internal cached function to load postcodes from disk.
 
-    Tries to load from './assets/postcodes_filtered/{country}.pkl.gz'.
-    Raises a descriptive error if both attempts fail.
+    This is cached to avoid repeated disk I/O and decompression.
+    Returns the actual DataFrame which should not be modified.
 
-    Args
-    ----
-    country : str
-        ISO country code.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame of postcodes.
-
-    Raises
-    ------
-    FileNotFoundError
-        If neither filtered nor raw asset exists.
-
-    Example
-    -------
-    >>> df = get_postcodes('AU')
+    Notes
+    -----
+    Cache reduced from 10 to 5 to optimize memory usage on Cloud Run.
+    Each country's postcodes can be several MB, so 5 countries is a good balance.
     """
     filtered_path = f"./assets/postcodes_filtered/{country}.pkl.gz"
 
@@ -59,6 +45,43 @@ def get_postcodes(country: str = Defaults.country.value) -> pd.DataFrame:
             f"Postcode data not found for country '{country}'. "
             "Please generate or download the required assets."
         )
+
+
+def get_postcodes(country: str = Defaults.country.value) -> pd.DataFrame:
+    """Retrieve postcodes for the specified country, preferring filtered assets.
+
+    Tries to load from './assets/postcodes_filtered/{country}.pkl.gz'.
+    The data is cached to avoid repeated disk I/O, and a copy is returned
+    to prevent any accidental mutations affecting the cache.
+
+    Args
+    ----
+    country : str
+        ISO country code.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of postcodes (a copy to prevent cache pollution).
+
+    Raises
+    ------
+    FileNotFoundError
+        If neither filtered nor raw asset exists.
+
+    Example
+    -------
+    >>> df = get_postcodes('AU')
+
+    Notes
+    -----
+    The underlying data is cached using LRU cache (maxsize=10) for performance,
+    but this function returns a copy to ensure thread-safety and prevent
+    accidental modifications to the cached data.
+    """
+    # Return a copy to prevent mutations affecting the cache
+    # This is a shallow copy which is fast but prevents column modifications
+    return _get_postcodes_cached(country).copy()
 
 
 def process_postcodes(country=Defaults.country.value):
@@ -526,3 +549,25 @@ if __name__ == "__main___":
         ]
         df_pc.dropna(inplace=True)
         df_pc.to_pickle(file, compression="gzip")
+
+    # convert the filtered postcodes to json files for ORI heat application
+    for file in Path("assets/postcodes_filtered").glob("*.pkl.gz"):
+        # file = 'assets/postcodes_filtered/AE.pkl.gz'
+        print(file)
+        if "AU" in file.name:
+            df_pc = pd.read_pickle(file, compression="gzip")
+            country_code = file.name.split(".")[0]
+            df_pc.rename(
+                columns={
+                    "sub-state-post-country": "label",
+                },
+                inplace=True,
+            )
+            df_pc = df_pc[["lat", "lon", "label"]]
+            df_pc.drop_duplicates(inplace=True, subset=["lat", "lon"])
+            df_pc.to_json(
+                f"assets/postcodes_filtered/{country_code}.json",
+                orient="records",
+                force_ascii=False,
+                indent=2,
+            )

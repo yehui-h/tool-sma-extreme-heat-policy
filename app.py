@@ -11,7 +11,6 @@ from dash_extensions.enrich import (
     ServersideOutputTransform,
 )
 from firebase_admin import credentials
-from flask_caching import Cache
 
 from my_app.utils import (
     FirebaseFields,
@@ -42,7 +41,4 @@ app = DashProxy(
     suppress_callback_exceptions=True,
     use_pages=True,
     assets_ignore="tests/*.*",
-)
-cache = Cache(
-    app.server, config={"CACHE_TYPE": "filesystem", "CACHE_DIR": "cache-directory"}
 )
