@@ -10,8 +10,11 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.129.0",
     "httpx>=0.28.1",
+    "pandas>=2.3.3",
+    "pvlib>=0.13.1",
     "pydantic-settings>=2.13.0",
     "pythermalcomfort>=3.9.0",
+    "timezonefinder>=8.1.0",
     "uvicorn[standard]>=0.41.0",
 ]
 

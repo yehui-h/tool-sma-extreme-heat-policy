@@ -2,12 +2,15 @@ import type { SportType } from "@/domain/sport";
 import { endpoints } from "@/api/endpoints";
 import { httpClient } from "@/api/httpClient";
 
-export type HeatRiskApiMeta = Record<string, unknown>;
+export type HeatRiskProfile = "ADULT" | "KIDS";
+
+export const DEFAULT_HEAT_RISK_PROFILE: HeatRiskProfile = "ADULT";
 
 export interface HeatRiskRequest {
   sport: SportType;
   latitude: number;
   longitude: number;
+  profile: HeatRiskProfile;
 }
 
 export interface HeatRiskApiData {
@@ -18,14 +21,35 @@ export interface HeatRiskApiData {
   recommendation: string;
 }
 
+export interface ForecastInputsApiData {
+  air_temperature_c: number;
+  mean_radiant_temperature_c: number;
+  relative_humidity_pct: number;
+  wind_speed_10m_ms: number;
+  wind_speed_effective_ms: number;
+  direct_normal_irradiance_wm2: number;
+}
+
 export interface ForecastApiPoint {
   time_utc: string;
-  risk_level_interpolated: number;
+  inputs: ForecastInputsApiData;
+  heat_risk: HeatRiskApiData;
+}
+
+export interface HeatRiskApiLocation {
+  latitude: number;
+  longitude: number;
+  timezone: string;
+}
+
+export interface HeatRiskApiRequestSummary {
+  sport: string;
+  profile: HeatRiskProfile;
+  location: HeatRiskApiLocation;
 }
 
 export interface HeatRiskApiResponse {
-  heat_risk: HeatRiskApiData;
-  meta_data: HeatRiskApiMeta;
+  request: HeatRiskApiRequestSummary;
   forecast: ForecastApiPoint[];
 }
 
@@ -44,6 +68,20 @@ export type HeatRiskApiResult =
       reason: HeatRiskErrorReason;
     };
 
+/**
+ * Builds the Home heat-risk request payload using the current default profile.
+ */
+export function buildHeatRiskRequest(payload: {
+  sport: SportType;
+  latitude: number;
+  longitude: number;
+}): HeatRiskRequest {
+  return {
+    ...payload,
+    profile: DEFAULT_HEAT_RISK_PROFILE,
+  };
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -60,6 +98,10 @@ function isValidIsoDateTime(value: unknown): value is string {
   );
 }
 
+function isHeatRiskProfile(value: unknown): value is HeatRiskProfile {
+  return value === "ADULT" || value === "KIDS";
+}
+
 function isHeatRiskApiData(value: unknown): value is HeatRiskApiData {
   if (!isRecord(value)) {
     return false;
@@ -74,6 +116,23 @@ function isHeatRiskApiData(value: unknown): value is HeatRiskApiData {
   );
 }
 
+function isForecastInputsApiData(
+  value: unknown,
+): value is ForecastInputsApiData {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isFiniteNumber(value.air_temperature_c) &&
+    isFiniteNumber(value.mean_radiant_temperature_c) &&
+    isFiniteNumber(value.relative_humidity_pct) &&
+    isFiniteNumber(value.wind_speed_10m_ms) &&
+    isFiniteNumber(value.wind_speed_effective_ms) &&
+    isFiniteNumber(value.direct_normal_irradiance_wm2)
+  );
+}
+
 function isForecastApiPoint(value: unknown): value is ForecastApiPoint {
   if (!isRecord(value)) {
     return false;
@@ -81,7 +140,33 @@ function isForecastApiPoint(value: unknown): value is ForecastApiPoint {
 
   return (
     isValidIsoDateTime(value.time_utc) &&
-    isFiniteNumber(value.risk_level_interpolated)
+    isForecastInputsApiData(value.inputs) &&
+    isHeatRiskApiData(value.heat_risk)
+  );
+}
+
+function isHeatRiskApiLocation(value: unknown): value is HeatRiskApiLocation {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isFiniteNumber(value.latitude) &&
+    isFiniteNumber(value.longitude) &&
+    typeof value.timezone === "string" &&
+    value.timezone.length > 0
+  );
+}
+
+function isHeatRiskApiRequestSummary(
+  value: unknown,
+): value is HeatRiskApiRequestSummary {
+  return (
+    isRecord(value) &&
+    typeof value.sport === "string" &&
+    value.sport.length > 0 &&
+    isHeatRiskProfile(value.profile) &&
+    isHeatRiskApiLocation(value.location)
   );
 }
 
@@ -95,16 +180,11 @@ export function isHeatRiskApiResponse(
     return false;
   }
 
-  if (!isHeatRiskApiData(value.heat_risk)) {
-    return false;
-  }
-
-  if (!isRecord(value.meta_data)) {
-    return false;
-  }
-
   return (
-    Array.isArray(value.forecast) && value.forecast.every(isForecastApiPoint)
+    isHeatRiskApiRequestSummary(value.request) &&
+    Array.isArray(value.forecast) &&
+    value.forecast.length > 0 &&
+    value.forecast.every(isForecastApiPoint)
   );
 }
 

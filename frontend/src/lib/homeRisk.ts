@@ -1,7 +1,8 @@
 import type {
   ForecastApiPoint,
   HeatRiskApiData,
-  HeatRiskApiMeta,
+  HeatRiskApiLocation,
+  HeatRiskApiResponse,
 } from "@/api/heatRisk";
 import type { ForecastDay, HeatRisk } from "@/domain/risk";
 import { toRiskLevel } from "@/domain/risk";
@@ -11,10 +12,6 @@ export interface HeatRiskMeta {
   latitude?: number;
   longitude?: number;
   timeZone?: string;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 /**
@@ -31,14 +28,26 @@ export function toHeatRisk(api: HeatRiskApiData): HeatRisk {
 }
 
 /**
- * Extracts optional location coordinates and timezone from the API metadata payload.
+ * Returns the backend's canonical current point, defined as the earliest complete forecast entry.
  */
-export function toHeatRiskMeta(meta: HeatRiskApiMeta): HeatRiskMeta {
-  const location = meta.location;
-  if (!isRecord(location)) {
-    return {};
+export function getCurrentForecastPoint(
+  response: HeatRiskApiResponse,
+): ForecastApiPoint {
+  const [currentPoint] = response.forecast;
+
+  if (!currentPoint) {
+    throw new Error(
+      "Heat-risk response must include at least one forecast point.",
+    );
   }
 
+  return currentPoint;
+}
+
+/**
+ * Extracts optional coordinates and timezone from the response request.location block.
+ */
+export function toHeatRiskMeta(location: HeatRiskApiLocation): HeatRiskMeta {
   const coordinates = toCoordinatesOrNull({
     latitude: location.latitude,
     longitude: location.longitude,
@@ -92,7 +101,7 @@ function formatDateParts(
 }
 
 /**
- * Groups UTC forecast points into location-local daily chart data for the UI.
+ * Groups forecast points into location-local daily chart data for the UI.
  */
 export function toForecastDays(
   points: ForecastApiPoint[],
@@ -122,29 +131,27 @@ export function toForecastDays(
     const dateParts = formatDateParts(parsedDate, resolvedTimeZone);
     const dateKey = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
     const timeLabel = `${dateParts.hour}:${dateParts.minute}`;
+    const pointRisk = point.heat_risk.risk_level_interpolated;
     const existingDay = groupedDays.get(dateKey);
 
     if (!existingDay) {
       groupedDays.set(dateKey, {
         date: point.time_utc,
-        maxRisk: point.risk_level_interpolated,
+        maxRisk: pointRisk,
         points: [
           {
             time: timeLabel,
-            value: point.risk_level_interpolated,
+            value: pointRisk,
           },
         ],
       });
       continue;
     }
 
-    existingDay.maxRisk = Math.max(
-      existingDay.maxRisk,
-      point.risk_level_interpolated,
-    );
+    existingDay.maxRisk = Math.max(existingDay.maxRisk, pointRisk);
     existingDay.points.push({
       time: timeLabel,
-      value: point.risk_level_interpolated,
+      value: pointRisk,
     });
   }
 
