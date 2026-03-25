@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from sma_extreme_heat_backend.calculators.base import SportsHeatStressInput
 from sma_extreme_heat_backend.calculators.sports_heat_stress import (
     PythermalcomfortSportsHeatStressCalculator,
+    SportsHeatStressInput,
 )
 from sma_extreme_heat_backend.core.errors import InvalidSportError
 

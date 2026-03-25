@@ -1,22 +1,27 @@
 # SMA Extreme Heat Backend
 
-FastAPI backend for SMA Extreme Heat Policy (local development).
+FastAPI backend for the SMA Extreme Heat Policy tool.
 
-## Architecture at a glance
-- `src/sma_extreme_heat_backend/api/routes` - HTTP route wiring only (`/home/risk`, health checks).
-- `src/sma_extreme_heat_backend/schemas` - request/response validation contracts.
-- `src/sma_extreme_heat_backend/services` - orchestration, cache, forecast shaping, and error paths.
-- `src/sma_extreme_heat_backend/clients` - upstream provider IO (Open-Meteo).
-- `src/sma_extreme_heat_backend/calculators` - pythermalcomfort model invocation only.
-- `src/sma_extreme_heat_backend/core` - shared config and typed application errors.
+## Architecture At A Glance
 
-Where to make changes:
-- API shape or validation: `schemas/` and route tests in `tests/api/`.
-- Weather provider behavior and parsing: `clients/open_meteo.py` and `tests/clients/`.
-- Risk flow behavior/caching: `services/risk_service.py` and `tests/services/`.
-- Model integration behavior: `calculators/sports_heat_stress.py` and `tests/calculators/`.
+- `src/sma_extreme_heat_backend/api/routes.py`
+  HTTP route wiring only.
+- `src/sma_extreme_heat_backend/schemas`
+  Request and response contracts.
+- `src/sma_extreme_heat_backend/services`
+  Weather orchestration, MRT enrichment, caching, and forecast shaping.
+- `src/sma_extreme_heat_backend/clients`
+  Open-Meteo HTTP access and payload validation.
+- `src/sma_extreme_heat_backend/calculators`
+  pythermalcomfort adapter layer only.
+- `src/sma_extreme_heat_backend/core`
+  Settings and typed application errors.
+
+This split is intentional: routes stay thin, IO stays isolated, and the risk
+pipeline remains testable without HTTP or FastAPI.
 
 ## Requirements
+
 - Python 3.12
 - `uv`
 
@@ -37,131 +42,152 @@ Copy `backend/.env.example` to `backend/.env` using the command `cp .env.example
 uv run uvicorn sma_extreme_heat_backend.main:app --reload --port 8000
 ```
 
-## Test the API
-
-To tst the API, you can use the command below, please make sure you are in the `backend` directory and the local server is running.
+## Local Checks
 
 ```bash
-## Lint and tests
 uv run ruff check .
 uv run pytest
 ```
 
+## Pre-commit
+
+The repository root contains `.pre-commit-config.yaml` with:
+
+- Ruff format + check for `backend/**/*.py`
+- Prettier write hook for `frontend/**`
+
+After installing `pre-commit` locally, run:
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
 ## API
+
 ### `POST /home/risk`
+
 Request body:
-- `sport: string` (must exactly match pythermalcomfort Sports enum name, e.g. `SOCCER`)
-- `latitude: number` (range `[-90, 90]`)
-- `longitude: number` (range `[-180, 180]`)
+
+- `sport: string`
+  Must exactly match a pythermalcomfort `Sports` enum name, for example `SOCCER`.
+- `latitude: number`
+  Range `[-90, 90]`.
+- `longitude: number`
+  Range `[-180, 180]`.
+- `profile: string`
+  Must be `ADULT` or `KIDS`. Both profiles currently use the same pythermalcomfort
+  model path; the field is included to reserve the public contract for future
+  profile-specific behaviour.
 
 Example request:
+
 ```json
 {
   "sport": "SOCCER",
   "latitude": -33.847,
-  "longitude": 151.067
+  "longitude": 151.067,
+  "profile": "ADULT"
 }
 ```
 
-Strict flow:
-1. Fetch Open-Meteo `hourly` weather with:
-   - `temperature_2m`, `relative_humidity_2m`, `cloud_cover`, `wind_speed_10m`, `direct_normal_irradiance`
-   - `timezone=auto`, `wind_speed_unit=ms`
-2. Validate Open-Meteo hourly units at runtime (strict):
-   - `temperature_2m: °C`
-   - `relative_humidity_2m: %`
-   - `cloud_cover: %`
-   - `wind_speed_10m: m/s`
-   - `direct_normal_irradiance: W/m²`
-3. Resolve the location IANA timezone from `latitude/longitude`.
-4. Keep hourly records where `time >= now_utc - 1h` within a 7-day forecast window.
-5. Convert retained records to the resolved local timezone, drop rows missing `tdb`, resample to `30min`, and interpolate numeric weather fields.
-6. Build MRT inputs with `pvlib` + `pythermalcomfort`:
-   - compute solar elevation for each local timestamp
-   - clamp negative elevations to `0`
-   - derive `dni = direct_normal_irradiance * 0.75`
-   - compute `delta_mrt` with `pythermalcomfort.models.solar_gain`
-   - derive `tr = tdb + delta_mrt`
-7. For each valid current/forecast row:
-   - scale interpolated `wind` to 1.1 m using `pythermalcomfort.utils.scale_wind_speed_log(v_z1=vr, z2=1.1, z1=10.0, z0=0.01, d=0.0, round_output=True)`
-   - apply the sport default wind-speed floor with `max(scaled_vr, Sports.<sport>.vr)`
-   - call `sports_heat_stress_risk` with `tdb`, `tr`, `rh`, effective `vr`, `sport`
-8. Return `heat_risk` from the first valid row and `forecast` as UTC hourly points using `risk_level_interpolated`.
+### Response contract
 
-Response body:
-- `heat_risk: object` (pythermalcomfort output keys and content, no business renaming)
-- `meta_data: object` (debug context such as model/open-meteo/location including the resolved IANA timezone and MRT diagnostics; no mapbox data)
-- `forecast: array` (`[{ time_utc, risk_level_interpolated }]`, UTC ISO-8601 timestamps)
+The API is forecast-centric:
 
-Example response (shape):
+- `forecast[0]` is the earliest complete forecast point used by the frontend gauge and recommendation sections.
+- Later `forecast[]` entries drive the charts.
+- There is no separate top-level `heat_risk` or `meta_data` block.
+
+Example response:
+
 ```json
 {
-  "heat_risk": {
-    "risk_level_interpolated": 1.94,
-    "t_medium": 34.5,
-    "t_high": 37.1,
-    "t_extreme": 39.2,
-    "recommendation": "Increase hydration & modify clothing"
-  },
-  "meta_data": {
-    "model": "pythermalcomfort.models.sports_heat_stress_risk",
-    "inputs": {
-      "sport": "SOCCER",
-      "tdb": 31.0,
-      "rh": 62.0,
-      "vr": 1.02,
-      "tr": 31.0
-    },
+  "request": {
+    "sport": "SOCCER",
+    "profile": "ADULT",
     "location": {
       "latitude": -33.847,
       "longitude": 151.067,
       "timezone": "Australia/Sydney"
-    },
-    "open_meteo": {
-      "...": "provider payload"
     }
   },
   "forecast": [
     {
       "time_utc": "2026-03-09T00:00:00Z",
-      "risk_level_interpolated": 1.94
-    },
-    {
-      "time_utc": "2026-03-09T01:00:00Z",
-      "risk_level_interpolated": 2.04
+      "inputs": {
+        "air_temperature_c": 31.0,
+        "mean_radiant_temperature_c": 37.25,
+        "relative_humidity_pct": 62.0,
+        "wind_speed_10m_ms": 1.5,
+        "wind_speed_effective_ms": 1.02,
+        "direct_normal_irradiance_wm2": 700.0
+      },
+      "heat_risk": {
+        "risk_level_interpolated": 1.94,
+        "t_medium": 34.5,
+        "t_high": 37.1,
+        "t_extreme": 39.2,
+        "recommendation": "Increase hydration & modify clothing"
+      }
     }
   ]
 }
 ```
 
-Contract mode:
-- Snake case is the only supported request/response style for `/home/risk`.
-- Camel case payload keys (for example `locationMeta`) and legacy response keys (`data`, `meta`) are not part of the default contract.
+## Risk Flow
 
-Validation behavior:
-- Missing/uncertain current MRT/model inputs return `422` with `unknown_inputs`.
-- Future forecast rows with missing `tdb`, `rh`, `wind`, `radiation`, or `tr` are skipped instead of failing the entire request.
+1. Fetch Open-Meteo hourly weather with:
+   - `temperature_2m`
+   - `relative_humidity_2m`
+   - `wind_speed_10m`
+   - `direct_normal_irradiance`
+   - `timezone=GMT`
+   - `wind_speed_unit=ms`
+2. Validate provider units at runtime:
+   - `temperature_2m: °C`
+   - `relative_humidity_2m: %`
+   - `wind_speed_10m: m/s`
+   - `direct_normal_irradiance: W/m²`
+3. Resolve the IANA timezone from `latitude` and `longitude`.
+4. Keep hourly records where `time >= now_utc - 1h` inside the 7-day forecast window.
+5. Convert the retained rows into the resolved local timezone.
+6. Drop rows missing `tdb`, resample to `30min`, and interpolate numeric weather fields.
+7. Build MRT values with `pvlib` + `pythermalcomfort`:
+   - compute solar elevation for each local timestamp
+   - clamp negative solar elevations to `0`
+   - derive `dni = direct_normal_irradiance * 0.75`
+   - compute `delta_mrt` with `pythermalcomfort.models.solar_gain`
+   - derive `tr = tdb + delta_mrt`
+8. Convert `wind_speed_10m_ms` to `wind_speed_effective_ms` using
+   `pythermalcomfort.utils.scale_wind_speed_log(...)`, then apply the sport floor
+   with `max(scaled_vr, Sports.<sport>.vr)`.
+9. Run `sports_heat_stress_risk` for each complete forecast row.
+10. Skip incomplete rows and treat the earliest complete row as `forecast[0]`.
+11. Return `422` only when no complete forecast row exists; the error payload is derived
+    from the earliest candidate row.
 
-## Debugging playbook
-- `422` for invalid request body:
-  - Check `sport` is uppercase pythermalcomfort enum style (for example `SOCCER`, not `soccer`).
-  - Check coordinate ranges: latitude `[-90, 90]`, longitude `[-180, 180]`.
-- `422` with `unknown_inputs`:
-  - Means required current model inputs (`tdb`, `rh`, `vr`) were missing or uncertain from provider data.
-  - Inspect `detail.available_inputs` and `meta_data.open_meteo` in logs/response context.
-- `502` weather provider error:
-  - Check Open-Meteo availability and response shape/units.
-  - Verify unit contracts are unchanged (`°C`, `%`, `m/s`).
-  - Confirm timezone metadata is present and valid IANA zone.
-- Unexpected forecast gaps:
-  - Forecast rows with missing `tdb`, `rh`, or `vr` are intentionally skipped.
-  - Confirm upstream hourly arrays have aligned lengths and valid numeric values.
-- Local verification commands:
-  - `UV_CACHE_DIR=/tmp/uv-cache uv run ruff check .`
-  - `UV_CACHE_DIR=/tmp/uv-cache uv run pytest`
-  - `UV_CACHE_DIR=/tmp/uv-cache uv run uvicorn sma_extreme_heat_backend.main:app --reload --port 8000`
+## Caching
 
-## Source of truth
-- This README summarizes intended behavior and architecture.
-- Implementation source of truth is code plus tests in `src/sma_extreme_heat_backend/` and `tests/`.
-- If this README and implementation ever diverge, update the README in the same change.
+- The risk service keeps an in-memory TTL cache keyed by:
+  `sport + profile + latitude + longitude`
+- Requests from different users will reuse cached results only when they hit the
+  same backend process.
+- The cache is not shared across multiple server instances.
+
+## Validation And Errors
+
+- Invalid request bodies return `422`.
+- Missing required inputs return `422` only when the backend cannot build any complete
+  forecast point; in that case the error payload uses the earliest candidate row and includes:
+  - `unknown_inputs`
+  - `available_inputs`
+- Upstream weather failures return `502`.
+- Future forecast rows with missing inputs are skipped instead of failing the request.
+
+## Notes
+
+- Mean radiant temperature is not assumed to equal dry-bulb air temperature.
+  The backend derives MRT through the solar-gain pipeline and returns the final
+  `mean_radiant_temperature_c` in each forecast point.
+- The public response does not expose the raw Open-Meteo payload.

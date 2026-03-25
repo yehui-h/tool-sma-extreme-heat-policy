@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from functools import lru_cache
+from functools import cache
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
+
     app_name: str = "SMA Extreme Heat Backend"
     cors_origins: list[str] = Field(
         default_factory=lambda: ["http://localhost:5173"],
@@ -28,11 +30,15 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: object) -> object:
+        """Allow comma-separated CORS origins in the environment."""
+
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
 
-@lru_cache(maxsize=1)
+@cache
 def get_settings() -> Settings:
+    """Return the cached application settings singleton."""
+
     return Settings()

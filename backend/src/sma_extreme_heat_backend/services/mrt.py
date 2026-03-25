@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
+from dataclasses import dataclass
 from datetime import UTC
-from functools import lru_cache
+from functools import cache
 from typing import Any
 
 import pandas as pd
@@ -19,32 +20,26 @@ from sma_extreme_heat_backend.core.errors import (
 
 LOGGER = logging.getLogger(__name__)
 
-CORRECTION_COEFFICIENT_SOL_RADIATION = 0.75
-SHARP = 45
-SOL_TRANSMITTANCE = 1
-F_SVV = 0.8
-F_BES = 1
-ASW = 0.6
-POSTURE = "standing"
-FLOOR_REFLECTANCE = 0.25
 
-MRT_CONSTANTS: dict[str, float | str] = {
-    "sharp": SHARP,
-    "sol_transmittance": SOL_TRANSMITTANCE,
-    "f_svv": F_SVV,
-    "f_bes": F_BES,
-    "asw": ASW,
-    "posture": POSTURE,
-    "floor_reflectance": FLOOR_REFLECTANCE,
-    "solar_radiation_correction_coefficient": (
-        CORRECTION_COEFFICIENT_SOL_RADIATION
-    ),
-}
+@dataclass(frozen=True)
+class MrtModelConfig:
+    """Constants used by the MRT solar-gain pipeline."""
+
+    sharp: int = 45
+    sol_transmittance: float = 1.0
+    f_svv: float = 0.8
+    f_bes: float = 1.0
+    asw: float = 0.6
+    posture: str = "standing"
+    floor_reflectance: float = 0.25
+    solar_radiation_correction_coefficient: float = 0.75
+
+
+MRT_MODEL_CONFIG = MrtModelConfig()
 
 MRT_COLUMNS: tuple[str, ...] = (
     "tdb",
     "rh",
-    "cloud",
     "wind",
     "radiation",
     "elevation",
@@ -54,12 +49,16 @@ MRT_COLUMNS: tuple[str, ...] = (
 )
 
 
-@lru_cache(maxsize=1)
+@cache
 def _get_timezone_finder() -> TimezoneFinder:
+    """Return a cached timezone finder instance."""
+
     return TimezoneFinder(in_memory=True)
 
 
 def resolve_timezone_name(*, latitude: float, longitude: float) -> str:
+    """Resolve an IANA timezone from coordinates."""
+
     timezone_name = _get_timezone_finder().timezone_at(lat=latitude, lng=longitude)
     if not isinstance(timezone_name, str) or timezone_name.strip() == "":
         raise WeatherProviderError("Could not resolve location timezone from coordinates")
@@ -67,6 +66,8 @@ def resolve_timezone_name(*, latitude: float, longitude: float) -> str:
 
 
 def _extract_delta_mrt(result: Any) -> float:
+    """Normalize `solar_gain` output into a single delta MRT float."""
+
     delta_mrt = getattr(result, "delta_mrt", None)
     if delta_mrt is None and isinstance(result, Mapping):
         delta_mrt = result.get("delta_mrt")
@@ -78,6 +79,8 @@ def _extract_delta_mrt(result: Any) -> float:
 
 
 def _points_to_dataframe(points: list[HourlyWeatherPoint]) -> pd.DataFrame:
+    """Convert weather forecast points into a time-indexed DataFrame."""
+
     if not points:
         raise WeatherProviderError("Weather provider returned no hourly points")
 
@@ -86,7 +89,6 @@ def _points_to_dataframe(points: list[HourlyWeatherPoint]) -> pd.DataFrame:
             "time": [point.time_utc for point in points],
             "tdb": [point.tdb for point in points],
             "rh": [point.rh for point in points],
-            "cloud": [point.cloud for point in points],
             "wind": [point.wind for point in points],
             "radiation": [point.radiation for point in points],
         }
@@ -102,9 +104,12 @@ def build_mrt_dataframe(
     longitude: float,
     timezone_name: str,
 ) -> pd.DataFrame:
+    """Build the MRT-enriched half-hourly DataFrame used by the risk service."""
+
     df_weather = _points_to_dataframe(points)
     df_weather = df_weather.set_index("time").sort_index()
     df_weather = df_weather.copy()
+    # Convert provider UTC timestamps into the resolved local timezone before resampling.
     df_weather.index = df_weather.index.tz_convert(timezone_name)
 
     now = pd.Timestamp.now(tz=timezone_name) - pd.Timedelta(hours=1)
@@ -116,6 +121,7 @@ def build_mrt_dataframe(
     if df_weather.empty:
         raise WeatherProviderError("No hourly record with tdb after now-1h")
 
+    # Interpolate onto a 30-minute grid so forecast charts and current selection share one pipeline.
     df_weather = df_weather.resample("30min").interpolate()
 
     site = location.Location(
@@ -127,10 +133,11 @@ def build_mrt_dataframe(
     solar_position = site.get_solarposition(df_weather.index)
     solar_position = solar_position[["elevation"]].copy()
     solar_position.loc[solar_position["elevation"] < 0, "elevation"] = 0
-    clear_sky = site.get_clearsky(df_weather.index)
 
-    df_result = pd.concat([df_weather.copy(), solar_position, clear_sky], axis=1)
-    df_result["dni"] = df_result["radiation"] * CORRECTION_COEFFICIENT_SOL_RADIATION
+    df_result = pd.concat([df_weather.copy(), solar_position], axis=1)
+    df_result["dni"] = (
+        df_result["radiation"] * MRT_MODEL_CONFIG.solar_radiation_correction_coefficient
+    )
 
     delta_mrt_values: list[float] = []
     negative_delta_mrt_values: list[float] = []
@@ -142,14 +149,14 @@ def build_mrt_dataframe(
         delta_mrt = _extract_delta_mrt(
             solar_gain(
                 sol_altitude=float(row.elevation),
-                sharp=SHARP,
+                sharp=MRT_MODEL_CONFIG.sharp,
                 sol_radiation_dir=float(row.dni),
-                sol_transmittance=SOL_TRANSMITTANCE,
-                f_svv=F_SVV,
-                f_bes=F_BES,
-                asw=ASW,
-                posture=POSTURE,
-                floor_reflectance=FLOOR_REFLECTANCE,
+                sol_transmittance=MRT_MODEL_CONFIG.sol_transmittance,
+                f_svv=MRT_MODEL_CONFIG.f_svv,
+                f_bes=MRT_MODEL_CONFIG.f_bes,
+                asw=MRT_MODEL_CONFIG.asw,
+                posture=MRT_MODEL_CONFIG.posture,
+                floor_reflectance=MRT_MODEL_CONFIG.floor_reflectance,
             )
         )
         if delta_mrt < 0:
@@ -173,26 +180,10 @@ def build_mrt_dataframe(
 
 
 def select_hourly_forecast_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep only rows aligned to UTC hour boundaries for the public forecast."""
+
     if df.empty:
         return df.copy()
 
     utc_index = df.index.tz_convert(UTC)
     return df.loc[utc_index.minute == 0].copy()
-
-
-def to_mrt_meta(point: pd.Series, *, timezone_name: str) -> dict[str, Any]:
-    return {
-        "timezone": timezone_name,
-        "radiation": _to_json_scalar(point.get("radiation")),
-        "elevation": _to_json_scalar(point.get("elevation")),
-        "dni": _to_json_scalar(point.get("dni")),
-        "delta_mrt": _to_json_scalar(point.get("delta_mrt")),
-        "tr": _to_json_scalar(point.get("tr")),
-        "constants": dict(MRT_CONSTANTS),
-    }
-
-
-def _to_json_scalar(value: Any) -> float | None:
-    if value is None or pd.isna(value):
-        return None
-    return float(value)

@@ -1,6 +1,8 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
+  DEFAULT_HEAT_RISK_PROFILE,
+  buildHeatRiskRequest,
   fetchHeatRisk,
   type HeatRiskApiResponse,
   type HeatRiskErrorReason,
@@ -10,6 +12,7 @@ import type { ForecastDay, HeatRisk, RiskLevel } from "@/domain/risk";
 import { toRiskLevel } from "@/domain/risk";
 import { toCoordinatesOrNull } from "@/lib/coordinates";
 import {
+  getCurrentForecastPoint,
   toForecastDays,
   toHeatRisk,
   toHeatRiskMeta,
@@ -61,8 +64,9 @@ function toCalculatedHeatRisk(data: HeatRiskApiResponse): {
   forecast: ForecastDay[];
   meta: HeatRiskMeta;
 } {
-  const risk = toHeatRisk(data.heat_risk);
-  const meta = toHeatRiskMeta(data.meta_data);
+  const currentPoint = getCurrentForecastPoint(data);
+  const risk = toHeatRisk(currentPoint.heat_risk);
+  const meta = toHeatRiskMeta(data.request.location);
 
   return {
     risk,
@@ -91,16 +95,17 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
     queryKey: [
       "heatRisk",
       debouncedSport,
+      DEFAULT_HEAT_RISK_PROFILE,
       locationCoordinates?.latitude.toFixed(6) ?? "",
       locationCoordinates?.longitude.toFixed(6) ?? "",
     ],
     queryFn: async ({ signal }) => {
       const result = await fetchHeatRisk(
-        {
+        buildHeatRiskRequest({
           sport: debouncedSport,
           latitude: locationCoordinates!.latitude,
           longitude: locationCoordinates!.longitude,
-        },
+        }),
         { signal },
       );
 

@@ -14,6 +14,8 @@ from sma_extreme_heat_backend.services.mrt import (
 
 
 def _next_utc_hour(hour: int) -> datetime:
+    """Return the next UTC hour used to keep MRT tests stable."""
+
     now = datetime.now(tz=UTC)
     candidate = now.replace(hour=hour, minute=0, second=0, microsecond=0)
     if candidate <= now:
@@ -22,6 +24,8 @@ def _next_utc_hour(hour: int) -> datetime:
 
 
 def _build_points(*, start: datetime, radiation: list[float]) -> list[HourlyWeatherPoint]:
+    """Create deterministic hourly weather points for MRT tests."""
+
     points: list[HourlyWeatherPoint] = []
     for offset, radiation_value in enumerate(radiation):
         timestamp = start + timedelta(hours=offset)
@@ -31,7 +35,6 @@ def _build_points(*, start: datetime, radiation: list[float]) -> list[HourlyWeat
                 time_utc=timestamp,
                 tdb=30.0 + offset,
                 rh=55.0 + offset,
-                cloud=20.0 + offset,
                 wind=1.5 + (offset * 0.1),
                 radiation=radiation_value,
             )
@@ -40,10 +43,14 @@ def _build_points(*, start: datetime, radiation: list[float]) -> list[HourlyWeat
 
 
 def test_resolve_timezone_name_returns_expected_zone() -> None:
+    """Timezone resolution should match the expected IANA zone."""
+
     assert resolve_timezone_name(latitude=-33.847, longitude=151.067) == "Australia/Sydney"
 
 
 def test_build_mrt_dataframe_daytime_produces_positive_delta_mrt_and_higher_tr() -> None:
+    """Daytime radiation should increase MRT above dry-bulb air temperature."""
+
     points = _build_points(
         start=_next_utc_hour(12),
         radiation=[800.0, 850.0, 900.0],
@@ -65,6 +72,8 @@ def test_build_mrt_dataframe_daytime_produces_positive_delta_mrt_and_higher_tr()
 
 
 def test_build_mrt_dataframe_nighttime_clamps_elevation_and_keeps_delta_mrt_near_zero() -> None:
+    """Nighttime inputs should clamp solar elevation to zero and avoid extra MRT load."""
+
     points = _build_points(
         start=_next_utc_hour(0),
         radiation=[0.0, 0.0, 0.0],
@@ -85,6 +94,8 @@ def test_build_mrt_dataframe_nighttime_clamps_elevation_and_keeps_delta_mrt_near
 
 
 def test_build_mrt_dataframe_preserves_hourly_selection_for_half_hour_timezone() -> None:
+    """UTC-hour filtering should still work for half-hour local timezones."""
+
     points = _build_points(
         start=_next_utc_hour(12),
         radiation=[800.0, 850.0, 900.0],
@@ -108,6 +119,8 @@ def test_build_mrt_dataframe_logs_structured_warning_for_negative_delta_mrt(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
+    """Negative MRT deltas should be logged with structured diagnostics."""
+
     points = _build_points(
         start=_next_utc_hour(12),
         radiation=[800.0, 850.0, 900.0],

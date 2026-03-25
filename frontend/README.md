@@ -9,7 +9,7 @@ This app provides:
 - Location-based heat stress risk assessment (via backend `POST /home/risk`)
 - Evidence-based recommendations for each risk level
 - Sport selection with translated labels and per-sport images
-- Forecast risk chart UI backed by backend hourly forecast data
+- Forecast risk chart UI backed by backend forecast points with nested inputs and heat-risk data
 
 Based on:
 
@@ -43,7 +43,7 @@ VITE_API_BASE_URL=http://localhost:8000
 Notes:
 
 - `VITE_MAPBOX_ACCESS_TOKEN` is required for Home location `suggest + retrieve`.
-- `VITE_API_BASE_URL` is required for backend current-risk and forecast data.
+- `VITE_API_BASE_URL` is required for backend forecast and current-risk data.
 - `.env.local` is ignored by git via `*.local`.
 
 ## Project structure (Layer-first)
@@ -75,8 +75,8 @@ Import rules:
 - Server state uses React Query (`@tanstack/react-query`).
 - Location search uses Mapbox Search Box `suggest`; selecting a suggestion triggers Mapbox `retrieve` in frontend to resolve coordinates.
 - Prefilled location labels restored from shared URL (`loc`) or local persistence automatically attempt `suggest + retrieve` once using exact normalized label matching.
-- Risk API request sends `sport + latitude + longitude` (no Mapbox identifiers).
-- Risk API response returns current `heat_risk` plus hourly `forecast` points; frontend groups forecast days in the selected location timezone when available, otherwise browser local timezone.
+- Risk API request sends `sport + latitude + longitude + profile` (no Mapbox identifiers).
+- Risk API response returns a non-empty `forecast[]` plus a nested `request` block containing `sport`, `profile`, and `location`; backend defines `forecast[0]` as the earliest complete forecast point, and frontend derives the current risk from that point while grouping forecast days in the selected location timezone when available, otherwise browser local timezone.
 - Risk is fetched automatically when:
   - a location suggestion is selected (manual or auto-resolved) and coordinates are resolved, and
   - the sport changes.
@@ -86,7 +86,7 @@ Import rules:
   - the last selection is persisted to localStorage only for direct visits (not shared links).
 - Dates are formatted in the selected location timezone when available, otherwise browser local timezone.
 - API time contract: if datetime fields are introduced in request/response payloads, they must use ISO-8601 UTC format (`...Z`).
-- No kids/adults segmentation is part of the current frontend scope.
+- The frontend currently sends `profile: "ADULT"` by default; no kids/adults selector is exposed in the UI yet.
 
 ## i18n
 

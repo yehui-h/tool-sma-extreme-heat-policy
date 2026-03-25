@@ -12,7 +12,6 @@ from sma_extreme_heat_backend.core.errors import WeatherProviderError
 _HOURLY_FIELDS: tuple[str, ...] = (
     "temperature_2m",
     "relative_humidity_2m",
-    "cloud_cover",
     "wind_speed_10m",
     "direct_normal_irradiance",
 )
@@ -20,41 +19,35 @@ _HOURLY_FIELDS: tuple[str, ...] = (
 _EXPECTED_HOURLY_UNITS: dict[str, set[str]] = {
     "temperature_2m": {"\N{DEGREE SIGN}C"},
     "relative_humidity_2m": {"%"},
-    "cloud_cover": {"%"},
     "wind_speed_10m": {"m/s"},
     "direct_normal_irradiance": {"W/m²", "W/m^2"},
 }
 
 
 @dataclass(frozen=True)
-class CurrentWeather:
-    tdb: float | None
-    rh: float | None
-    cloud: float | None
-    wind: float | None
-    radiation: float | None
-    raw: dict[str, Any]
-
-
-@dataclass(frozen=True)
 class HourlyWeatherPoint:
+    """Normalized hourly weather point parsed from Open-Meteo."""
+
     raw_time: str
     time_utc: datetime
     tdb: float | None
     rh: float | None
-    cloud: float | None
     wind: float | None
     radiation: float | None
 
 
 @dataclass(frozen=True)
 class WeatherForecast:
+    """Hourly weather forecast plus minimal provider context."""
+
     points: list[HourlyWeatherPoint]
     raw: dict[str, Any]
     provider_timezone: str
 
 
 def _to_float_or_none(value: Any) -> float | None:
+    """Convert provider values to floats while treating invalid values as missing."""
+
     if value is None:
         return None
 
@@ -65,6 +58,8 @@ def _to_float_or_none(value: Any) -> float | None:
 
 
 def _resolve_provider_timezone(payload: dict[str, Any]) -> tuple[str, ZoneInfo]:
+    """Extract and validate the provider timezone used by hourly timestamps."""
+
     raw_timezone = payload.get("timezone")
     if not isinstance(raw_timezone, str) or raw_timezone.strip() == "":
         raise WeatherProviderError("Weather provider response was missing timezone")
@@ -82,6 +77,8 @@ def _to_utc_timestamp_or_none(
     *,
     provider_time_zone: ZoneInfo,
 ) -> datetime | None:
+    """Parse provider timestamps into UTC datetimes."""
+
     if not isinstance(value, str):
         return None
 
@@ -97,6 +94,8 @@ def _to_utc_timestamp_or_none(
 
 
 def _validate_hourly_units(payload: dict[str, Any]) -> None:
+    """Fail fast when Open-Meteo changes any required hourly unit contract."""
+
     hourly_units = payload.get("hourly_units")
     if not isinstance(hourly_units, dict):
         raise WeatherProviderError("Weather provider response was missing hourly_units")
@@ -116,6 +115,8 @@ def _validate_hourly_units(payload: dict[str, Any]) -> None:
 def _extract_hourly_series(
     payload: dict[str, Any],
 ) -> tuple[str, list[datetime], dict[str, list[Any]]]:
+    """Return aligned hourly provider series keyed by the requested fields."""
+
     timezone_name, provider_time_zone = _resolve_provider_timezone(payload)
     hourly = payload.get("hourly")
     if not isinstance(hourly, dict):
@@ -129,9 +130,7 @@ def _extract_hourly_series(
         _to_utc_timestamp_or_none(item, provider_time_zone=provider_time_zone) for item in raw_time
     ]
     if any(item is None for item in timestamps):
-        raise WeatherProviderError(
-            "Weather provider response contained invalid hourly.time values"
-        )
+        raise WeatherProviderError("Weather provider response contained invalid hourly.time values")
 
     series_data: dict[str, list[Any]] = {"time": raw_time}
     for field in _HOURLY_FIELDS:
@@ -148,6 +147,8 @@ def _extract_hourly_series(
 
 
 def _select_hourly_points(payload: dict[str, Any]) -> tuple[str, list[HourlyWeatherPoint]]:
+    """Keep only the current-to-7-day forecast window and normalize each row."""
+
     timezone_name, timestamps, series_data = _extract_hourly_series(payload)
     threshold = datetime.now(tz=UTC) - timedelta(hours=1)
     forecast_window_end = threshold + timedelta(days=7)
@@ -167,11 +168,8 @@ def _select_hourly_points(payload: dict[str, Any]) -> tuple[str, list[HourlyWeat
                 time_utc=timestamp,
                 tdb=_to_float_or_none(series_data["temperature_2m"][idx]),
                 rh=_to_float_or_none(series_data["relative_humidity_2m"][idx]),
-                cloud=_to_float_or_none(series_data["cloud_cover"][idx]),
                 wind=_to_float_or_none(series_data["wind_speed_10m"][idx]),
-                radiation=_to_float_or_none(
-                    series_data["direct_normal_irradiance"][idx]
-                ),
+                radiation=_to_float_or_none(series_data["direct_normal_irradiance"][idx]),
             )
             for idx, timestamp in candidate_rows
         ],
@@ -179,6 +177,8 @@ def _select_hourly_points(payload: dict[str, Any]) -> tuple[str, list[HourlyWeat
 
 
 class OpenMeteoClient:
+    """Thin HTTP client for the Open-Meteo hourly forecast endpoint."""
+
     def __init__(
         self,
         *,
@@ -186,6 +186,8 @@ class OpenMeteoClient:
         timeout_seconds: float,
         client: httpx.AsyncClient | None = None,
     ) -> None:
+        """Create the client around a caller-supplied or owned HTTPX async client."""
+
         self._owns_client = client is None
         self._client = client or httpx.AsyncClient(
             base_url=base_url.rstrip("/"),
@@ -198,6 +200,8 @@ class OpenMeteoClient:
         latitude: float,
         longitude: float,
     ) -> WeatherForecast:
+        """Fetch and validate the hourly weather forecast needed by the backend."""
+
         params = {
             "latitude": latitude,
             "longitude": longitude,
@@ -221,26 +225,8 @@ class OpenMeteoClient:
             provider_timezone=timezone_name,
         )
 
-    async def fetch_current_weather(
-        self,
-        *,
-        latitude: float,
-        longitude: float,
-    ) -> CurrentWeather:
-        forecast = await self.fetch_weather_forecast(
-            latitude=latitude,
-            longitude=longitude,
-        )
-        current = forecast.points[0]
-        return CurrentWeather(
-            tdb=current.tdb,
-            rh=current.rh,
-            cloud=current.cloud,
-            wind=current.wind,
-            radiation=current.radiation,
-            raw=forecast.raw,
-        )
-
     async def aclose(self) -> None:
+        """Close the owned HTTP client when the application shuts down."""
+
         if self._owns_client:
             await self._client.aclose()

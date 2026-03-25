@@ -1,0 +1,22 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff format backend
+        entry: uv run --project backend --group dev ruff format backend
+        language: system
+        files: ^backend/.*\.py$
+        pass_filenames: false
+      - id: ruff-check
+        name: ruff check backend
+        entry: uv run --project backend --group dev ruff check --fix backend
+        language: system
+        files: ^backend/.*\.py$
+        pass_filenames: false
+      - id: prettier-frontend
+        name: prettier frontend
+        entry: pnpm --dir frontend format
+        language: system
+        files: ^frontend/.*\.(js|jsx|ts|tsx|json|css|scss|md|html|ya?ml)$
+        exclude: ^frontend/dist/
+        pass_filenames: false
