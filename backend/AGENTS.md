@@ -24,7 +24,7 @@
   - no clamping
   - no default fill
   - no business-side input remapping beyond the approved MRT pipeline, wind-height scaling, and sport default floor
-- If required weather or MRT inputs are missing/uncertain (`tdb`, `rh`, `wind`, `radiation`, `tr`), return `422` with `unknown_inputs`.
+- If required weather or MRT inputs are missing/uncertain (`tdb`, `rh`, `wind`, `radiation`, `tr`), return `422` with `unknown_inputs` under `response.forecast[*].heat_risk`.
 - Return pythermalcomfort output in `response.heat_risk` with original field names.
 
 ## Engineering and Design Rules
