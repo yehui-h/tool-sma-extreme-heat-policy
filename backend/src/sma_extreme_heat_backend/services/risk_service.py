@@ -43,7 +43,7 @@ class CacheEntry:
 
 
 @dataclass(frozen=True)
-class WindSpeedRefactorConfig:
+class WindSpeedScaleConfig:
     """Inputs required to convert provider wind speed to model wind speed."""
 
     api_height_meters: float = 10.0
@@ -52,7 +52,7 @@ class WindSpeedRefactorConfig:
     zero_plane_displacement: float = 0.0
 
 
-WIND_SPEED_REFACTOR_CONFIG = WindSpeedRefactorConfig()
+WIND_SPEED_SCALE_CONFIG = WindSpeedScaleConfig()
 
 # MRT columns share their names with the public `inputs` fields, so no mapping is needed.
 _REQUIRED_INPUT_FIELDS: tuple[str, ...] = ("tdb", "rh", "v_z1", "sol_radiation_dir", "tr")
@@ -138,9 +138,6 @@ class RiskService:
     ) -> list[ForecastPoint]:
         """Convert MRT rows into forecast points, using the earliest complete row as current."""
 
-        first_candidate_point = self._first_candidate_forecast_point(
-            forecast_mrt_df=forecast_mrt_df
-        )
         forecast: list[ForecastPoint] = []
         for timestamp, point in forecast_mrt_df.iterrows():
             missing_inputs = self._missing_required_input_fields(point)
@@ -162,7 +159,9 @@ class RiskService:
         # Only return 422 when every candidate row is incomplete; the earliest row explains why
         # the backend could not produce any usable current/forecast point.
         raise self._missing_input_error_for_point(
-            point=first_candidate_point,
+            point=self._first_candidate_forecast_point(
+                forecast_mrt_df=forecast_mrt_df
+            ),
         )
 
     @staticmethod
@@ -175,9 +174,9 @@ class RiskService:
     def _first_candidate_forecast_point(*, forecast_mrt_df: pd.DataFrame) -> pd.Series:
         """Return the earliest candidate row, used for fallback 422 error details."""
 
-        for _, point in forecast_mrt_df.iterrows():
-            return point
-        raise WeatherProviderError("No hourly record after MRT enrichment")
+        if forecast_mrt_df.empty:
+            raise WeatherProviderError("No hourly record after MRT enrichment")
+        return forecast_mrt_df.iloc[0]
 
     def _missing_input_error_for_point(
         self,
@@ -226,7 +225,9 @@ class RiskService:
 
         v_z1 = float(point.v_z1)
         # Convert the provider's 10 m wind speed into the model's required 1.1 m input.
-        wind_speed_model_ms = self._resolve_model_wind_speed(vr=v_z1)
+        wind_speed_model_ms = self._resolve_model_wind_speed(
+            wind_speed_10m_ms=v_z1
+        )
         computed = self.calculator.model_sports_heat_stress(
             SportsHeatStressInput(
                 sport=sport,
@@ -251,16 +252,16 @@ class RiskService:
         )
 
     @staticmethod
-    def _resolve_model_wind_speed(*, vr: float) -> float:
+    def _resolve_model_wind_speed(*, wind_speed_10m_ms: float) -> float:
         """Convert 10 m wind speed to the model's required 1.1 m wind speed."""
 
         return float(
             scale_wind_speed_log(
-                v_z1=vr,
-                z2=WIND_SPEED_REFACTOR_CONFIG.model_height_meters,
-                z1=WIND_SPEED_REFACTOR_CONFIG.api_height_meters,
-                z0=WIND_SPEED_REFACTOR_CONFIG.terrain_roughness_length,
-                d=WIND_SPEED_REFACTOR_CONFIG.zero_plane_displacement,
+                v_z1=wind_speed_10m_ms,
+                z2=WIND_SPEED_SCALE_CONFIG.model_height_meters,
+                z1=WIND_SPEED_SCALE_CONFIG.api_height_meters,
+                z0=WIND_SPEED_SCALE_CONFIG.terrain_roughness_length,
+                d=WIND_SPEED_SCALE_CONFIG.zero_plane_displacement,
                 round_output=True,
             ).v_z2
         )
