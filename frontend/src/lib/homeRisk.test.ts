@@ -2,8 +2,25 @@ import { describe, expect, it } from "vitest";
 import {
   getCurrentForecastPoint,
   toForecastDays,
+  toHeatRisk,
   toHeatRiskMeta,
 } from "@/lib/homeRisk";
+
+describe("toHeatRisk", () => {
+  it("maps only the interpolated risk level into the domain model", () => {
+    expect(
+      toHeatRisk({
+        risk_level_interpolated: 1.2,
+        t_medium: 34.5,
+        t_high: 37.1,
+        t_extreme: 39.2,
+        recommendation: "Hydrate",
+      }),
+    ).toEqual({
+      riskLevelInterpolated: 1.2,
+    });
+  });
+});
 
 describe("toHeatRiskMeta", () => {
   it("extracts location coordinates and timezone from the response location", () => {
