@@ -260,8 +260,7 @@
         "selectedSportFallback": "Selected sport",
         "sportImageUnavailable": "Sport image unavailable",
         "sportImageHelp": "Add an image for {{sportLabel}} at {{path}}.",
-        "sportImageAlt": "{{sportLabel}} preview",
-        "helperText": "Search and select a location to calculate risk automatically"
+        "sportImageAlt": "{{sportLabel}} preview"
       },
       "currentRisk": {
         "title": "Current Sport Heat Risk"
@@ -270,9 +269,6 @@
         "title": "Key recommendations:",
         "panelHint": "Tap icons for detailed advice",
         "panelAriaLabel": "Open detailed advice"
-      },
-      "detailedSuggestions": {
-        "title": "Detailed suggestions:"
       },
       "forecast": {
         "title": "Forecasted risk",
@@ -304,9 +300,6 @@
       "weatherProvider": "Weather provider is unavailable.\nTry again soon."
     }
   },
-  "providers": {
-    "mapbox": "Mapbox"
-  },
   "risk": {
     "level": {
       "low": "Low",
@@ -324,7 +317,6 @@
   "charts": {
     "gauge": {
       "seriesName": "Heat Risk",
-      "riskLabel": "Heat Risk",
       "riskUnavailable": "N/A"
     },
     "forecast": {
