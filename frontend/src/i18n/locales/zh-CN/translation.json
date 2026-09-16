@@ -247,7 +247,6 @@
     },
     "sections": {
       "filters": {
-        "profileLabel": "年龄",
         "profileAdult": "成人",
         "profileUnder10": "10 岁以下",
         "profileAge10To13": "10 至 13 岁",
