@@ -43,19 +43,11 @@ export function resolveHomeBootstrapState({
   const channel: HomeChannel = hasUrlState ? "shared" : "direct";
 
   const profile = defaultProfile;
-  /*
-  let profile = defaultProfile;
-  */
   let sport = defaultSport;
   let locationSearchInput = "";
   let locationPrefillSource: LocationPrefillSource = "none";
 
   if (channel === "shared") {
-    /*
-    if (urlProfile) {
-      profile = urlProfile;
-    }
-    */
     if (urlSport) {
       sport = urlSport;
     }
@@ -65,9 +57,6 @@ export function resolveHomeBootstrapState({
       locationPrefillSource = "url";
     }
   } else if (persistedFilters) {
-    /*
-    profile = persistedFilters.profile ?? defaultProfile;
-    */
     sport = persistedFilters.sport;
     locationSearchInput = resolveInitialLocationLabel(persistedFilters.loc);
     if (locationSearchInput.length > 0) {
