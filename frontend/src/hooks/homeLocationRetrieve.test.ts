@@ -19,7 +19,6 @@ const SYDNEY_SUGGESTION: LocationSuggestion = {
   regionName: "New South Wales",
   countryName: "Australia",
   mapboxId: "place-sydney",
-  countryCode: "AU",
   sessionToken: "session-sydney",
 };
 

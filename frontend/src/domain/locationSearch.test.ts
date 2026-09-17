@@ -23,7 +23,6 @@ function createSuggestion(
     regionName: overrides.regionName,
     countryName: overrides.countryName ?? "Australia",
     mapboxId: overrides.mapboxId ?? overrides.id,
-    countryCode: overrides.countryCode ?? "AU",
     sessionToken: overrides.sessionToken ?? "session-test",
     latitude: overrides.latitude,
     longitude: overrides.longitude,
@@ -129,7 +128,6 @@ describe("prepareLocationSuggestions", () => {
           name: "Sydney Mines",
           regionName: "Nova Scotia",
           countryName: "Canada",
-          countryCode: "CA",
         }),
       ],
     });
@@ -167,7 +165,6 @@ describe("resolvePrefilledLocationSuggestion", () => {
         displayLabel: "Hong Kong",
         name: "Hong Kong",
         countryName: "Hong Kong",
-        countryCode: "HK",
       });
 
       expect(

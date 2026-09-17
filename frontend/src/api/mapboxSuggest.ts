@@ -79,15 +79,6 @@ function toContextName(context: unknown, key: string): string {
   return toTrimmedString(entry.name);
 }
 
-function toCountryCode(context: unknown): string {
-  const countryEntry = toContextEntry(context, "country");
-  if (!countryEntry) {
-    return "";
-  }
-
-  return toTrimmedString(countryEntry.country_code).toUpperCase();
-}
-
 function toCountryName(params: {
   context: unknown;
   fallbackName: string;
@@ -144,7 +135,6 @@ function toLocationSuggestion(
     fallbackName: name,
     featureType: suggestion.feature_type,
   });
-  const countryCode = toCountryCode(suggestion.context);
 
   if (
     !mapboxId ||
@@ -164,7 +154,6 @@ function toLocationSuggestion(
     ...(regionName ? { regionName } : {}),
     countryName,
     mapboxId,
-    ...(countryCode ? { countryCode } : {}),
     sessionToken,
   };
 }
