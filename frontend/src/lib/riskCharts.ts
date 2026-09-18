@@ -25,7 +25,6 @@ const FORECAST_AXIS_ALIGNMENT_EPSILON = 0.001;
 const FORECAST_POINT_SYMBOL_SIZE = 6;
 
 type ChartTypography = {
-  forecastTitle: number;
   axis: number;
   riskBandAxis: number;
   xAxisIntervalMinutes: number;
@@ -42,13 +41,11 @@ type ForecastLayout = {
 
 const CHART_TYPOGRAPHY: Record<"mobile" | "desktop", ChartTypography> = {
   mobile: {
-    forecastTitle: 14,
     axis: 12,
     riskBandAxis: 12,
     xAxisIntervalMinutes: 120,
   },
   desktop: {
-    forecastTitle: 14,
     axis: 12,
     riskBandAxis: 12,
     xAxisIntervalMinutes: 60,
@@ -632,7 +629,6 @@ function createForecastSeries(
 export function buildForecastOption(
   points: ForecastPoint[],
   labels: ForecastLabels,
-  title?: string,
   isMobile = false,
 ): EChartsOption {
   const typography = getTypography(isMobile);
@@ -641,17 +637,10 @@ export function buildForecastOption(
 
   return {
     animation: false,
-    title: title
-      ? {
-          text: title,
-          left: "center",
-          textStyle: { fontSize: typography.forecastTitle, fontWeight: 600 },
-        }
-      : undefined,
     grid: {
       left: FORECAST_LAYOUT.gridLeft,
       right: FORECAST_LAYOUT.gridRight,
-      top: title ? 2 : 2,
+      top: 2,
       bottom: FORECAST_LAYOUT.gridBottom,
       containLabel: true,
     },
