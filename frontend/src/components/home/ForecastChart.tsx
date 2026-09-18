@@ -44,7 +44,6 @@ export function ForecastChart({ points, dayLabel }: ForecastChartProps) {
       riskLevelLong,
       locale,
     },
-    undefined,
     isMobile,
   );
 
