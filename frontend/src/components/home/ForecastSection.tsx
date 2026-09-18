@@ -60,12 +60,7 @@ export function ForecastSection() {
       {/* Use a single Stack with an explicit gap to control spacing between chart and accordion */}
       <Stack gap={CONTENT_GAP}>
         <EChart
-          option={buildForecastOption(
-            today.points,
-            forecastLabels,
-            undefined,
-            isMobile,
-          )}
+          option={buildForecastOption(today.points, forecastLabels, isMobile)}
           height={chartHeight}
           bindChart={(chart, container) =>
             bindForecastHoverPoint(chart, container, today.points)
@@ -115,7 +110,6 @@ export function ForecastSection() {
                   option={buildForecastOption(
                     day.points,
                     forecastLabels,
-                    undefined,
                     isMobile,
                   )}
                   height={chartHeight}
