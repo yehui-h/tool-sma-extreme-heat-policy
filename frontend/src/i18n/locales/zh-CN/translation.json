@@ -340,12 +340,6 @@
       "moderate": "中等",
       "high": "高",
       "extreme": "极高"
-    },
-    "levelShort": {
-      "low": "低",
-      "moderate": "中",
-      "high": "高",
-      "extreme": "极高"
     }
   },
   "charts": {

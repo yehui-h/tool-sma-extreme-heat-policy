@@ -14,7 +14,6 @@ interface LegacyRiskMetaEntry {
   scoreUpperExclusive: number;
   keyIconPaths: string[];
   i18nLevelKey: string;
-  i18nLevelShortKey: string;
 }
 
 export const RISK_LEVEL_META: Record<RiskLevel, LegacyRiskMetaEntry> =
@@ -27,7 +26,6 @@ export const RISK_LEVEL_META: Record<RiskLevel, LegacyRiskMetaEntry> =
         scoreUpperExclusive: registryEntry.scoreUpperExclusive,
         keyIconPaths: registryEntry.keyIconPaths,
         i18nLevelKey: registryEntry.levelKey,
-        i18nLevelShortKey: registryEntry.levelShortKey,
       };
 
       return meta;
