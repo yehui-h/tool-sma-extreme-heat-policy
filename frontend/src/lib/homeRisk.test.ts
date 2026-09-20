@@ -6,7 +6,7 @@ import {
 } from "@/lib/homeRisk";
 
 describe("toHeatRiskMeta", () => {
-  it("extracts location coordinates and timezone from the response location", () => {
+  it("extracts timezone from the response location", () => {
     expect(
       toHeatRiskMeta({
         latitude: -31.9523,
@@ -14,8 +14,6 @@ describe("toHeatRiskMeta", () => {
         timezone: "Australia/Perth",
       }),
     ).toEqual({
-      latitude: -31.9523,
-      longitude: 115.8613,
       timeZone: "Australia/Perth",
     });
   });
