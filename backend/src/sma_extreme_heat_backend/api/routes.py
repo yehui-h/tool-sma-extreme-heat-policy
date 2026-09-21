@@ -8,13 +8,6 @@ from sma_extreme_heat_backend.services.risk_service import RiskService, get_risk
 router = APIRouter()
 
 
-@router.get("/health/live", tags=["health"])
-async def health_live() -> dict[str, str]:
-    """Return a basic liveness signal for process checks."""
-
-    return {"status": "ok"}
-
-
 @router.get("/health/ready", tags=["health"])
 async def health_ready() -> dict[str, str]:
     """Return a basic readiness signal for deployment checks."""
