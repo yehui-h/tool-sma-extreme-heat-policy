@@ -57,10 +57,6 @@ export function FiltersSection({ onLocationError }: FiltersSectionProps) {
     isSaveSavedLocationModalOpen,
     { open: openSaveSavedLocationModal, close: closeSaveSavedLocationModal },
   ] = useDisclosure(false);
-  /*
-  const profile = useHomeStore((state) => state.profile);
-  const setProfile = useHomeStore((state) => state.setProfile);
-  */
   const sport = useHomeStore((state) => state.sport);
   const selectedLocation = useHomeStore((state) => state.selectedLocation);
   const setSport = useHomeStore((state) => state.setSport);
@@ -69,16 +65,6 @@ export function FiltersSection({ onLocationError }: FiltersSectionProps) {
   );
   const [hasSportImageError, setHasSportImageError] = useState(false);
 
-  /*
-  const profileOptions = useMemo<SelectOption<HeatRiskProfile>[]>(
-    () =>
-      heatRiskProfiles.map((profileMeta) => ({
-        value: profileMeta.type,
-        label: t(profileMeta.labelKey),
-      })),
-    [t],
-  );
-  */
   const sportOptions = useMemo<SelectOption<SportType>[]>(
     () =>
       sports.map((sportMeta) => ({
@@ -161,13 +147,6 @@ export function FiltersSection({ onLocationError }: FiltersSectionProps) {
     }
   }, [onLocationError, suggestErrorReason]);
 
-  /*
-  const handleProfileChange = (value: string | null) => {
-    if (value !== null && isHeatRiskProfile(value)) {
-      setProfile(value);
-    }
-  };
-  */
   const handleLocationInputClick = (event: MouseEvent<HTMLInputElement>) => {
     if (isShowingCommittedLocation) {
       event.currentTarget.select();
@@ -198,24 +177,6 @@ export function FiltersSection({ onLocationError }: FiltersSectionProps) {
   return (
     <SectionCard>
       <Stack gap={CONTENT_GAP}>
-        {/*
-        <Group wrap="nowrap" align="center" gap={CONTENT_GAP}>
-          <Text fw={600} w={FIELD_LABEL_WIDTH} ta="right">
-            {t("home.sections.filters.profileLabel")}:
-          </Text>
-          <Box flex={1}>
-            <Select
-              aria-label={t("home.sections.filters.profileLabel")}
-              size="md"
-              data={profileOptions}
-              value={profile}
-              onChange={handleProfileChange}
-              searchable={false}
-              allowDeselect={false}
-            />
-          </Box>
-        </Group>
-        */}
         <Group wrap="nowrap" align="center" gap={CONTENT_GAP}>
           <Text fw={600} w={FIELD_LABEL_WIDTH} ta="right">
             {t("home.sections.filters.locationLabel")}:
