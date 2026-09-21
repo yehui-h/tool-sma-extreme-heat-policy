@@ -280,8 +280,6 @@
       },
       "map": {
         "title": "地点地图",
-        "missingCoordinatesTitle": "地图不可用",
-        "missingCoordinatesBody": "无法获取 {{location}} 的坐标，因此不能显示地图。",
         "locationFallback": "请选择地点"
       }
     },

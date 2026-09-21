@@ -280,8 +280,6 @@
       },
       "map": {
         "title": "Location Map",
-        "missingCoordinatesTitle": "Map unavailable",
-        "missingCoordinatesBody": "Coordinates for {{location}} are unavailable, so the map cannot be displayed.",
         "locationFallback": "Select a location"
       }
     },

@@ -6,12 +6,9 @@ import type {
 } from "@/api/heatRisk";
 import type { ForecastDay, HeatRisk } from "@/domain/risk";
 import { toRiskLevel } from "@/domain/risk";
-import { toCoordinatesOrNull } from "@/lib/coordinates";
 import { parseOffsetIsoDateTime } from "@/lib/offsetIsoDateTime";
 
 export interface HeatRiskMeta {
-  latitude?: number;
-  longitude?: number;
   timeZone?: string;
 }
 
@@ -46,25 +43,15 @@ export function getCurrentForecastPoint(
 }
 
 /**
- * Extracts optional coordinates and timezone from the response request.location block.
+ * Extracts optional timezone from the response request.location block.
  */
 export function toHeatRiskMeta(location: HeatRiskApiLocation): HeatRiskMeta {
-  const coordinates = toCoordinatesOrNull({
-    latitude: location.latitude,
-    longitude: location.longitude,
-  });
   const timeZone =
     typeof location.timezone === "string" && location.timezone.length > 0
       ? location.timezone
       : undefined;
 
   return {
-    ...(coordinates
-      ? {
-          latitude: coordinates.latitude,
-          longitude: coordinates.longitude,
-        }
-      : {}),
     ...(timeZone ? { timeZone } : {}),
   };
 }
