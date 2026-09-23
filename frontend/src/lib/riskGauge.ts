@@ -519,31 +519,6 @@ export function normalizeRiskGaugeScore(score: number): number | null {
 }
 
 /**
- * Returns the active risk level for the raw gauge score.
- */
-export function getRiskGaugeActiveLevel(score: number): RiskLevel | null {
-  const displayScore = normalizeRiskGaugeScore(score);
-
-  return displayScore === null ? null : toRiskLevel(score);
-}
-
-/**
- * Maps the raw gauge score onto the semicircle needle angle.
- */
-export function getRiskGaugePointerAngle(score: number): number | null {
-  const displayScore = normalizeRiskGaugeScore(score);
-
-  if (displayScore === null) {
-    return null;
-  }
-
-  return (
-    RISK_GAUGE_TOTAL_ANGLE -
-    (displayScore / RISK_GAUGE_MAX_SCORE) * RISK_GAUGE_TOTAL_ANGLE
-  );
-}
-
-/**
  * Formats the center gauge value with a fallback label when unavailable.
  */
 export function formatRiskGaugeValue(
@@ -551,29 +526,6 @@ export function formatRiskGaugeValue(
   unavailableLabel: string,
 ): string {
   return Number.isFinite(score) ? score.toFixed(1) : unavailableLabel;
-}
-
-export function getRiskGaugeValueLayout(
-  score: number,
-  isMobile = false,
-  containerWidth?: number,
-): RiskGaugeValueLayout {
-  return getRiskGaugeMeasurements(score, isMobile, containerWidth).valueLayout;
-}
-
-/**
- * Builds the current-risk gauge option in an ECharts layout close to the legacy design.
- */
-export function buildRiskGaugeOption(
-  score: number,
-  labels: RiskGaugeLabels,
-  isMobile = false,
-  containerWidth?: number,
-): EChartsOption {
-  return buildRiskGaugeOptionFromMeasurements(
-    labels,
-    getRiskGaugeMeasurements(score, isMobile, containerWidth),
-  );
 }
 
 export function getRiskGaugeRenderModel(
