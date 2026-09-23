@@ -1,12 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { getRiskColor } from "@/domain/riskRegistry";
 import {
-  buildRiskGaugeOption,
   formatRiskGaugeValue,
-  getRiskGaugeActiveLevel,
   getRiskGaugeGeometry,
-  getRiskGaugePointerAngle,
-  getRiskGaugeValueLayout,
+  getRiskGaugeRenderModel,
   getRiskGaugeWidth,
   normalizeRiskGaugeScore,
   RISK_GAUGE_MAX_WIDTH,
@@ -20,30 +17,40 @@ const riskGaugeLabels = {
   extreme: "Extreme",
 };
 
-function getGraphicElements(option: ReturnType<typeof buildRiskGaugeOption>) {
+function renderRiskGauge(score: number, width = 400) {
+  return getRiskGaugeRenderModel(score, riskGaugeLabels, "N/A", false, width);
+}
+
+function getGraphicElements(
+  option: ReturnType<typeof getRiskGaugeRenderModel>["option"],
+) {
   return !Array.isArray(option.graphic) && option.graphic
     ? ((option.graphic as { elements?: unknown[] }).elements ?? [])
     : [];
 }
 
 describe("riskGauge helpers", () => {
-  it("maps threshold scores to the expected active levels", () => {
-    expect(getRiskGaugeActiveLevel(0)).toBe("low");
-    expect(getRiskGaugeActiveLevel(1.5)).toBe("low");
-    expect(getRiskGaugeActiveLevel(2.5)).toBe("moderate");
-    expect(getRiskGaugeActiveLevel(3.5)).toBe("high");
-    expect(getRiskGaugeActiveLevel(4)).toBe("extreme");
-  });
+  it("colors the gauge pointer from the active risk level", () => {
+    const cases = [
+      [0, "low"],
+      [1.5, "low"],
+      [2.5, "moderate"],
+      [3.5, "high"],
+      [4, "extreme"],
+    ] as const;
 
-  it("maps raw scores onto the expected pointer angles", () => {
-    expect(getRiskGaugePointerAngle(0.5)).toBe(180);
-    expect(getRiskGaugePointerAngle(1)).toBe(180);
-    expect(getRiskGaugePointerAngle(1.5)).toBe(157.5);
-    expect(getRiskGaugePointerAngle(2.5)).toBe(112.5);
-    expect(getRiskGaugePointerAngle(3.5)).toBe(67.5);
-    expect(getRiskGaugePointerAngle(4)).toBe(45);
-    expect(getRiskGaugePointerAngle(4.9)).toBeCloseTo(4.5);
-    expect(getRiskGaugePointerAngle(5)).toBe(0);
+    for (const [score, level] of cases) {
+      expect(getGraphicElements(renderRiskGauge(score).option)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: "polygon",
+            style: expect.objectContaining({
+              fill: getRiskColor(level),
+            }),
+          }),
+        ]),
+      );
+    }
   });
 
   it("remaps raw scores into the display range and falls back to N/A when unavailable", () => {
@@ -54,7 +61,6 @@ describe("riskGauge helpers", () => {
     expect(normalizeRiskGaugeScore(4.9)).toBeCloseTo(3.9);
     expect(normalizeRiskGaugeScore(5)).toBe(4);
     expect(normalizeRiskGaugeScore(6)).toBe(4);
-    expect(getRiskGaugePointerAngle(Number.NaN)).toBeNull();
     expect(formatRiskGaugeValue(Number.NaN, "N/A")).toBe("N/A");
     expect(formatRiskGaugeValue(4.9, "N/A")).toBe("4.9");
   });
@@ -69,13 +75,14 @@ describe("riskGauge helpers", () => {
   });
 
   it("builds a semicircle echarts gauge with remapped display coordinates", () => {
-    const option = buildRiskGaugeOption(2.4, riskGaugeLabels, false, 400);
-    const [bandSeries, overlaySeries] = Array.isArray(option.series)
-      ? option.series
+    const model = renderRiskGauge(2.4);
+    const [bandSeries, overlaySeries] = Array.isArray(model.option.series)
+      ? model.option.series
       : [];
-    const graphicElements = getGraphicElements(option);
+    const graphicElements = getGraphicElements(model.option);
     const geometry = getRiskGaugeGeometry(false, 400);
 
+    expect(model.displayValue).toBe("2.4");
     expect(bandSeries).toMatchObject({
       type: "gauge",
       startAngle: 180,
@@ -151,19 +158,19 @@ describe("riskGauge helpers", () => {
   });
 
   it("returns responsive overlay font sizing for the center value", () => {
-    expect(getRiskGaugeValueLayout(2.4, false, 200)).toEqual({
+    expect(renderRiskGauge(2.4, 200).valueLayout).toEqual({
       bottomOffset: 4,
       fontSize: 32,
       fontWeight: 800,
       lineHeight: 0.82,
     });
-    expect(getRiskGaugeValueLayout(2.4, false, 400)).toEqual({
+    expect(renderRiskGauge(2.4, 400).valueLayout).toEqual({
       bottomOffset: 4,
       fontSize: 48,
       fontWeight: 800,
       lineHeight: 0.82,
     });
-    expect(getRiskGaugeValueLayout(Number.NaN, false, 400)).toEqual({
+    expect(renderRiskGauge(Number.NaN, 400).valueLayout).toEqual({
       bottomOffset: 4,
       fontSize: 24,
       fontWeight: 800,
@@ -172,7 +179,7 @@ describe("riskGauge helpers", () => {
   });
 
   it("keeps the chart graphic free of center text so DOM can control alignment", () => {
-    const option = buildRiskGaugeOption(2.4, riskGaugeLabels, false, 400);
+    const option = renderRiskGauge(2.4).option;
 
     expect(getGraphicElements(option)).not.toEqual(
       expect.arrayContaining([
@@ -184,15 +191,13 @@ describe("riskGauge helpers", () => {
   });
 
   it("hides the pointer and shows N/A when the score is unavailable", () => {
-    const option = buildRiskGaugeOption(
-      Number.NaN,
-      riskGaugeLabels,
-      false,
-      400,
-    );
-    const [, overlaySeries] = Array.isArray(option.series) ? option.series : [];
-    const graphicElements = getGraphicElements(option);
+    const model = renderRiskGauge(Number.NaN);
+    const [, overlaySeries] = Array.isArray(model.option.series)
+      ? model.option.series
+      : [];
+    const graphicElements = getGraphicElements(model.option);
 
+    expect(model.displayValue).toBe("N/A");
     expect(overlaySeries).toMatchObject({
       pointer: {
         show: false,
