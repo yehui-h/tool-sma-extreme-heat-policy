@@ -19,17 +19,11 @@ import { SaveLocationModal } from "@/components/home/SaveLocationModal";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { CONTENT_GAP } from "@/config/uiLayout";
 import { isSuggestionAlreadySaved } from "@/domain/savedLocation";
-import {
-  isSportType,
-  sports,
-  toSportAssetName,
-  type SportType,
-} from "@/domain/sport";
+import { isSportType, sports, type SportType } from "@/domain/sport";
 import {
   useHomeLocationSuggest,
   type LocationSuggestErrorReason,
 } from "@/hooks/useHomeLocationSuggest";
-import { toPublicAssetUrl } from "@/lib/publicAssetUrl";
 import { useHomeStore } from "@/store/homeStore";
 import { useSavedLocationsStore } from "@/store/savedLocationsStore";
 
@@ -89,19 +83,11 @@ export function FiltersSection({ onLocationError }: FiltersSectionProps) {
   );
 
   const selectedSportMeta = useMemo(
-    () => sports.find((sportMeta) => sportMeta.type === sport),
+    () => sports.find((sportMeta) => sportMeta.type === sport)!,
     [sport],
   );
-
-  const selectedSportLabel = useMemo(
-    () =>
-      sportOptions.find((option) => option.value === sport)?.label ??
-      t("home.sections.filters.selectedSportFallback"),
-    [sport, sportOptions, t],
-  );
-  const sportImageSrc =
-    selectedSportMeta?.imagePath ??
-    toPublicAssetUrl(`sports/${toSportAssetName(sport)}.webp`);
+  const selectedSportLabel = t(selectedSportMeta.labelKey);
+  const sportImageSrc = selectedSportMeta.imagePath;
 
   const {
     locationSearchInput,

@@ -257,7 +257,6 @@
         "defaultLocation": "North Sydney, New South Wales, Australia",
         "locationPlaceholder": "Search suburb, town, or city",
         "sportNotFound": "No sport found",
-        "selectedSportFallback": "Selected sport",
         "sportImageUnavailable": "Sport image unavailable",
         "sportImageHelp": "Add an image for {{sportLabel}} at {{path}}.",
         "sportImageAlt": "{{sportLabel}} preview",

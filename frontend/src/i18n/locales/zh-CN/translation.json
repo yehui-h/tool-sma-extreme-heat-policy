@@ -257,7 +257,6 @@
         "defaultLocation": "North Sydney, New South Wales, Australia",
         "locationPlaceholder": "搜索郊区、城镇或城市",
         "sportNotFound": "未找到运动项目",
-        "selectedSportFallback": "已选运动项目",
         "sportImageUnavailable": "运动项目图片不可用",
         "sportImageHelp": "请在 {{path}} 添加 {{sportLabel}} 的图片。",
         "sportImageAlt": "{{sportLabel}} 预览图",
