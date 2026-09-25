@@ -8,7 +8,6 @@ export interface SavedLocation {
   label: string;
   /** Full snapshot including coordinates, so applying it needs no Mapbox call. */
   location: LocationSuggestion;
-  createdAt: number;
 }
 
 /** Machine-readable codes. The UI maps these to i18n keys; never put copy here. */
@@ -106,6 +105,5 @@ export function createSavedLocation(input: {
     id: createSavedLocationId(),
     label: normalizeLabel(input.label),
     location: stripSessionToken(input.location),
-    createdAt: Date.now(),
   };
 }
