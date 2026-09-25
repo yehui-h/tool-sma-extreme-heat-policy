@@ -107,7 +107,7 @@ Import rules:
 ## Saved locations
 
 - Client state lives in `src/store/savedLocationsStore.ts` (Zustand); persistence helpers live in `src/lib/savedLocationsStorage.ts`, matching the `browserState.ts` pattern.
-- Stored under the localStorage key `saved-locations:v1`. A non-array payload yields an empty list; invalid entries are dropped individually. A failed write is reported to the UI as `storage_unavailable` and does not update in-memory state.
+- Stored under the localStorage key `saved-locations:v1`. A non-array payload yields an empty list; invalid entries are dropped individually. A failed write is reported to the UI as `storage_unavailable` and does not update in-memory state. Older records that still include `createdAt` load normally; that timestamp is ignored and is not written on later saves.
 - Each entry keeps a full location snapshot including coordinates, so applying a saved location skips Mapbox `suggest`/`retrieve` and triggers a risk refetch directly.
 - Up to 8 saved locations, labels capped at 20 characters and deduped case-insensitively.
 - Saving and switching update the UI immediately with no page reload; the list renders newest-first and is not re-sorted in the UI.

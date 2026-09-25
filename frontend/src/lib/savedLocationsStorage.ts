@@ -21,23 +21,29 @@ function isLocationSuggestion(value: unknown): value is LocationSuggestion {
 }
 
 /**
- *  A persisted entry without coordinates cannot be applied directly,
+ * A persisted entry without coordinates cannot be applied directly,
  * so it is treated as corrupt rather than kept around.
+ * Older records may include `createdAt`; that timestamp is not required.
  */
 function isSavedLocation(value: unknown): value is SavedLocation {
   if (!isRecord(value)) {
     return false;
   }
 
-  if (
-    typeof value.id !== "string" ||
-    typeof value.label !== "string" ||
-    typeof value.createdAt !== "number"
-  ) {
+  if (typeof value.id !== "string" || typeof value.label !== "string") {
     return false;
   }
 
   return isLocationSuggestion(value.location) && hasCoordinates(value.location);
+}
+
+/** Drop legacy `createdAt` so it is not kept in memory or written back. */
+function withoutCreatedAt(value: SavedLocation): SavedLocation {
+  return {
+    id: value.id,
+    label: value.label,
+    location: value.location,
+  };
 }
 
 /**
@@ -64,7 +70,7 @@ export function loadSavedLocations(): SavedLocation[] {
       return [];
     }
 
-    const savedLocations = parsed.filter(isSavedLocation);
+    const savedLocations = parsed.filter(isSavedLocation).map(withoutCreatedAt);
     const discardedCount = parsed.length - savedLocations.length;
     if (discardedCount > 0) {
       console.warn(
