@@ -50,7 +50,6 @@ function toSavedLocation(
       latitude: -31.9523,
       longitude: 115.8613,
     },
-    createdAt: 1,
     ...overrides,
   };
 }
@@ -100,6 +99,16 @@ describe("savedLocationsStorage", () => {
 
     expect(loadSavedLocations()).toEqual([]);
     expect(warnSpy).toHaveBeenCalled();
+  });
+
+  it("loads records that still include a creation timestamp", () => {
+    const valid = toSavedLocation();
+    storage.set(
+      SAVED_LOCATIONS_STORAGE_KEY,
+      JSON.stringify([{ ...valid, createdAt: 1 }]),
+    );
+
+    expect(loadSavedLocations()).toEqual([valid]);
   });
 
   it("keeps valid entries when another entry is missing required fields", () => {

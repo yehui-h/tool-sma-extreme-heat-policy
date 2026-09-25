@@ -10,7 +10,6 @@ const fixtures = vi.hoisted(() => {
   const home: SavedLocation = {
     id: "saved-home",
     label: "Home",
-    createdAt: 1,
     location: {
       id: "loc-perth",
       displayLabel: "Perth, Western Australia, Australia",
