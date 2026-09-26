@@ -50,7 +50,6 @@ export function toSportAssetName(type: SportType): string {
 
 export interface SportMeta {
   type: SportType;
-  assetName: string;
   labelKey: string;
   imagePath: string;
 }
@@ -61,7 +60,6 @@ export const sports: readonly SportMeta[] = Object.values(SportType).map(
 
     return {
       type,
-      assetName,
       labelKey: `sports.${assetName}`,
       imagePath: toPublicAssetUrl(`sports/${assetName}.webp`),
     };
