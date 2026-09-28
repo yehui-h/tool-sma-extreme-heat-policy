@@ -32,7 +32,6 @@ export type SetQueryStates = (
 ) => Promise<URLSearchParams>;
 
 interface UseHomeBootstrapResult {
-  bootstrapState: HomeStoreBootstrapPayload;
   setQueryStates: SetQueryStates;
 }
 
@@ -85,7 +84,6 @@ export function useHomeBootstrap(): UseHomeBootstrapResult {
   }, [bootstrapState]);
 
   return {
-    bootstrapState,
     setQueryStates,
   };
 }
