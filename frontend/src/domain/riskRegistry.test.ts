@@ -33,10 +33,16 @@ const EXPECTED_KEY_ICON_ASSETS = {
 describe("toRiskLevel", () => {
   it("maps threshold boundaries into the expected risk levels", () => {
     expect(toRiskLevel(Number.NaN)).toBe("low");
+    expect(toRiskLevel(Number.POSITIVE_INFINITY)).toBe("low");
+    expect(toRiskLevel(0.5)).toBe("low");
     expect(toRiskLevel(1)).toBe("low");
+    expect(toRiskLevel(1.5)).toBe("low");
     expect(toRiskLevel(2)).toBe("moderate");
+    expect(toRiskLevel(2.5)).toBe("moderate");
     expect(toRiskLevel(3)).toBe("high");
+    expect(toRiskLevel(3.5)).toBe("high");
     expect(toRiskLevel(4)).toBe("extreme");
+    expect(toRiskLevel(5)).toBe("extreme");
   });
 });
 
