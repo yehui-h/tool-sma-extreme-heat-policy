@@ -18,7 +18,6 @@ const PERTH: LocationSuggestion = {
   name: "Perth",
   regionName: "Western Australia",
   countryName: "Australia",
-  mapboxId: "mapbox-perth",
   sessionToken: "session-perth",
   latitude: -31.9523,
   longitude: 115.8613,
@@ -96,49 +95,34 @@ describe("stripSessionToken", () => {
 
     expect(PERTH.sessionToken).toBe("session-perth");
   });
+
+  it("drops a legacy mapbox id so saves do not write it back", () => {
+    const legacyLocation = {
+      ...PERTH,
+      mapboxId: "legacy-mapbox-perth",
+    };
+
+    expect(stripSessionToken(legacyLocation)).not.toHaveProperty("mapboxId");
+    expect(legacyLocation.mapboxId).toBe("legacy-mapbox-perth");
+  });
 });
 
 describe("isSamePlace", () => {
-  it("matches on Mapbox id when both sides have one", () => {
+  it("matches the same Mapbox id even when labels differ", () => {
     expect(
       isSamePlace(PERTH, {
         ...PERTH,
-        id: "other-id",
         displayLabel: "Somewhere else",
       }),
     ).toBe(true);
   });
 
-  it("matches on display label when ids differ", () => {
-    expect(
-      isSamePlace(
-        { ...PERTH, id: "a", mapboxId: undefined },
-        { ...PERTH, id: "b", mapboxId: undefined },
-      ),
-    ).toBe(true);
-  });
-
-  it("separates two places with different Mapbox ids", () => {
+  it("does not match a different Mapbox id even when labels match", () => {
     expect(
       isSamePlace(PERTH, {
         ...PERTH,
         id: "loc-sydney",
-        mapboxId: "mapbox-sydney",
-        displayLabel: "Sydney, New South Wales, Australia",
       }),
-    ).toBe(false);
-  });
-
-  it("separates two places with different labels and no Mapbox id", () => {
-    expect(
-      isSamePlace(
-        { ...PERTH, mapboxId: undefined },
-        {
-          ...PERTH,
-          mapboxId: undefined,
-          displayLabel: "Sydney, New South Wales, Australia",
-        },
-      ),
     ).toBe(false);
   });
 });
@@ -155,7 +139,6 @@ describe("isSuggestionAlreadySaved", () => {
       isSuggestionAlreadySaved([toSavedLocation("Home")], {
         ...PERTH,
         id: "loc-sydney",
-        mapboxId: "mapbox-sydney",
         displayLabel: "Sydney, New South Wales, Australia",
       }),
     ).toBe(false);
