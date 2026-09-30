@@ -12,7 +12,6 @@ import type { ResponsiveImageAsset } from "@/lib/responsiveImage";
 const fixtures = vi.hoisted(() => {
   const perth: LocationSuggestion = {
     id: "mbx-perth",
-    mapboxId: "mbx-perth",
     displayLabel: "Perth, Western Australia, Australia",
     name: "Perth",
     regionName: "Western Australia",
@@ -23,7 +22,6 @@ const fixtures = vi.hoisted(() => {
 
   const sydney: LocationSuggestion = {
     id: "mbx-sydney",
-    mapboxId: "mbx-sydney",
     displayLabel: "Sydney, New South Wales, Australia",
     name: "Sydney",
     regionName: "New South Wales",
