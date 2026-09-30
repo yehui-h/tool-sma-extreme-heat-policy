@@ -27,10 +27,9 @@ export async function retrieveAndSelectLocation({
   selectLocation,
   setHasRetrieveError,
 }: RetrieveAndSelectLocationParams): Promise<void> {
-  const mapboxId = selectedSuggestion.mapboxId;
   const sessionToken = selectedSuggestion.sessionToken;
 
-  if (!mapboxId || !sessionToken || !hasMapboxToken) {
+  if (!selectedSuggestion.id || !sessionToken || !hasMapboxToken) {
     if (request.isCurrent()) {
       setHasRetrieveError(true);
     }
@@ -42,7 +41,7 @@ export async function retrieveAndSelectLocation({
     const coordinates = await retryApiRequest(
       () =>
         retrieveLocationCoordinates({
-          mapboxId,
+          mapboxId: selectedSuggestion.id,
           accessToken: mapboxAccessToken,
           sessionToken,
           signal: request.signal,

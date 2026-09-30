@@ -59,7 +59,6 @@ describe("suggestLocations", () => {
         name: "Auburn",
         regionName: "New South Wales",
         countryName: "Australia",
-        mapboxId: "locality-auburn",
         countryCode: "AU",
         sessionToken: "session",
       },
@@ -206,7 +205,6 @@ describe("suggestLocations", () => {
         displayLabel: "Hong Kong, Hong Kong",
         name: "Hong Kong",
         countryName: "Hong Kong",
-        mapboxId: "place-hong-kong",
         sessionToken: "session",
       },
       {
@@ -214,7 +212,6 @@ describe("suggestLocations", () => {
         displayLabel: "Singapore, Singapore",
         name: "Singapore",
         countryName: "Singapore",
-        mapboxId: "locality-singapore",
         sessionToken: "session",
       },
     ]);

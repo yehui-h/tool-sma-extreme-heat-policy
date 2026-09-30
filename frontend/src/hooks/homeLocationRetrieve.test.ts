@@ -18,7 +18,6 @@ const SYDNEY_SUGGESTION: LocationSuggestion = {
   name: "Sydney",
   regionName: "New South Wales",
   countryName: "Australia",
-  mapboxId: "place-sydney",
   countryCode: "AU",
   sessionToken: "session-sydney",
 };
@@ -106,7 +105,7 @@ describe("retrieveAndSelectLocation", () => {
     await retrieveAndSelectLocation({
       selectedSuggestion: {
         ...SYDNEY_SUGGESTION,
-        mapboxId: undefined,
+        id: "",
       },
       hasMapboxToken: true,
       mapboxAccessToken: "token",
@@ -172,7 +171,7 @@ describe("retrieveAndSelectLocation", () => {
     await retrieveAndSelectLocation({
       selectedSuggestion: {
         ...SYDNEY_SUGGESTION,
-        mapboxId: undefined,
+        id: "",
       },
       hasMapboxToken: true,
       mapboxAccessToken: "token",
