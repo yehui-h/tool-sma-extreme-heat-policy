@@ -113,8 +113,7 @@ export const mapboxRetrieveRetryPolicy: ApiRetryPolicy = {
   shouldRetry: shouldRetryMapboxRetrieveError,
 };
 
-export const heatRiskRetryPolicy: ApiRetryPolicy = {
+export const heatRiskRetryPolicy: Omit<ApiRetryPolicy, "delayMs"> = {
   maxRetries: SINGLE_RETRY,
-  delayMs: getRetryDelayMs({ scope: "heat_risk" }),
   shouldRetry: shouldRetryHeatRiskError,
 };
