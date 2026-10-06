@@ -4,15 +4,18 @@ export interface Coordinates {
 }
 
 /**
- * Converts unknown values into a finite number when possible.
+ * Accepts only finite numbers. Coercible values such as null are rejected
+ * so they cannot be read as 0.
  */
 export function toFiniteNumberOrUndefined(value: unknown): number | undefined {
-  const numeric = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(numeric) ? numeric : undefined;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 /**
  * Normalizes unknown latitude/longitude values into coordinates.
+ * Returns null unless both values are finite numbers.
  */
 export function toCoordinatesOrNull(payload: {
   latitude?: unknown;
