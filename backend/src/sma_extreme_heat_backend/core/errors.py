@@ -50,22 +50,6 @@ class RiskCalculationError(AppError):
         super().__init__(status_code=500, detail=detail)
 
 
-class InvalidSportError(AppError):
-    """Raised when the request references an unsupported pythermalcomfort sport."""
-
-    def __init__(self, sport: str, allowed_sports: list[str]) -> None:
-        """Expose the invalid sport together with the supported pythermalcomfort names."""
-
-        super().__init__(
-            status_code=422,
-            detail={
-                "message": "sport must match a pythermalcomfort Sports enum name",
-                "sport": sport,
-                "allowed_sports": allowed_sports,
-            },
-        )
-
-
 class ModelInputUnavailableError(AppError):
     """Raised when the current forecast point lacks required model inputs."""
 
