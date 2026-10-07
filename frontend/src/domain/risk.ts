@@ -4,10 +4,6 @@ export { toRiskLevel } from "@/domain/riskRegistry";
 
 export interface HeatRisk {
   riskLevelInterpolated: number;
-  mediumThreshold: number;
-  highThreshold: number;
-  extremeThreshold: number;
-  recommendation: string;
 }
 
 export interface ForecastPoint {
