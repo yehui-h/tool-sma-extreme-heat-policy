@@ -87,13 +87,7 @@ export function FiltersSection({ onLocationError }: FiltersSectionProps) {
     () => sports.find((sportMeta) => sportMeta.type === sport)!,
     [sport],
   );
-
-  const selectedSportLabel = useMemo(
-    () =>
-      sportOptions.find((option) => option.value === sport)?.label ??
-      t("home.sections.filters.selectedSportFallback"),
-    [sport, sportOptions, t],
-  );
+  const selectedSportLabel = t(selectedSportMeta.labelKey);
   const sportImage = selectedSportMeta.image;
 
   const {
