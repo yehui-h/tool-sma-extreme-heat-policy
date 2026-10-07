@@ -22,7 +22,6 @@ function createSuggestion(
     name: overrides.name,
     regionName: overrides.regionName,
     countryName: overrides.countryName ?? "Australia",
-    mapboxId: overrides.mapboxId ?? overrides.id,
     countryCode: overrides.countryCode ?? "AU",
     sessionToken: overrides.sessionToken ?? "session-test",
     latitude: overrides.latitude,

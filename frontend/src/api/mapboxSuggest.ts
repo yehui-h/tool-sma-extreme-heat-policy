@@ -163,7 +163,6 @@ function toLocationSuggestion(
     name,
     ...(regionName ? { regionName } : {}),
     countryName,
-    mapboxId,
     ...(countryCode ? { countryCode } : {}),
     sessionToken,
   };

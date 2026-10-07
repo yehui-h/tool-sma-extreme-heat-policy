@@ -51,30 +51,32 @@ export function hasCoordinates(location: LocationSuggestion): boolean {
   );
 }
 
-/** Mapbox session tokens expire, so they must not be persisted. */
+/**
+ * Mapbox session tokens expire, so they must not be persisted.
+ * Older snapshots may also carry a duplicate `mapboxId`; drop it on save.
+ */
 export function stripSessionToken(
   location: LocationSuggestion,
 ): LocationSuggestion {
-  const persistableLocation = { ...location };
+  const persistableLocation: LocationSuggestion & { mapboxId?: string } = {
+    ...location,
+  };
   delete persistableLocation.sessionToken;
+  delete persistableLocation.mapboxId;
 
   return persistableLocation;
 }
 
 /**
  * True when a Mapbox suggestion is the same place as a saved snapshot.
- * Suggest results often have no coordinates yet, so Mapbox id / display label
- * are the stable keys.
+ * Suggest results often have no coordinates yet, so the Mapbox id is the
+ * stable key.
  */
 export function isSamePlace(
   left: LocationSuggestion,
   right: LocationSuggestion,
 ): boolean {
-  if (left.mapboxId && right.mapboxId) {
-    return left.mapboxId === right.mapboxId;
-  }
-
-  return left.displayLabel === right.displayLabel;
+  return left.id === right.id;
 }
 
 export function isSuggestionAlreadySaved(
