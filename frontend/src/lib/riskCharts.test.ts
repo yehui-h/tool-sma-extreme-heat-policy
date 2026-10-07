@@ -22,7 +22,6 @@ describe("buildForecastOption", () => {
         { time: "09:00", value: 2.5 },
       ],
       forecastLabels,
-      "Today",
     );
     const series = Array.isArray(option.series) ? option.series : [];
     const visualSeries = series.find(
@@ -51,10 +50,7 @@ describe("buildForecastOption", () => {
     const categoryYAxis = yAxes[1];
 
     expect(series).toHaveLength(8);
-    expect(option.title).toMatchObject({
-      text: "Today",
-      textStyle: { fontSize: 14, fontWeight: 600 },
-    });
+    expect(option.title).toBeUndefined();
     expect(option.grid).toMatchObject({
       left: 10,
       right: 16,
@@ -163,7 +159,6 @@ describe("buildForecastOption", () => {
         { time: "09:00", value: 2.5 },
       ],
       forecastLabels,
-      "Today",
     );
     const tooltip =
       option.tooltip && !Array.isArray(option.tooltip) ? option.tooltip : null;
@@ -190,7 +185,6 @@ describe("buildForecastOption", () => {
         { time: "09:00", value: 4.0 },
       ],
       forecastLabels,
-      "Today",
     );
     const series = Array.isArray(option.series) ? option.series : [];
     const visualSeries = series.find(
@@ -243,7 +237,6 @@ describe("buildForecastOption", () => {
         { time: "09:00", value: 5.0 },
       ],
       forecastLabels,
-      "Today",
     );
     const series = Array.isArray(option.series) ? option.series : [];
     const visualSeries = series.find(
@@ -297,7 +290,6 @@ describe("buildForecastOption", () => {
         { time: "23:00", value: 0.1 },
       ],
       forecastLabels,
-      undefined,
       true,
     );
     const xAxis = Array.isArray(option.xAxis) ? option.xAxis[0] : option.xAxis;
