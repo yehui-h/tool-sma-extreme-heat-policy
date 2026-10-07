@@ -138,13 +138,14 @@ class RiskService:
     ) -> list[ForecastPoint]:
         """Convert MRT rows into forecast points, using the earliest complete row as current."""
 
-        first_candidate_point = self._first_candidate_forecast_point(
-            forecast_mrt_df=forecast_mrt_df
-        )
         complete_rows = forecast_mrt_df.dropna(subset=list(_REQUIRED_INPUT_FIELDS))
         if complete_rows.empty:
             # The earliest candidate explains why no usable forecast point remains.
-            raise self._missing_input_error_for_point(point=first_candidate_point)
+            raise self._missing_input_error_for_point(
+                point=self._first_candidate_forecast_point(
+                    forecast_mrt_df=forecast_mrt_df
+                ),
+            )
 
         forecast: list[ForecastPoint] = []
         for timestamp, point in complete_rows.iterrows():
@@ -170,9 +171,9 @@ class RiskService:
     def _first_candidate_forecast_point(*, forecast_mrt_df: pd.DataFrame) -> pd.Series:
         """Return the earliest candidate row, used for fallback 422 error details."""
 
-        for _, point in forecast_mrt_df.iterrows():
-            return point
-        raise WeatherProviderError("No hourly record after MRT enrichment")
+        if forecast_mrt_df.empty:
+            raise WeatherProviderError("No hourly record after MRT enrichment")
+        return forecast_mrt_df.iloc[0]
 
     def _missing_input_error_for_point(
         self,
