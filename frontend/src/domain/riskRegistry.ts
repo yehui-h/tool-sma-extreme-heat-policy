@@ -94,20 +94,20 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
 
 /**
  * Converts an interpolated risk score into a discrete risk level.
+ *
+ * The raw score is shifted onto the display axis and compared with the
+ * RISK_REGISTRY bands. Chart bands from getRiskBands use that same scale.
  */
 export function toRiskLevel(score: number): RiskLevel {
-  const safeScore = Number.isFinite(score) ? score : 0;
+  const displayScore = toRiskDisplayScore(score) ?? 0;
 
-  if (safeScore < 2) {
-    return "low";
+  for (const level of RISK_LEVELS) {
+    if (displayScore < RISK_REGISTRY[level].scoreUpperExclusive) {
+      return level;
+    }
   }
-  if (safeScore < 3) {
-    return "moderate";
-  }
-  if (safeScore < 4) {
-    return "high";
-  }
-  return "extreme";
+
+  return RISK_LEVELS[RISK_LEVELS.length - 1];
 }
 
 /**
