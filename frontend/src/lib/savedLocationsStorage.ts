@@ -21,23 +21,31 @@ function isLocationSuggestion(value: unknown): value is LocationSuggestion {
 }
 
 /**
- *  A persisted entry without coordinates cannot be applied directly,
+ * A persisted entry without coordinates cannot be applied directly,
  * so it is treated as corrupt rather than kept around.
+ * Older records may still include `createdAt`; that timestamp is ignored.
  */
-function isSavedLocation(value: unknown): value is SavedLocation {
+function readSavedLocation(value: unknown): SavedLocation | null {
   if (!isRecord(value)) {
-    return false;
+    return null;
+  }
+
+  if (typeof value.id !== "string" || typeof value.label !== "string") {
+    return null;
   }
 
   if (
-    typeof value.id !== "string" ||
-    typeof value.label !== "string" ||
-    typeof value.createdAt !== "number"
+    !isLocationSuggestion(value.location) ||
+    !hasCoordinates(value.location)
   ) {
-    return false;
+    return null;
   }
 
-  return isLocationSuggestion(value.location) && hasCoordinates(value.location);
+  return {
+    id: value.id,
+    label: value.label,
+    location: value.location,
+  };
 }
 
 /**
@@ -64,7 +72,10 @@ export function loadSavedLocations(): SavedLocation[] {
       return [];
     }
 
-    const savedLocations = parsed.filter(isSavedLocation);
+    const savedLocations = parsed.flatMap((entry) => {
+      const savedLocation = readSavedLocation(entry);
+      return savedLocation === null ? [] : [savedLocation];
+    });
     const discardedCount = parsed.length - savedLocations.length;
     if (discardedCount > 0) {
       console.warn(
