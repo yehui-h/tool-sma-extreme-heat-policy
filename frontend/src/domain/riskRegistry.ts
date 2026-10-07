@@ -10,7 +10,6 @@ export interface RiskRegistryEntry {
   color: string;
   keyIconAssets: (ResponsiveImageAsset | null)[];
   levelKey: string;
-  levelShortKey: string;
   keyRecommendationsKey: string;
   detailedDescriptionKey: string;
   detailedSuggestionsKey: string;
@@ -43,7 +42,6 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
       RECOMMENDATION_ACTION_ASSETS.clothing,
     ],
     levelKey: "risk.level.low",
-    levelShortKey: "risk.levelShort.low",
     keyRecommendationsKey: "recommendations.key.low",
     detailedDescriptionKey: "recommendations.detailed.low.description",
     detailedSuggestionsKey: "recommendations.detailed.low.suggestions",
@@ -58,7 +56,6 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
       RECOMMENDATION_ACTION_ASSETS.pause,
     ],
     levelKey: "risk.level.moderate",
-    levelShortKey: "risk.levelShort.moderate",
     keyRecommendationsKey: "recommendations.key.moderate",
     detailedDescriptionKey: "recommendations.detailed.moderate.description",
     detailedSuggestionsKey: "recommendations.detailed.moderate.suggestions",
@@ -74,7 +71,6 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
       RECOMMENDATION_ACTION_ASSETS.cooling,
     ],
     levelKey: "risk.level.high",
-    levelShortKey: "risk.levelShort.high",
     keyRecommendationsKey: "recommendations.key.high",
     detailedDescriptionKey: "recommendations.detailed.high.description",
     detailedSuggestionsKey: "recommendations.detailed.high.suggestions",
@@ -85,7 +81,6 @@ export const RISK_REGISTRY: Record<RiskLevel, RiskRegistryEntry> = {
     color: "#8C2439",
     keyIconAssets: [RECOMMENDATION_ACTION_ASSETS.stop],
     levelKey: "risk.level.extreme",
-    levelShortKey: "risk.levelShort.extreme",
     keyRecommendationsKey: "recommendations.key.extreme",
     detailedDescriptionKey: "recommendations.detailed.extreme.description",
     detailedSuggestionsKey: "recommendations.detailed.extreme.suggestions",
@@ -137,19 +132,6 @@ export function getRiskColor(level: RiskLevel): string {
  */
 export function getRiskBadgeForegroundColor(level: RiskLevel): string {
   return getReadableTextColor(getRiskColor(level));
-}
-
-/**
- * Returns long and short i18n keys for a risk level.
- */
-export function getRiskLevelI18nKeys(level: RiskLevel): {
-  levelKey: string;
-  levelShortKey: string;
-} {
-  return {
-    levelKey: RISK_REGISTRY[level].levelKey,
-    levelShortKey: RISK_REGISTRY[level].levelShortKey,
-  };
 }
 
 /**

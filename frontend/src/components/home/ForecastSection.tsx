@@ -8,7 +8,6 @@ import { createRiskLevelLabels } from "@/domain/riskLabels";
 import {
   getRiskBadgeForegroundColor,
   getRiskColor,
-  getRiskLevelI18nKeys,
 } from "@/domain/riskRegistry";
 import { toIntlLocale } from "@/i18n/language";
 import { bindForecastHoverPoint, buildForecastOption } from "@/lib/riskCharts";
@@ -42,7 +41,7 @@ export function ForecastSection() {
 
   const [today, ...nextDays] = forecast;
   const dateLocale = toIntlLocale(i18n.resolvedLanguage);
-  const longRiskLabels = createRiskLevelLabels((key) => t(key), "long");
+  const longRiskLabels = createRiskLevelLabels((key) => t(key));
 
   const forecastLabels = {
     xAxisName: t("charts.forecast.xAxisName"),
@@ -104,7 +103,7 @@ export function ForecastSection() {
                         },
                       }}
                     >
-                      {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
+                      {longRiskLabels[day.risk].toUpperCase()}
                     </Badge>
                   </Group>
                 </Group>

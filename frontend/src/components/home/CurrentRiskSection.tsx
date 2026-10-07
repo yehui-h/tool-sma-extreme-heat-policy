@@ -25,7 +25,7 @@ export function CurrentRiskSection() {
   const isMobile = useIsMobileViewport();
   const heatRisk = useHomeHeatRisk();
   const profile = useHomeStore((state) => state.profile);
-  const longRiskLabels = createRiskLevelLabels((key) => t(key), "long");
+  const longRiskLabels = createRiskLevelLabels((key) => t(key));
   const profileLabel = t(getHeatRiskProfileMeta(profile).labelKey);
   const currentRiskTitle = t("home.sections.currentRisk.title");
   const profileBadge = (
