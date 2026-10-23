@@ -3,10 +3,6 @@ interface DateFormatOptions {
   timeZone?: string;
 }
 
-interface WeekdayFormatOptions extends DateFormatOptions {
-  weekday?: "long" | "short";
-}
-
 function formatWithIntl(
   date: string,
   locale: string,
@@ -50,7 +46,7 @@ export function formatDateLabel(
  */
 export function formatWeekdayLabel(
   date: string,
-  options?: WeekdayFormatOptions,
+  options?: DateFormatOptions,
 ): string {
   const locale = options?.locale ?? "en-AU";
 
@@ -58,7 +54,7 @@ export function formatWeekdayLabel(
     date,
     locale,
     {
-      weekday: options?.weekday ?? "long",
+      weekday: "long",
     },
     options?.timeZone,
   );
