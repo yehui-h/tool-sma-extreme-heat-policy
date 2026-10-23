@@ -34,8 +34,7 @@ const HOME_AUTO_REFRESH_INTERVAL_MS = 20 * 60 * 1000;
 export function HomePage() {
   const { t } = useTranslation();
   const { setQueryStates } = useHomeBootstrap();
-  const { canSyncSelection, errorReason, hasCalculatedRisk, refresh } =
-    useHomeHeatRisk();
+  const { errorReason, hasCalculatedRisk, refresh } = useHomeHeatRisk();
   const profile = useHomeStore((state) => state.profile);
   const sport = useHomeStore((state) => state.sport);
   const selectedLocation = useHomeStore((state) => state.selectedLocation);
@@ -44,7 +43,7 @@ export function HomePage() {
 
   useHomeUrlSync({
     setQueryStates,
-    canSyncSelection,
+    hasCalculatedRisk,
   });
 
   const publishToast = useCallback(
