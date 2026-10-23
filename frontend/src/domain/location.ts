@@ -5,7 +5,6 @@ export interface LocationSuggestion {
   regionName?: string;
   countryName: string;
   mapboxId?: string;
-  countryCode?: string;
   sessionToken?: string;
   latitude?: number;
   longitude?: number;
