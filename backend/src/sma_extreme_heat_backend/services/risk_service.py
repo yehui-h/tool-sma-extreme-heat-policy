@@ -43,7 +43,7 @@ class CacheEntry:
 
 
 @dataclass(frozen=True)
-class WindSpeedRefactorConfig:
+class WindSpeedScaleConfig:
     """Inputs required to convert provider wind speed to model wind speed."""
 
     api_height_meters: float = 10.0
@@ -52,7 +52,7 @@ class WindSpeedRefactorConfig:
     zero_plane_displacement: float = 0.0
 
 
-WIND_SPEED_REFACTOR_CONFIG = WindSpeedRefactorConfig()
+WIND_SPEED_SCALE_CONFIG = WindSpeedScaleConfig()
 
 # MRT columns share their names with the public `inputs` fields, so no mapping is needed.
 _REQUIRED_INPUT_FIELDS: tuple[str, ...] = ("tdb", "rh", "v_z1", "sol_radiation_dir", "tr")
@@ -214,7 +214,9 @@ class RiskService:
         """Calculate one forecast point and map it into the public response model."""
 
         # Convert the provider's 10 m wind speed into the model's required 1.1 m input.
-        wind_speed_model_ms = self._resolve_model_wind_speed(vr=inputs.v_z1)
+        wind_speed_model_ms = self._resolve_model_wind_speed(
+            wind_speed_10m_ms=inputs.v_z1
+        )
         computed = self.calculator.model_sports_heat_stress(
             SportsHeatStressInput(
                 sport=sport,
@@ -233,16 +235,16 @@ class RiskService:
         )
 
     @staticmethod
-    def _resolve_model_wind_speed(*, vr: float) -> float:
+    def _resolve_model_wind_speed(*, wind_speed_10m_ms: float) -> float:
         """Convert 10 m wind speed to the model's required 1.1 m wind speed."""
 
         return float(
             scale_wind_speed_log(
-                v_z1=vr,
-                z2=WIND_SPEED_REFACTOR_CONFIG.model_height_meters,
-                z1=WIND_SPEED_REFACTOR_CONFIG.api_height_meters,
-                z0=WIND_SPEED_REFACTOR_CONFIG.terrain_roughness_length,
-                d=WIND_SPEED_REFACTOR_CONFIG.zero_plane_displacement,
+                v_z1=wind_speed_10m_ms,
+                z2=WIND_SPEED_SCALE_CONFIG.model_height_meters,
+                z1=WIND_SPEED_SCALE_CONFIG.api_height_meters,
+                z0=WIND_SPEED_SCALE_CONFIG.terrain_roughness_length,
+                d=WIND_SPEED_SCALE_CONFIG.zero_plane_displacement,
                 round_output=True,
             ).v_z2
         )
