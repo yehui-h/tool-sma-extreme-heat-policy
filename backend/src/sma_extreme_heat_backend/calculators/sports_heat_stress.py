@@ -6,8 +6,7 @@ from typing import Any, Protocol
 import numpy as np
 from pythermalcomfort.models.sports_heat_stress_risk import Sports, sports_heat_stress_risk
 
-from sma_extreme_heat_backend.core.errors import InvalidSportError, RiskCalculationError
-from sma_extreme_heat_backend.schemas.home import ALLOWED_SPORTS
+from sma_extreme_heat_backend.core.errors import RiskCalculationError
 
 
 @dataclass(frozen=True)
@@ -58,9 +57,7 @@ class PythermalcomfortSportsHeatStressCalculator(SportsHeatStressCalculator):
     def model_sports_heat_stress(self, payload: SportsHeatStressInput) -> SportsHeatStressOutput:
         """Run pythermalcomfort and preserve its output field names."""
 
-        sport_enum = getattr(Sports, payload.sport, None)
-        if sport_enum is None:
-            raise InvalidSportError(sport=payload.sport, allowed_sports=list(ALLOWED_SPORTS))
+        sport_enum = getattr(Sports, payload.sport)
 
         try:
             result = sports_heat_stress_risk(
