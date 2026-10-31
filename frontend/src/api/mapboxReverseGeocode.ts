@@ -227,7 +227,6 @@ function toLocationSuggestion(params: {
       name,
       ...(regionName ? { regionName } : {}),
       countryName,
-      mapboxId,
       ...(countryCode ? { countryCode } : {}),
       latitude,
       longitude,
