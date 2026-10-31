@@ -29,8 +29,7 @@ function isRecord(value: unknown): value is UnknownRecord {
 }
 
 function toFiniteNumberOrNull(value: unknown): number | null {
-  const numeric = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(numeric) ? numeric : null;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function toCoordinates(payload: unknown): RetrievedCoordinates {
