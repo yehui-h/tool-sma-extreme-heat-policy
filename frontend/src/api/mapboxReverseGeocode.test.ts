@@ -49,7 +49,6 @@ describe("reverseGeocodeCoordinates", () => {
     ).resolves.toEqual([
       {
         id: "locality-redfern",
-        mapboxId: "locality-redfern",
         displayLabel: "Redfern, New South Wales, Australia",
         name: "Redfern",
         regionName: "New South Wales",
@@ -108,7 +107,6 @@ describe("reverseGeocodeCoordinates", () => {
     ).resolves.toEqual([
       {
         id: "locality-redfern",
-        mapboxId: "locality-redfern",
         displayLabel: "Redfern, New South Wales, Australia",
         name: "Redfern",
         regionName: "New South Wales",
@@ -188,7 +186,6 @@ describe("reverseGeocodeCoordinates", () => {
     const [detected] = await reverseGeocodeCoordinates(coordinates);
     expect(detected).toMatchObject({
       id: "place-dalby",
-      mapboxId: "place-dalby",
       displayLabel: "Dalby, Queensland, Australia",
     });
 
@@ -216,8 +213,8 @@ describe("reverseGeocodeCoordinates", () => {
         suggestions: searched,
         value: detected!.displayLabel,
         prefillSource: "url",
-      })?.mapboxId,
-    ).toBe(detected!.mapboxId);
+      })?.id,
+    ).toBe(detected!.id);
   });
 
   it("recognises a saved detected suburb when the same suburb is searched", async () => {
@@ -255,7 +252,7 @@ describe("reverseGeocodeCoordinates", () => {
       accessToken: "token",
       sessionToken: "session",
     });
-    expect(detected!.mapboxId).toBe(searched!.mapboxId);
+    expect(detected!.id).toBe(searched!.id);
     expect(
       isSuggestionAlreadySaved(
         [
@@ -305,7 +302,7 @@ describe("reverseGeocodeCoordinates", () => {
     );
     const [suggestion] = await reverseGeocodeCoordinates(coordinates);
     expect(suggestion).toMatchObject({
-      mapboxId: "locality-redfern",
+      id: "locality-redfern",
       name: "Redfern",
     });
   });
@@ -337,7 +334,7 @@ describe("reverseGeocodeCoordinates", () => {
       ]),
     );
     const suggestions = await reverseGeocodeCoordinates(coordinates);
-    expect(suggestions.map(({ mapboxId }) => mapboxId)).toEqual([
+    expect(suggestions.map(({ id }) => id)).toEqual([
       "locality-redfern",
       "place-sydney",
     ]);

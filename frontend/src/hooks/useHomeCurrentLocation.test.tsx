@@ -28,7 +28,6 @@ vi.mock("@/api/mapboxSuggest", () => ({ suggestLocations: vi.fn() }));
 
 const detected: LocationSuggestion = {
   id: "redfern",
-  mapboxId: "redfern",
   name: "Redfern",
   displayLabel: "Redfern, New South Wales, Australia",
   regionName: "New South Wales",
@@ -38,7 +37,6 @@ const detected: LocationSuggestion = {
 };
 const searched: LocationSuggestion = {
   id: "perth",
-  mapboxId: "perth",
   name: "Perth",
   displayLabel: "Perth, Western Australia, Australia",
   regionName: "Western Australia",
