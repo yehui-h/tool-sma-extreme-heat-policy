@@ -347,12 +347,6 @@
       "moderate": "Moderate",
       "high": "High",
       "extreme": "Extreme"
-    },
-    "levelShort": {
-      "low": "Low",
-      "moderate": "Mod",
-      "high": "High",
-      "extreme": "Ext"
     }
   },
   "charts": {
