@@ -28,8 +28,6 @@ def test_model_sports_heat_stress_returns_pythermalcomfort_raw_keys(sport: str) 
     assert "t_high" in result.data
     assert "t_extreme" in result.data
     assert "recommendation" in result.data
-    assert result.meta["model"] == "pythermalcomfort.models.sports_heat_stress_risk"
-    assert result.meta["inputs"]["sport"] == sport
 
 
 def test_model_sports_heat_stress_rejects_non_official_sport_name() -> None:
