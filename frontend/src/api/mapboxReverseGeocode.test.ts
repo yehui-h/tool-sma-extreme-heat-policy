@@ -262,7 +262,6 @@ describe("reverseGeocodeCoordinates", () => {
           {
             id: "saved-redfern",
             label: "Home",
-            createdAt: 1,
             location: detected!,
           },
         ],

@@ -33,7 +33,6 @@ const fixtures = vi.hoisted(() => {
   const home: SavedLocation = {
     id: "saved-home",
     label: "Home",
-    createdAt: 1,
     location: perth,
   };
 
