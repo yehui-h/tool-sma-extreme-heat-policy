@@ -25,7 +25,7 @@ export function CurrentRiskSection() {
   const { t } = useTranslation();
   const isMobile = useIsMobileViewport();
   const heatRisk = useHomeHeatRisk();
-  const longRiskLabels = createRiskLevelLabels((key) => t(key), "long");
+  const longRiskLabels = createRiskLevelLabels((key) => t(key));
   const currentRiskTitle = t("home.sections.currentRisk.title");
 
   if (!heatRisk.hasCalculatedRisk) {
