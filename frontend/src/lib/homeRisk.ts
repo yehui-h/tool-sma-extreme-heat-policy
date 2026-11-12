@@ -21,10 +21,6 @@ export interface HeatRiskMeta {
 export function toHeatRisk(api: HeatRiskApiData): HeatRisk {
   return {
     riskLevelInterpolated: api.risk_level_interpolated,
-    mediumThreshold: api.t_medium,
-    highThreshold: api.t_high,
-    extremeThreshold: api.t_extreme,
-    recommendation: api.recommendation,
   };
 }
 
