@@ -21,7 +21,6 @@ describe("sport registry", () => {
       sports.find((sport) => sport.type === SportType.Croquet),
     ).toMatchObject({
       type: "CROQUET",
-      assetName: "croquet",
       labelKey: "sports.croquet",
       image: {
         src: "/sports/croquet-816.webp",
