@@ -2,12 +2,12 @@
 import { Accordion, Badge, Flex, Group, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { CONTENT_GAP } from "@/config/uiLayout";
-import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
+import { createRiskLevelLabels } from "@/domain/riskLabels";
 import {
   getRiskBadgeForegroundColor,
   getRiskColor,
-  getRiskLevelI18nKeys,
 } from "@/domain/riskRegistry";
+import { useHomeHeatRisk } from "@/hooks/useHomeHeatRisk";
 import { toIntlLocale } from "@/i18n/language";
 import { formatDateLabel, formatWeekdayLabel } from "@/lib/formatDate";
 import { ForecastChart } from "@/components/home/ForecastChart";
@@ -39,6 +39,7 @@ export function ForecastSection() {
     locale: dateLocale,
     timeZone: meta.timeZone,
   };
+  const longRiskLabels = createRiskLevelLabels((key) => t(key));
   const toDayLabel = (date: string) =>
     `${formatWeekdayLabel(date, dateFormatOptions)} ${formatDateLabel(date, dateFormatOptions)}`;
 
@@ -77,7 +78,7 @@ export function ForecastSection() {
                         },
                       }}
                     >
-                      {t(getRiskLevelI18nKeys(day.risk).levelKey).toUpperCase()}
+                      {longRiskLabels[day.risk].toUpperCase()}
                     </Badge>
                   </Group>
                 </Group>

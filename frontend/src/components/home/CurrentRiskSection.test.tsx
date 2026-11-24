@@ -34,11 +34,6 @@ vi.mock("@/hooks/useHomeHeatRisk", () => ({
   }),
 }));
 
-vi.mock("@/store/homeStore", () => ({
-  useHomeStore: (selector: (state: { profile: string }) => unknown) =>
-    selector({ profile: "ADULT" }),
-}));
-
 vi.mock("@/components/ui/EChart", () => ({
   EChart: () => null,
 }));

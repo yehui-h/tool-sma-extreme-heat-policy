@@ -76,7 +76,7 @@ export function RiskGauge({ score }: RiskGaugeProps) {
   const { t } = useTranslation();
   const isMobile = useIsMobileViewport();
   const { containerRef, hasMeasuredWidth, width } = useMeasuredWidth();
-  const riskLevelLabels = createRiskLevelLabels((key) => t(key), "long");
+  const riskLevelLabels = createRiskLevelLabels((key) => t(key));
   const unavailableLabel = t("charts.gauge.riskUnavailable");
   const fallbackGeometry = getRiskGaugeGeometry(isMobile);
   const renderModel = hasMeasuredWidth

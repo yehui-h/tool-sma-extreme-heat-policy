@@ -21,7 +21,6 @@ export type HeatRiskCalculationErrorReason = HomeCalculationErrorReason;
 interface UseHomeHeatRiskBaseResult {
   forecast: ForecastDay[];
   meta: HeatRiskMeta;
-  isFetching: boolean;
   errorReason: HeatRiskCalculationErrorReason | null;
   refresh: () => Promise<boolean>;
 }
@@ -30,14 +29,12 @@ interface UseHomeHeatRiskCalculatedResult extends UseHomeHeatRiskBaseResult {
   risk: HeatRisk;
   riskLevel: RiskLevel;
   hasCalculatedRisk: true;
-  canSyncSelection: true;
 }
 
 interface UseHomeHeatRiskPendingResult extends UseHomeHeatRiskBaseResult {
   risk: null;
   riskLevel: null;
   hasCalculatedRisk: false;
-  canSyncSelection: false;
 }
 
 type UseHomeHeatRiskResult =
@@ -175,11 +172,9 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
   if (hasCalculatedRisk && calculated) {
     return {
       ...calculated,
-      isFetching: riskQuery.isFetching,
       errorReason,
       refresh,
       hasCalculatedRisk: true,
-      canSyncSelection: true,
     };
   }
 
@@ -188,10 +183,8 @@ export function useHomeHeatRisk(): UseHomeHeatRiskResult {
     riskLevel: null,
     forecast: [],
     meta: {},
-    isFetching: riskQuery.isFetching,
     errorReason,
     refresh,
     hasCalculatedRisk: false,
-    canSyncSelection: false,
   };
 }

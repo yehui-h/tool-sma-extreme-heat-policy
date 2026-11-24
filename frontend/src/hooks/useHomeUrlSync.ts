@@ -6,7 +6,7 @@ import { useHomeStore } from "@/store/homeStore";
 
 interface UseHomeUrlSyncParams {
   setQueryStates: SetQueryStates;
-  canSyncSelection: boolean;
+  hasCalculatedRisk: boolean;
 }
 
 /**
@@ -14,7 +14,7 @@ interface UseHomeUrlSyncParams {
  */
 export function useHomeUrlSync({
   setQueryStates,
-  canSyncSelection,
+  hasCalculatedRisk,
 }: UseHomeUrlSyncParams): void {
   const channel = useHomeStore((state) => state.channel);
   const profile = useHomeStore((state) => state.profile);
@@ -28,7 +28,7 @@ export function useHomeUrlSync({
   const syncRunRef = useRef(0);
 
   useEffect(() => {
-    if (!canSyncSelection || !selectedLocation) {
+    if (!hasCalculatedRisk || !selectedLocation) {
       return;
     }
 
@@ -70,7 +70,7 @@ export function useHomeUrlSync({
       lastAppliedRef.current = nextSelection;
     })();
   }, [
-    canSyncSelection,
+    hasCalculatedRisk,
     channel,
     profile,
     selectedLocation,

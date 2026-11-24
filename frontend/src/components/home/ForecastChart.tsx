@@ -32,7 +32,7 @@ export function ForecastChart({ points, dayLabel }: ForecastChartProps) {
   const { i18n, t } = useTranslation();
   const isMobile = useIsMobileViewport();
   const locale = toIntlLocale(i18n.resolvedLanguage);
-  const riskLevelLong = createRiskLevelLabels((key) => t(key), "long");
+  const riskLevelLong = createRiskLevelLabels((key) => t(key));
   const { rows, endpoints } = buildForecastSummary(points, locale);
 
   const chartOption = buildForecastOption(
