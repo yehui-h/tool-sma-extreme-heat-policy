@@ -18,22 +18,18 @@ describe("heatRiskProfiles", () => {
       {
         type: "ADULT",
         labelKey: "home.sections.filters.profileAdult",
-        sortOrder: 0,
       },
       {
         type: "AGE_14_17",
         labelKey: "home.sections.filters.profileAge14To17",
-        sortOrder: 1,
       },
       {
         type: "AGE_10_13",
         labelKey: "home.sections.filters.profileAge10To13",
-        sortOrder: 2,
       },
       {
         type: "UNDER_10",
         labelKey: "home.sections.filters.profileUnder10",
-        sortOrder: 3,
       },
     ]);
   });
@@ -42,7 +38,6 @@ describe("heatRiskProfiles", () => {
     expect(getHeatRiskProfileMeta("AGE_14_17")).toEqual({
       type: "AGE_14_17",
       labelKey: "home.sections.filters.profileAge14To17",
-      sortOrder: 1,
     });
   });
 });

@@ -54,7 +54,6 @@ function toSportAssetName(type: SportType): string {
 
 export interface SportMeta {
   type: SportType;
-  assetName: string;
   labelKey: string;
   image: ResponsiveImageAsset | null;
 }
@@ -66,7 +65,6 @@ export const sports: readonly SportMeta[] = Object.values(SportType).map(
 
     return {
       type,
-      assetName,
       labelKey: `sports.${assetName}`,
       image: createResponsiveImageAsset({
         assetPath: `sports/${assetName}`,
