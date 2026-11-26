@@ -23,10 +23,9 @@ class SportsHeatStressInput:
 
 @dataclass(frozen=True)
 class SportsHeatStressOutput:
-    """JSON-safe model output plus calculator diagnostics."""
+    """JSON-safe model output from the pythermalcomfort heat-risk model."""
 
     data: dict[str, Any]
-    meta: dict[str, Any]
 
 
 class SportsHeatStressCalculator(Protocol):
@@ -76,16 +75,4 @@ class PythermalcomfortSportsHeatStressCalculator(SportsHeatStressCalculator):
         # Preserve pythermalcomfort keys exactly; only convert ndarray scalars for JSON transport.
         result_data = _to_json_serializable(asdict(result))
 
-        return SportsHeatStressOutput(
-            data=result_data,
-            meta={
-                "model": "pythermalcomfort.models.sports_heat_stress_risk",
-                "inputs": {
-                    "sport": payload.sport,
-                    "tdb": payload.tdb,
-                    "rh": payload.rh,
-                    "vr": payload.vr,
-                    "tr": _to_json_serializable(payload.tr),
-                },
-            },
-        )
+        return SportsHeatStressOutput(data=result_data)

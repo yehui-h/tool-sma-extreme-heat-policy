@@ -87,9 +87,6 @@ class FakeCalculator:
                 "t_extreme": 39.2,
                 "recommendation": "Increase hydration & modify clothing",
             },
-            meta={
-                "model": "pythermalcomfort.models.sports_heat_stress_risk",
-            },
         )
 
 
