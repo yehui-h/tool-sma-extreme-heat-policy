@@ -25,7 +25,7 @@ const PERTH: LocationSuggestion = {
 };
 
 function toSavedLocation(label: string): SavedLocation {
-  return { id: `saved-${label}`, label, location: PERTH, createdAt: 0 };
+  return { id: `saved-${label}`, label, location: PERTH };
 }
 
 describe("normalizeLabel", () => {
@@ -170,11 +170,11 @@ describe("createSavedLocation", () => {
     expect(saved.location.sessionToken).toBeUndefined();
   });
 
-  it("assigns an id and a creation timestamp", () => {
+  it("assigns an id", () => {
     const saved = createSavedLocation({ label: "Home", location: PERTH });
 
     expect(saved.id).not.toBe("");
-    expect(Number.isFinite(saved.createdAt)).toBe(true);
+    expect(saved).not.toHaveProperty("createdAt");
   });
 
   it("assigns a unique id to each saved location", () => {
