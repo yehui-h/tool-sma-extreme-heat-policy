@@ -97,14 +97,6 @@ function toContextName(context: unknown, key: string): string {
 }
 
 /**
- * Reads an ISO-3166 alpha-2 country code from a response context, uppercased.
- */
-function toCountryCode(context: unknown): string {
-  const country = toContextEntry(context, "country");
-  return country ? toTrimmedString(country.country_code).toUpperCase() : "";
-}
-
-/**
  * Builds the country field shown in the human-readable display label.
  *
  * Normally this is `context.country.name`. For `place` and `city` tiers the
@@ -211,7 +203,6 @@ function toLocationSuggestion(params: {
     fallbackName: name,
     featureType,
   });
-  const countryCode = toCountryCode(properties.context);
 
   if (!countryName) {
     return null;
@@ -228,7 +219,6 @@ function toLocationSuggestion(params: {
       ...(regionName ? { regionName } : {}),
       countryName,
       mapboxId,
-      ...(countryCode ? { countryCode } : {}),
       latitude,
       longitude,
     },

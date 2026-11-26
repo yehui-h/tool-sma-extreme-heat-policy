@@ -60,7 +60,6 @@ describe("suggestLocations", () => {
         regionName: "New South Wales",
         countryName: "Australia",
         mapboxId: "locality-auburn",
-        countryCode: "AU",
         sessionToken: "session",
       },
     ]);
@@ -218,8 +217,6 @@ describe("suggestLocations", () => {
         sessionToken: "session",
       },
     ]);
-    expect(suggestions[0]).not.toHaveProperty("countryCode");
-    expect(suggestions[1]).not.toHaveProperty("countryCode");
   });
 
   it("does not use broader place context as the country fallback for local results", async () => {
@@ -290,7 +287,6 @@ describe("suggestLocations", () => {
         countryName: "Singapore",
       }),
     ]);
-    expect(suggestions[0]).not.toHaveProperty("countryCode");
   });
 
   it("drops larger administrative results", async () => {
