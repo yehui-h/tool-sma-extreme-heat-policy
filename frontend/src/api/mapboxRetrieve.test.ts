@@ -83,6 +83,28 @@ describe("retrieveLocationCoordinates", () => {
     });
   });
 
+  it("throws an invalid_response error when retrieve coordinates are null", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          features: [{ geometry: { coordinates: [null, null] } }],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await expect(
+      retrieveLocationCoordinates({
+        mapboxId: "place-sydney",
+        accessToken: "token",
+        sessionToken: "session",
+      }),
+    ).rejects.toMatchObject({
+      endpoint: "retrieve",
+      kind: "invalid_response",
+    });
+  });
+
   it("throws an invalid_response error when retrieve returns non-JSON content", async () => {
     fetchMock.mockResolvedValue(new Response("not-json", { status: 200 }));
 
